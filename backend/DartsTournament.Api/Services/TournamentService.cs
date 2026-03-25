@@ -63,41 +63,52 @@ public class TournamentService
         int playerCount = players.Count;
         int rounds = (int)Math.Ceiling(Math.Log2(playerCount));
         int bracketSize = (int)Math.Pow(2, rounds);
-        int byes = bracketSize - playerCount;
 
         var matches = new List<Match>();
 
         // Calculate position offset for knockout matches
         int positionOffset = isKnockout ? _context.Matches.Local.Count(m => m.TournamentId == tournament.Id) : 0;
-        int position = positionOffset;
+        int matchPosition = positionOffset;
 
-        // First round
+        // Get bracket positions for proper seeding
+        var bracketPositions = GenerateBracketPositions(bracketSize);
+
+        // Create position-to-player mapping
+        // Seeds 1 to playerCount have players, rest are byes
+        var positionToPlayer = new int?[bracketSize];
+        for (int seed = 1; seed <= playerCount; seed++)
+        {
+            int pos = bracketPositions[seed - 1];
+            positionToPlayer[pos] = players[seed - 1].Id;
+        }
+
+        // First round - create matches based on bracket positions
         int matchesInFirstRound = bracketSize / 2;
-        int playerIndex = 0;
 
         for (int i = 0; i < matchesInFirstRound; i++)
         {
+            int pos1 = i * 2;      // Even positions: 0, 2, 4, 6...
+            int pos2 = i * 2 + 1;  // Odd positions: 1, 3, 5, 7...
+
             var match = new Match
             {
                 TournamentId = tournament.Id,
                 Round = 1 + roundOffset,
-                Position = position++,
-                IsKnockoutMatch = isKnockout
+                Position = matchPosition++,
+                IsKnockoutMatch = isKnockout,
+                Player1Id = positionToPlayer[pos1],
+                Player2Id = positionToPlayer[pos2]
             };
 
-            if (playerIndex < players.Count)
+            // Handle byes - if one player is null, the other wins automatically
+            if (match.Player1Id != null && match.Player2Id == null)
             {
-                match.Player1Id = players[playerIndex++].Id;
-            }
-
-            if (i >= byes && playerIndex < players.Count)
-            {
-                match.Player2Id = players[playerIndex++].Id;
-            }
-            else if (match.Player1Id != null)
-            {
-                // Bye - player advances automatically
                 match.WinnerId = match.Player1Id;
+                match.Status = MatchStatus.Completed;
+            }
+            else if (match.Player2Id != null && match.Player1Id == null)
+            {
+                match.WinnerId = match.Player2Id;
                 match.Status = MatchStatus.Completed;
             }
 
@@ -114,9 +125,31 @@ public class TournamentService
                 {
                     TournamentId = tournament.Id,
                     Round = round + roundOffset,
-                    Position = position++,
+                    Position = matchPosition++,
                     IsKnockoutMatch = isKnockout
                 });
+            }
+        }
+
+        // Advance bye winners to next round
+        var firstRoundMatches = matches.Where(m => m.Round == 1 + roundOffset).OrderBy(m => m.Position).ToList();
+        var secondRoundMatches = matches.Where(m => m.Round == 2 + roundOffset).OrderBy(m => m.Position).ToList();
+
+        for (int i = 0; i < firstRoundMatches.Count; i++)
+        {
+            var match = firstRoundMatches[i];
+            if (match.WinnerId != null && match.Status == MatchStatus.Completed)
+            {
+                // This is a bye match, advance winner to next round
+                int nextMatchIndex = i / 2;
+                if (nextMatchIndex < secondRoundMatches.Count)
+                {
+                    var nextMatch = secondRoundMatches[nextMatchIndex];
+                    if (i % 2 == 0)
+                        nextMatch.Player1Id = match.WinnerId;
+                    else
+                        nextMatch.Player2Id = match.WinnerId;
+                }
             }
         }
 
@@ -232,7 +265,7 @@ public class TournamentService
         _context.Matches.AddRange(matches);
     }
 
-    public async Task<List<GroupStandingResponse>> GetGroupStandingsAsync(int tournamentId)
+    public async Task<List<GroupStandingResponse>> GetStandingsAsync(int tournamentId)
     {
         var tournament = await _context.Tournaments
             .Include(t => t.Groups)
@@ -244,6 +277,86 @@ public class TournamentService
         if (tournament == null)
             throw new InvalidOperationException("Tournament not found");
 
+        // Route vers la bonne méthode selon le format
+        if (tournament.Format == TournamentFormat.RoundRobin)
+        {
+            return GetRoundRobinStandings(tournament);
+        }
+        else if (tournament.Format == TournamentFormat.GroupStage)
+        {
+            return GetGroupStageStandings(tournament);
+        }
+
+        return new List<GroupStandingResponse>();
+    }
+
+    private List<GroupStandingResponse> GetRoundRobinStandings(Tournament tournament)
+    {
+        var completedMatches = tournament.Matches
+            .Where(m => m.Status == MatchStatus.Completed)
+            .ToList();
+
+        var standings = new List<PlayerStandingResponse>();
+
+        foreach (var tp in tournament.TournamentPlayers)
+        {
+            var playerMatches = completedMatches
+                .Where(m => m.Player1Id == tp.PlayerId || m.Player2Id == tp.PlayerId)
+                .ToList();
+
+            int played = playerMatches.Count;
+            int won = playerMatches.Count(m => m.WinnerId == tp.PlayerId);
+            int lost = played - won;
+
+            int pointsFor = playerMatches.Sum(m =>
+                m.Player1Id == tp.PlayerId ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
+            int pointsAgainst = playerMatches.Sum(m =>
+                m.Player1Id == tp.PlayerId ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
+
+            int points = won * 3; // 3 points per win
+
+            standings.Add(new PlayerStandingResponse(
+                tp.PlayerId,
+                $"{tp.Player.FirstName} {tp.Player.LastName}",
+                played,
+                won,
+                lost,
+                pointsFor,
+                pointsAgainst,
+                pointsFor - pointsAgainst,
+                points,
+                0 // Rank will be set after sorting
+            ));
+        }
+
+        // Sort by points, then point difference, then points for
+        var sortedStandings = standings
+            .OrderByDescending(s => s.Points)
+            .ThenByDescending(s => s.PointsDiff)
+            .ThenByDescending(s => s.PointsFor)
+            .Select((s, index) => new PlayerStandingResponse(
+                s.PlayerId,
+                s.PlayerName,
+                s.Played,
+                s.Won,
+                s.Lost,
+                s.PointsFor,
+                s.PointsAgainst,
+                s.PointsDiff,
+                s.Points,
+                index + 1
+            ))
+            .ToList();
+
+        // Return as a single "group" for consistency with frontend
+        return new List<GroupStandingResponse>
+        {
+            new GroupStandingResponse(0, "Classement", sortedStandings)
+        };
+    }
+
+    private List<GroupStandingResponse> GetGroupStageStandings(Tournament tournament)
+    {
         var result = new List<GroupStandingResponse>();
 
         foreach (var group in tournament.Groups.OrderBy(g => g.Name))
@@ -331,7 +444,7 @@ public class TournamentService
         int qualifiersPerGroup = tournament.QualifiersPerGroup ?? 2;
 
         // Get standings to determine qualifiers
-        var standings = await GetGroupStandingsAsync(tournamentId);
+        var standings = await GetStandingsAsync(tournamentId);
 
         // Collect qualified players from each group
         var qualifiedPlayers = new List<(Player Player, int GroupIndex, int Rank)>();
@@ -356,10 +469,11 @@ public class TournamentService
         if (qualifiedPlayers.Count < 2)
             throw new InvalidOperationException("Not enough qualified players for knockout phase");
 
-        // Arrange players for knockout bracket
-        // First place teams should not meet each other until later rounds
-        // Standard arrangement: 1A vs 2B, 1B vs 2A, etc.
-        var arrangedPlayers = ArrangePlayersForKnockout(qualifiedPlayers, standings.Count);
+        // Arrange players for knockout bracket with proper seeding
+        // - Top seeds get byes (if any)
+        // - Top seeds meet as late as possible (protection)
+        // - Cross-group matchups: 1A vs last qualifier from other group
+        var arrangedPlayers = ArrangePlayersForKnockout(qualifiedPlayers, standings.Count, standings);
 
         // Calculate round offset (group stage uses round 1)
         int roundOffset = 1;
@@ -370,60 +484,89 @@ public class TournamentService
         await _context.SaveChangesAsync();
     }
 
-    private List<Player> ArrangePlayersForKnockout(List<(Player Player, int GroupIndex, int Rank)> qualifiedPlayers, int groupCount)
+    private List<Player> ArrangePlayersForKnockout(
+        List<(Player Player, int GroupIndex, int Rank)> qualifiedPlayers,
+        int groupCount,
+        List<GroupStandingResponse> standings)
     {
-        // Group players by rank
-        var byRank = qualifiedPlayers
-            .GroupBy(p => p.Rank)
-            .OrderBy(g => g.Key)
+        // Create global seeding based on rank in group, then stats (points, diff, for)
+        // This ensures:
+        // - All 1st place finishers are seeded before 2nd place, etc.
+        // - Within each rank, players are sorted by performance
+        // - Top seeds get byes and are protected (meet late)
+        // - Cross-group matchups happen naturally (1A vs 2B, 2A vs 3B, etc.)
+        var seededPlayers = qualifiedPlayers
+            .Select(p => {
+                var groupStanding = standings.FirstOrDefault(g =>
+                    g.Standings.Any(s => s.PlayerId == p.Player.Id));
+                var playerStats = groupStanding?.Standings
+                    .FirstOrDefault(s => s.PlayerId == p.Player.Id);
+                return new {
+                    p.Player,
+                    p.GroupIndex,
+                    p.Rank,
+                    Points = playerStats?.Points ?? 0,
+                    PointsDiff = playerStats?.PointsDiff ?? 0,
+                    PointsFor = playerStats?.PointsFor ?? 0
+                };
+            })
+            .OrderBy(p => p.Rank)            // Primary: rank in group (1st > 2nd > 3rd)
+            .ThenByDescending(p => p.Points) // Then by points
+            .ThenByDescending(p => p.PointsDiff) // Then by point difference
+            .ThenByDescending(p => p.PointsFor)  // Then by points scored
+            .Select(p => p.Player)
             .ToList();
 
-        var arranged = new List<Player>();
-        int bracketSize = (int)Math.Pow(2, Math.Ceiling(Math.Log2(qualifiedPlayers.Count)));
+        // Return players in seed order (seed 1 first, seed 2 second, etc.)
+        // GenerateSingleEliminationBracket will place them at correct bracket positions
+        return seededPlayers;
+    }
 
-        // Simple arrangement: alternate between groups for same-ranked players
-        // This ensures players from the same group don't meet in early rounds
-        if (byRank.Count >= 2 && groupCount >= 2)
+    /// <summary>
+    /// Generates standard bracket positions for seeding.
+    /// For a bracket of size 8: positions ensure 1v8, 4v5, 3v6, 2v7 matchups
+    /// with 1 and 2 on opposite sides of the bracket (meeting only in final).
+    /// Byes go to the highest seeds (they face missing opponents).
+    /// </summary>
+    private int[] GenerateBracketPositions(int bracketSize)
+    {
+        // positions[seed-1] = bracket position for that seed
+        var positions = new int[bracketSize];
+
+        if (bracketSize == 1)
         {
-            var firstPlace = byRank[0].OrderBy(p => p.GroupIndex).ToList();
-            var secondPlace = byRank.Count > 1 ? byRank[1].OrderBy(p => p.GroupIndex).ToList() : new List<(Player Player, int GroupIndex, int Rank)>();
-
-            // Pair 1st from group A with 2nd from group B, etc.
-            for (int i = 0; i < firstPlace.Count; i++)
-            {
-                arranged.Add(firstPlace[i].Player);
-                int oppositeIndex = (firstPlace.Count - 1 - i) % secondPlace.Count;
-                if (oppositeIndex < secondPlace.Count)
-                {
-                    arranged.Add(secondPlace[oppositeIndex].Player);
-                }
-            }
-
-            // Add remaining players
-            var addedIds = arranged.Select(p => p.Id).ToHashSet();
-            foreach (var group in byRank.Skip(2))
-            {
-                foreach (var p in group)
-                {
-                    if (!addedIds.Contains(p.Player.Id))
-                    {
-                        arranged.Add(p.Player);
-                        addedIds.Add(p.Player.Id);
-                    }
-                }
-            }
-        }
-        else
-        {
-            // Fallback: just use all players in rank order
-            arranged = qualifiedPlayers
-                .OrderBy(p => p.Rank)
-                .ThenBy(p => p.GroupIndex)
-                .Select(p => p.Player)
-                .ToList();
+            positions[0] = 0;
+            return positions;
         }
 
-        return arranged;
+        // Build bracket recursively
+        // Start with seeds 1 and 2 on opposite ends
+        var seeds = new List<int> { 1, 2 };
+
+        while (seeds.Count < bracketSize)
+        {
+            // For each round, add complementary seeds
+            // Sum of paired seeds should equal currentSize + 1
+            var newSeeds = new List<int>();
+            int targetSum = seeds.Count * 2 + 1;
+
+            foreach (int seed in seeds)
+            {
+                newSeeds.Add(seed);
+                newSeeds.Add(targetSum - seed);
+            }
+            seeds = newSeeds;
+        }
+
+        // Now seeds list contains the order: e.g., for 8: [1, 8, 4, 5, 3, 6, 2, 7]
+        // This means position 0 has seed 1, position 1 has seed 8, etc.
+        // We need the inverse: positions[seed-1] = position
+        for (int pos = 0; pos < seeds.Count; pos++)
+        {
+            positions[seeds[pos] - 1] = pos;
+        }
+
+        return positions;
     }
 
     public async Task UpdateMatchScoreAsync(int matchId, int player1Score, int player2Score)

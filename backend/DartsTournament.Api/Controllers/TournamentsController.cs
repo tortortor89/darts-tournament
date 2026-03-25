@@ -288,7 +288,7 @@ public class TournamentsController : ControllerBase
     {
         try
         {
-            var standings = await _tournamentService.GetGroupStandingsAsync(id);
+            var standings = await _tournamentService.GetStandingsAsync(id);
             return Ok(standings);
         }
         catch (InvalidOperationException ex)

@@ -174,42 +174,116 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
               </div>
             </div>
           }
-        } @else {
-          <!-- Non-GroupStage: Show all matches by round -->
-          <div class="matches-section">
-            <h3>Matchs</h3>
-            @if (tournament.format === TournamentFormat.SingleElimination) {
-              <app-bracket-viewer [tournament]="tournament"></app-bracket-viewer>
-            }
-            @for (round of getRounds(); track round) {
-              <div class="round">
-                <h4>Round {{ round }}</h4>
-                <div class="matches">
-                  @for (match of getMatchesByRound(round); track match.id) {
-                    <div class="match" [class.completed]="match.status === MatchStatus.Completed">
-                      <div class="players">
-                        <span [class.winner]="match.winnerId === match.player1Id">
-                          {{ match.player1Name || 'TBD' }}
-                          @if (match.player1Score !== null) { ({{ match.player1Score }}) }
-                        </span>
-                        <span class="vs">vs</span>
-                        <span [class.winner]="match.winnerId === match.player2Id">
-                          {{ match.player2Name || 'TBD' }}
-                          @if (match.player2Score !== null) { ({{ match.player2Score }}) }
-                        </span>
-                      </div>
-                      @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
-                        <div class="score-input">
-                          <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                          <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                          <button (click)="updateScore(match)">Valider</button>
+        } @else if (tournament.format === TournamentFormat.SingleElimination) {
+          <!-- Single Elimination -->
+          <div class="bracket-section">
+            <h3>Tableau</h3>
+            <app-bracket-viewer [tournament]="tournament"></app-bracket-viewer>
+
+            <!-- Match details by round -->
+            <div class="bracket-matches">
+              @for (round of getRounds(); track round) {
+                <div class="round">
+                  <h4>{{ getSingleElimRoundName(round) }}</h4>
+                  <div class="matches">
+                    @for (match of getMatchesByRound(round); track match.id) {
+                      <div class="match" [class.completed]="match.status === MatchStatus.Completed">
+                        <div class="players">
+                          <span [class.winner]="match.winnerId === match.player1Id">
+                            {{ match.player1Name || 'TBD' }}
+                            @if (match.player1Score !== null) { ({{ match.player1Score }}) }
+                          </span>
+                          <span class="vs">vs</span>
+                          <span [class.winner]="match.winnerId === match.player2Id">
+                            {{ match.player2Name || 'TBD' }}
+                            @if (match.player2Score !== null) { ({{ match.player2Score }}) }
+                          </span>
                         </div>
+                        @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                          <div class="score-input">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                            <button (click)="updateScore(match)">Valider</button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- Round Robin -->
+          <div class="roundrobin-section">
+            <!-- Standings Table -->
+            @if (standings.length > 0) {
+              <div class="standings-section">
+                <h3>Classement</h3>
+                <div class="roundrobin-standings">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Joueur</th>
+                        <th>J</th>
+                        <th>V</th>
+                        <th>D</th>
+                        <th>+/-</th>
+                        <th>Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (player of standings[0].standings; track player.playerId) {
+                        <tr [class.top-3]="player.rank <= 3">
+                          <td class="rank">
+                            @if (player.rank === 1) { 🥇 }
+                            @else if (player.rank === 2) { 🥈 }
+                            @else if (player.rank === 3) { 🥉 }
+                            @else { {{ player.rank }} }
+                          </td>
+                          <td>{{ player.playerName }}</td>
+                          <td>{{ player.played }}</td>
+                          <td>{{ player.won }}</td>
+                          <td>{{ player.lost }}</td>
+                          <td>{{ player.pointsDiff > 0 ? '+' : '' }}{{ player.pointsDiff }}</td>
+                          <td><strong>{{ player.points }}</strong></td>
+                        </tr>
                       }
-                    </div>
-                  }
+                    </tbody>
+                  </table>
                 </div>
               </div>
             }
+
+            <!-- Matches -->
+            <div class="matches-section">
+              <h3>Matchs</h3>
+              <div class="matches-grid">
+                @for (match of tournament.matches; track match.id) {
+                  <div class="match" [class.completed]="match.status === MatchStatus.Completed">
+                    <div class="players">
+                      <span [class.winner]="match.winnerId === match.player1Id">
+                        {{ match.player1Name || 'TBD' }}
+                        @if (match.player1Score !== null) { ({{ match.player1Score }}) }
+                      </span>
+                      <span class="vs">vs</span>
+                      <span [class.winner]="match.winnerId === match.player2Id">
+                        {{ match.player2Name || 'TBD' }}
+                        @if (match.player2Score !== null) { ({{ match.player2Score }}) }
+                      </span>
+                    </div>
+                    @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                      <div class="score-input">
+                        <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                        <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                        <button (click)="updateScore(match)">Valider</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
           </div>
         }
       }
@@ -337,6 +411,92 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
       margin-top: 20px;
     }
 
+    /* Single Elimination Bracket Section */
+    .bracket-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+    }
+    .bracket-section h3 {
+      color: white;
+      margin-bottom: 15px;
+    }
+    .bracket-section h4 {
+      color: white;
+      border-bottom: 2px solid rgba(255,255,255,0.3);
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+    .bracket-matches {
+      margin-top: 20px;
+    }
+    .bracket-section .match {
+      background: rgba(255,255,255,0.95);
+      color: #333;
+    }
+    .bracket-section .match.completed {
+      background: rgba(255,255,255,1);
+      border-left: 4px solid #28a745;
+    }
+
+    /* Round Robin Section */
+    .roundrobin-section {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .roundrobin-section h3 {
+      color: white;
+      margin-bottom: 15px;
+    }
+    .roundrobin-standings {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .roundrobin-standings table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .roundrobin-standings th, .roundrobin-standings td {
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    .roundrobin-standings th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+    }
+    .roundrobin-standings td:nth-child(2) {
+      text-align: left;
+    }
+    .roundrobin-standings tr.top-3 {
+      background: #e8f5e9;
+    }
+    .roundrobin-standings .rank {
+      font-size: 1.1em;
+    }
+    .roundrobin-section .matches-section {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+    }
+    .roundrobin-section .matches-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 15px;
+    }
+    .roundrobin-section .match {
+      background: white;
+      color: #333;
+    }
+    .roundrobin-section .match.completed {
+      border-left: 4px solid #28a745;
+    }
+
     .round {
       margin-bottom: 20px;
     }
@@ -419,8 +579,9 @@ export class TournamentDetailComponent implements OnInit {
       this.tournament = tournament;
       this.initScoreInputs();
 
-      // Load standings for GroupStage tournaments
-      if (tournament.format === TournamentFormat.GroupStage && tournament.status !== TournamentStatus.Draft) {
+      // Load standings for GroupStage and RoundRobin tournaments
+      if ((tournament.format === TournamentFormat.GroupStage || tournament.format === TournamentFormat.RoundRobin)
+          && tournament.status !== TournamentStatus.Draft) {
         this.loadStandings(id);
       }
     });
@@ -522,6 +683,21 @@ export class TournamentDetailComponent implements OnInit {
     if (round === maxRound) return 'Finale';
     if (round === maxRound - 1 && matchesInRound <= 2) return 'Demi-finales';
     if (round === maxRound - 2 && matchesInRound <= 4) return 'Quarts de finale';
+    return `Round ${round}`;
+  }
+
+  getSingleElimRoundName(round: number): string {
+    if (!this.tournament) return `Round ${round}`;
+    const rounds = this.getRounds();
+    const maxRound = Math.max(...rounds);
+    const matchesInRound = this.getMatchesByRound(round).length;
+
+    if (round === maxRound) return 'Finale';
+    if (matchesInRound === 1) return 'Finale';
+    if (matchesInRound === 2) return 'Demi-finales';
+    if (matchesInRound === 4) return 'Quarts de finale';
+    if (matchesInRound === 8) return 'Huitièmes de finale';
+    if (matchesInRound === 16) return 'Seizièmes de finale';
     return `Round ${round}`;
   }
 
