@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Tournament, TournamentFormat, TournamentStatus } from '../../core/models';
@@ -13,6 +14,10 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
   template: `
     <div class="container">
       <h2>Tournois</h2>
+
+      @if (loading) {
+        <div class="loading">Chargement...</div>
+      }
 
       @if (authService.isAuthenticated()) {
         <div class="add-form">
@@ -164,6 +169,11 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       border-radius: 4px;
       cursor: pointer;
     }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
   `]
 })
 export class TournamentListComponent implements OnInit {
@@ -176,9 +186,12 @@ export class TournamentListComponent implements OnInit {
     qualifiersPerGroup: 2,
     hasKnockoutPhase: true
   };
+  loading = false;
 
   TournamentFormat = TournamentFormat;
   TournamentStatus = TournamentStatus;
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(public authService: AuthService, private apiService: ApiService) {}
 
@@ -187,8 +200,10 @@ export class TournamentListComponent implements OnInit {
   }
 
   loadTournaments() {
-    this.apiService.getTournaments().subscribe(tournaments => {
+    this.loading = true;
+    this.apiService.getTournaments().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(tournaments => {
       this.tournaments = tournaments;
+      this.loading = false;
     });
   }
 
@@ -215,7 +230,7 @@ export class TournamentListComponent implements OnInit {
       data.hasKnockoutPhase = this.form.hasKnockoutPhase;
     }
 
-    this.apiService.createTournament(data).subscribe(() => {
+    this.apiService.createTournament(data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.loadTournaments();
       this.form = {
         name: '',
@@ -230,7 +245,7 @@ export class TournamentListComponent implements OnInit {
 
   deleteTournament(id: number) {
     if (confirm('Voulez-vous vraiment supprimer ce tournoi ?')) {
-      this.apiService.deleteTournament(id).subscribe(() => {
+      this.apiService.deleteTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadTournaments();
       });
     }

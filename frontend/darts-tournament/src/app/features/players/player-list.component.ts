@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Player } from '../../core/models';
@@ -12,6 +13,10 @@ import { Player } from '../../core/models';
   template: `
     <div class="container">
       <h2>Joueurs</h2>
+
+      @if (loading) {
+        <div class="loading">Chargement...</div>
+      }
 
       @if (authService.isAuthenticated()) {
         <div class="add-form">
@@ -110,12 +115,20 @@ import { Player } from '../../core/models';
       background: #dc3545;
       color: white;
     }
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
   `]
 })
 export class PlayerListComponent implements OnInit {
   players: Player[] = [];
   form = { firstName: '', lastName: '', nickname: '' };
   editingPlayer: Player | null = null;
+  loading = false;
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(public authService: AuthService, private apiService: ApiService) {}
 
@@ -124,19 +137,21 @@ export class PlayerListComponent implements OnInit {
   }
 
   loadPlayers() {
-    this.apiService.getPlayers().subscribe(players => {
+    this.loading = true;
+    this.apiService.getPlayers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(players => {
       this.players = players;
+      this.loading = false;
     });
   }
 
   savePlayer() {
     if (this.editingPlayer) {
-      this.apiService.updatePlayer(this.editingPlayer.id, this.form).subscribe(() => {
+      this.apiService.updatePlayer(this.editingPlayer.id, this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadPlayers();
         this.cancelEdit();
       });
     } else {
-      this.apiService.createPlayer(this.form).subscribe(() => {
+      this.apiService.createPlayer(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadPlayers();
         this.form = { firstName: '', lastName: '', nickname: '' };
       });
@@ -159,7 +174,7 @@ export class PlayerListComponent implements OnInit {
 
   deletePlayer(id: number) {
     if (confirm('Voulez-vous vraiment supprimer ce joueur ?')) {
-      this.apiService.deletePlayer(id).subscribe(() => {
+      this.apiService.deletePlayer(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadPlayers();
       });
     }

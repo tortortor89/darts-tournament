@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding } from '../../core/models';
@@ -12,6 +13,11 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
   standalone: true,
   imports: [CommonModule, FormsModule, BracketViewerComponent],
   template: `
+    @if (loading) {
+      <div class="container">
+        <div class="loading">Chargement...</div>
+      </div>
+    }
     <div class="container" *ngIf="tournament">
       <h2>{{ tournament.name }}</h2>
       <div class="info">
@@ -548,6 +554,12 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
       border-radius: 4px;
       cursor: pointer;
     }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.1em;
+    }
   `]
 })
 export class TournamentDetailComponent implements OnInit {
@@ -557,10 +569,13 @@ export class TournamentDetailComponent implements OnInit {
   selectedPlayerId = '';
   selectedSeed: number | null = null;
   scoreInputs: { [key: number]: { player1: number; player2: number } } = {};
+  loading = false;
 
   TournamentFormat = TournamentFormat;
   TournamentStatus = TournamentStatus;
   MatchStatus = MatchStatus;
+
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private route: ActivatedRoute,
@@ -575,9 +590,11 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   loadTournament(id: number) {
-    this.apiService.getTournament(id).subscribe(tournament => {
+    this.loading = true;
+    this.apiService.getTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(tournament => {
       this.tournament = tournament;
       this.initScoreInputs();
+      this.loading = false;
 
       // Load standings for GroupStage and RoundRobin tournaments
       if ((tournament.format === TournamentFormat.GroupStage || tournament.format === TournamentFormat.RoundRobin)
@@ -588,13 +605,13 @@ export class TournamentDetailComponent implements OnInit {
   }
 
   loadStandings(id: number) {
-    this.apiService.getStandings(id).subscribe(standings => {
+    this.apiService.getStandings(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(standings => {
       this.standings = standings;
     });
   }
 
   loadPlayers() {
-    this.apiService.getPlayers().subscribe(players => {
+    this.apiService.getPlayers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(players => {
       this.updateAvailablePlayers(players);
     });
   }
@@ -622,7 +639,7 @@ export class TournamentDetailComponent implements OnInit {
         this.tournament.id,
         Number(this.selectedPlayerId),
         this.selectedSeed || undefined
-      ).subscribe(() => {
+      ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadTournament(this.tournament!.id);
         this.selectedPlayerId = '';
         this.selectedSeed = null;
@@ -633,7 +650,7 @@ export class TournamentDetailComponent implements OnInit {
 
   removePlayer(playerId: number) {
     if (this.tournament) {
-      this.apiService.removePlayerFromTournament(this.tournament.id, playerId).subscribe(() => {
+      this.apiService.removePlayerFromTournament(this.tournament.id, playerId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadTournament(this.tournament!.id);
         this.loadPlayers();
       });
@@ -642,7 +659,7 @@ export class TournamentDetailComponent implements OnInit {
 
   generateBracket() {
     if (this.tournament) {
-      this.apiService.generateBracket(this.tournament.id).subscribe(() => {
+      this.apiService.generateBracket(this.tournament.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.loadTournament(this.tournament!.id);
       });
     }
@@ -717,7 +734,7 @@ export class TournamentDetailComponent implements OnInit {
 
   updateScore(match: Match) {
     const scores = this.scoreInputs[match.id];
-    this.apiService.updateMatchScore(match.id, scores.player1, scores.player2).subscribe(() => {
+    this.apiService.updateMatchScore(match.id, scores.player1, scores.player2).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.loadTournament(this.tournament!.id);
     });
   }

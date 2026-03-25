@@ -4,15 +4,15 @@
 
 - [ ] Ajouter validation des entrées sur les DTOs (password, username, noms)
 - [ ] Externaliser les credentials (BDD, JWT) hors de appsettings.json
-- [ ] Protéger les routes Angular avec authGuard
+- [x] Protéger les routes Angular avec authGuard
 - [ ] Ajouter middleware global de gestion des erreurs (Backend)
 - [ ] Corriger la race condition sur la génération knockout
 - [x] Implémenter un intercepteur HTTP pour gérer les 401 (Angular)
 
 ## Priorité Moyenne - Qualité / UX
 
-- [ ] Corriger les fuites mémoire (unsubscribe dans les composants)
-- [ ] Ajouter des indicateurs de chargement (loading states)
+- [x] Corriger les fuites mémoire (unsubscribe dans les composants)
+- [x] Ajouter des indicateurs de chargement (loading states)
 - [ ] Améliorer la gestion d'erreurs avec messages informatifs
 - [ ] Ajouter des notifications toast pour les actions utilisateur
 - [ ] Optimiser le rechargement des données (éviter reload complet)
