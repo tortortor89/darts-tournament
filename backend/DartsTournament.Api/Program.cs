@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.Services;
+using DartsTournament.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,8 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
+app.UseExceptionHandling(); // Global exception handler - must be first
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

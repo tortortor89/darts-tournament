@@ -5,15 +5,19 @@
 - [ ] Ajouter validation des entrées sur les DTOs (password, username, noms)
 - [ ] Externaliser les credentials (BDD, JWT) hors de appsettings.json
 - [x] Protéger les routes Angular avec authGuard
-- [ ] Ajouter middleware global de gestion des erreurs (Backend)
+- [x] Ajouter middleware global de gestion des erreurs (Backend)
 - [ ] Corriger la race condition sur la génération knockout
 - [x] Implémenter un intercepteur HTTP pour gérer les 401 (Angular)
+- [ ] Gestion des rôles et permissions (Admin, Joueur, Non connecté)
+  - Admin : création/suppression tournois, gestion joueurs, saisie scores
+  - Joueur : consultation, inscription aux tournois
+  - Non connecté : consultation seule
 
 ## Priorité Moyenne - Qualité / UX
 
 - [x] Corriger les fuites mémoire (unsubscribe dans les composants)
 - [x] Ajouter des indicateurs de chargement (loading states)
-- [ ] Améliorer la gestion d'erreurs avec messages informatifs
+- [x] Améliorer la gestion d'erreurs avec messages informatifs
 - [ ] Ajouter des notifications toast pour les actions utilisateur
 - [ ] Optimiser le rechargement des données (éviter reload complet)
 - [x] Ajouter vérification d'intégrité pour les scripts CDN (N/A - pas de CDN)
