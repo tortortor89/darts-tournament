@@ -27,4 +27,8 @@ public class Match
     public MatchStatus Status { get; set; } = MatchStatus.Pending;
     public DateTime? ScheduledAt { get; set; }
     public bool IsKnockoutMatch { get; set; } = false;
+
+    // Double Elimination
+    public BracketType BracketType { get; set; } = BracketType.None;
+    public bool IsBracketReset { get; set; } = false;
 }

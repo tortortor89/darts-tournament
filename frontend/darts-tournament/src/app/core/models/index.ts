@@ -29,6 +29,7 @@ export interface Tournament {
   playersPerGroup?: number;
   qualifiersPerGroup?: number;
   hasKnockoutPhase: boolean;
+  allowBracketReset: boolean;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -36,6 +37,7 @@ export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
   playersPerGroup?: number;
   qualifiersPerGroup?: number;
   hasKnockoutPhase: boolean;
+  allowBracketReset: boolean;
   players: TournamentPlayer[];
   groups: Group[];
   matches: Match[];
@@ -72,6 +74,8 @@ export interface Match {
   status: MatchStatus;
   scheduledAt?: Date;
   isKnockoutMatch: boolean;
+  bracketType: BracketType;
+  isBracketReset: boolean;
 }
 
 export interface GroupStanding {
@@ -96,7 +100,15 @@ export interface PlayerStanding {
 export enum TournamentFormat {
   SingleElimination = 0,
   RoundRobin = 1,
-  GroupStage = 2
+  GroupStage = 2,
+  DoubleElimination = 3
+}
+
+export enum BracketType {
+  None = 0,
+  Winners = 1,
+  Losers = 2,
+  GrandFinal = 3
 }
 
 export enum TournamentStatus {

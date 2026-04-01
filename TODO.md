@@ -32,7 +32,7 @@
 ### Affichage & Formats de tournoi
 - [x] Améliorer l'affichage Round Robin (s'inspirer du format Group Stage)
 - [x] Améliorer l'affichage Single Elimination (bracket visuel cohérent)
-- [ ] Ajouter le format Double Elimination
+- [x] Ajouter le format Double Elimination (bracket viewer avec lignes SVG, classement par élimination)
 - [ ] Écrans de gestion de match dédiés (saisie des scores, legs, sets)
 
 ### Statistiques & Joueurs

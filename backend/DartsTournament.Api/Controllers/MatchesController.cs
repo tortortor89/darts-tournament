@@ -48,7 +48,9 @@ public class MatchesController : ControllerBase
             match.WinnerId,
             match.Status,
             match.ScheduledAt,
-            match.IsKnockoutMatch
+            match.IsKnockoutMatch,
+            match.BracketType,
+            match.IsBracketReset
         );
 
         return Ok(response);

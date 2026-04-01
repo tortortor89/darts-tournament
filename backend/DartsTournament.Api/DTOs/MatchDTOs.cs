@@ -18,5 +18,7 @@ public record MatchResponse(
     int? WinnerId,
     MatchStatus Status,
     DateTime? ScheduledAt,
-    bool IsKnockoutMatch
+    bool IsKnockoutMatch,
+    BracketType BracketType,
+    bool IsBracketReset
 );

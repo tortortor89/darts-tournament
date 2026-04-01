@@ -27,6 +27,7 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
               <input type="text" [(ngModel)]="form.name" name="name" placeholder="Nom du tournoi" required>
               <select [(ngModel)]="form.format" name="format" (ngModelChange)="onFormatChange()">
                 <option [value]="TournamentFormat.SingleElimination">Élimination directe</option>
+                <option [value]="TournamentFormat.DoubleElimination">Double élimination</option>
                 <option [value]="TournamentFormat.RoundRobin">Round Robin</option>
                 <option [value]="TournamentFormat.GroupStage">Phase de groupes</option>
               </select>
@@ -254,6 +255,7 @@ export class TournamentListComponent implements OnInit {
   getFormatLabel(format: TournamentFormat): string {
     switch (format) {
       case TournamentFormat.SingleElimination: return 'Élimination directe';
+      case TournamentFormat.DoubleElimination: return 'Double élimination';
       case TournamentFormat.RoundRobin: return 'Round Robin';
       case TournamentFormat.GroupStage: return 'Phase de groupes';
       default: return 'Inconnu';

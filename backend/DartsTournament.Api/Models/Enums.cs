@@ -4,7 +4,16 @@ public enum TournamentFormat
 {
     SingleElimination,
     RoundRobin,
-    GroupStage
+    GroupStage,
+    DoubleElimination
+}
+
+public enum BracketType
+{
+    None = 0,
+    Winners = 1,
+    Losers = 2,
+    GrandFinal = 3
 }
 
 public enum TournamentStatus

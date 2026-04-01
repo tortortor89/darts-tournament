@@ -5,13 +5,14 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding } from '../../core/models';
+import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
+import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
 
 @Component({
   selector: 'app-tournament-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, BracketViewerComponent],
+  imports: [CommonModule, FormsModule, BracketViewerComponent, DoubleBracketViewerComponent],
   template: `
     @if (loading) {
       <div class="container">
@@ -216,6 +217,73 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
                     }
                   </div>
                 </div>
+              }
+            </div>
+          </div>
+        } @else if (tournament.format === TournamentFormat.DoubleElimination) {
+          <!-- Double Elimination -->
+          <div class="double-elim-section">
+            <h3>Tableau Double Élimination</h3>
+            <app-double-bracket-viewer [tournament]="tournament"></app-double-bracket-viewer>
+
+            <!-- Standings for Double Elimination (only when completed) -->
+            @if (tournament.status === TournamentStatus.Completed && standings.length > 0 && standings[0].standings.length > 0) {
+              <div class="standings-section de-standings">
+                <h3>Classement</h3>
+                <div class="de-standings-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Joueur</th>
+                        <th>J</th>
+                        <th>V</th>
+                        <th>D</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (player of standings[0].standings; track player.playerId) {
+                        <tr [class.top-3]="player.rank <= 3">
+                          <td class="rank">
+                            @if (player.rank === 1) { 🥇 }
+                            @else if (player.rank === 2) { 🥈 }
+                            @else if (player.rank === 3) { 🥉 }
+                            @else { {{ player.rank }} }
+                          </td>
+                          <td>{{ player.playerName }}</td>
+                          <td>{{ player.played }}</td>
+                          <td>{{ player.won }}</td>
+                          <td>{{ player.lost }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            }
+
+            <!-- Match input for Double Elimination -->
+            <div class="double-elim-matches">
+              @for (match of getDoubleElimMatches(); track match.id) {
+                @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
+                  <div class="match-input-card" [class.winners]="match.bracketType === BracketType.Winners" [class.losers]="match.bracketType === BracketType.Losers" [class.grand-final]="match.bracketType === BracketType.GrandFinal">
+                    <div class="match-info">
+                      <span class="bracket-label">{{ getBracketLabel(match) }}</span>
+                      <div class="players">
+                        <span>{{ match.player1Name }}</span>
+                        <span class="vs">vs</span>
+                        <span>{{ match.player2Name }}</span>
+                      </div>
+                    </div>
+                    @if (authService.isAuthenticated()) {
+                      <div class="score-input">
+                        <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                        <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                        <button (click)="updateScore(match)">Valider</button>
+                      </div>
+                    }
+                  </div>
+                }
               }
             </div>
           </div>
@@ -485,6 +553,39 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
     .roundrobin-standings .rank {
       font-size: 1.1em;
     }
+    .de-standings {
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .de-standings-table {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .de-standings-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .de-standings-table th, .de-standings-table td {
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+      color: #333;
+    }
+    .de-standings-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+    }
+    .de-standings-table td:nth-child(2) {
+      text-align: left;
+    }
+    .de-standings-table tr.top-3 {
+      background: #e8f5e9;
+    }
+    .de-standings-table .rank {
+      font-size: 1.1em;
+    }
     .roundrobin-section .matches-section {
       background: rgba(255,255,255,0.1);
       padding: 15px;
@@ -560,6 +661,53 @@ import { BracketViewerComponent } from '../../shared/components/bracket-viewer/b
       color: #666;
       font-size: 1.1em;
     }
+
+    /* Double Elimination Section */
+    .double-elim-section {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      padding: 20px;
+      border-radius: 8px;
+      color: white;
+    }
+    .double-elim-section h3 {
+      color: white;
+      margin-bottom: 20px;
+    }
+    .double-elim-matches {
+      margin-top: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .match-input-card {
+      background: white;
+      color: #333;
+      padding: 15px;
+      border-radius: 8px;
+      min-width: 280px;
+      border-left: 4px solid #ccc;
+    }
+    .match-input-card.winners {
+      border-left-color: #0d6efd;
+    }
+    .match-input-card.losers {
+      border-left-color: #fd7e14;
+    }
+    .match-input-card.grand-final {
+      border-left-color: #ffc107;
+      background: #fffbeb;
+    }
+    .match-input-card .bracket-label {
+      font-size: 0.8em;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .match-input-card .match-info {
+      margin-bottom: 10px;
+    }
   `]
 })
 export class TournamentDetailComponent implements OnInit {
@@ -574,6 +722,7 @@ export class TournamentDetailComponent implements OnInit {
   TournamentFormat = TournamentFormat;
   TournamentStatus = TournamentStatus;
   MatchStatus = MatchStatus;
+  BracketType = BracketType;
 
   private destroyRef = inject(DestroyRef);
 
@@ -596,8 +745,10 @@ export class TournamentDetailComponent implements OnInit {
       this.initScoreInputs();
       this.loading = false;
 
-      // Load standings for GroupStage and RoundRobin tournaments
-      if ((tournament.format === TournamentFormat.GroupStage || tournament.format === TournamentFormat.RoundRobin)
+      // Load standings for GroupStage, RoundRobin and DoubleElimination tournaments
+      if ((tournament.format === TournamentFormat.GroupStage ||
+           tournament.format === TournamentFormat.RoundRobin ||
+           tournament.format === TournamentFormat.DoubleElimination)
           && tournament.status !== TournamentStatus.Draft) {
         this.loadStandings(id);
       }
@@ -739,11 +890,36 @@ export class TournamentDetailComponent implements OnInit {
     });
   }
 
+  // Double Elimination helpers
+  getDoubleElimMatches(): Match[] {
+    if (!this.tournament) return [];
+    return this.tournament.matches.sort((a, b) => {
+      // Sort by bracket type first, then by round, then by position
+      if (a.bracketType !== b.bracketType) return a.bracketType - b.bracketType;
+      if (a.round !== b.round) return a.round - b.round;
+      return a.position - b.position;
+    });
+  }
+
+  getBracketLabel(match: Match): string {
+    switch (match.bracketType) {
+      case BracketType.Winners:
+        return `Winner's Bracket - Tour ${match.round}`;
+      case BracketType.Losers:
+        return `Loser's Bracket - Tour ${match.round}`;
+      case BracketType.GrandFinal:
+        return match.isBracketReset ? 'Grande Finale - Match Décisif' : 'Grande Finale';
+      default:
+        return `Tour ${match.round}`;
+    }
+  }
+
   getFormatLabel(format: TournamentFormat): string {
     switch (format) {
       case TournamentFormat.SingleElimination: return 'Élimination directe';
       case TournamentFormat.RoundRobin: return 'Round Robin';
       case TournamentFormat.GroupStage: return 'Phase de groupes';
+      case TournamentFormat.DoubleElimination: return 'Double Élimination';
       default: return 'Inconnu';
     }
   }

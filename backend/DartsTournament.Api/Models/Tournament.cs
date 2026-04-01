@@ -15,6 +15,9 @@ public class Tournament
     public int? QualifiersPerGroup { get; set; }
     public bool HasKnockoutPhase { get; set; } = true;
 
+    // Configuration Double Elimination
+    public bool AllowBracketReset { get; set; } = true;
+
     public ICollection<TournamentPlayer> TournamentPlayers { get; set; } = new List<TournamentPlayer>();
     public ICollection<Group> Groups { get; set; } = new List<Group>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();

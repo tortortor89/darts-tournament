@@ -9,7 +9,8 @@ public record CreateTournamentRequest(
     int? NumberOfGroups = null,
     int? PlayersPerGroup = null,
     int? QualifiersPerGroup = null,
-    bool HasKnockoutPhase = true
+    bool HasKnockoutPhase = true,
+    bool AllowBracketReset = true
 );
 public record UpdateTournamentRequest(string Name, DateTime? StartDate);
 public record AddPlayerToTournamentRequest(int PlayerId, int? Seed);
@@ -24,7 +25,8 @@ public record TournamentResponse(
     int? NumberOfGroups,
     int? PlayersPerGroup,
     int? QualifiersPerGroup,
-    bool HasKnockoutPhase
+    bool HasKnockoutPhase,
+    bool AllowBracketReset
 );
 public record TournamentDetailResponse(
     int Id,
@@ -37,6 +39,7 @@ public record TournamentDetailResponse(
     int? PlayersPerGroup,
     int? QualifiersPerGroup,
     bool HasKnockoutPhase,
+    bool AllowBracketReset,
     List<TournamentPlayerResponse> Players,
     List<GroupResponse> Groups,
     List<MatchResponse> Matches

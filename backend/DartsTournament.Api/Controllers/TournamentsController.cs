@@ -38,7 +38,8 @@ public class TournamentsController : ControllerBase
                 t.NumberOfGroups,
                 t.PlayersPerGroup,
                 t.QualifiersPerGroup,
-                t.HasKnockoutPhase
+                t.HasKnockoutPhase,
+                t.AllowBracketReset
             ))
             .ToListAsync();
 
@@ -76,6 +77,7 @@ public class TournamentsController : ControllerBase
             tournament.PlayersPerGroup,
             tournament.QualifiersPerGroup,
             tournament.HasKnockoutPhase,
+            tournament.AllowBracketReset,
             tournament.TournamentPlayers.Select(tp => new TournamentPlayerResponse(
                 tp.PlayerId,
                 tp.Player.FirstName,
@@ -111,7 +113,9 @@ public class TournamentsController : ControllerBase
                 m.WinnerId,
                 m.Status,
                 m.ScheduledAt,
-                m.IsKnockoutMatch
+                m.IsKnockoutMatch,
+                m.BracketType,
+                m.IsBracketReset
             )).ToList()
         );
 
@@ -130,7 +134,8 @@ public class TournamentsController : ControllerBase
             NumberOfGroups = request.NumberOfGroups,
             PlayersPerGroup = request.PlayersPerGroup,
             QualifiersPerGroup = request.QualifiersPerGroup,
-            HasKnockoutPhase = request.HasKnockoutPhase
+            HasKnockoutPhase = request.HasKnockoutPhase,
+            AllowBracketReset = request.AllowBracketReset
         };
 
         _context.Tournaments.Add(tournament);
@@ -147,7 +152,8 @@ public class TournamentsController : ControllerBase
             tournament.NumberOfGroups,
             tournament.PlayersPerGroup,
             tournament.QualifiersPerGroup,
-            tournament.HasKnockoutPhase
+            tournament.HasKnockoutPhase,
+            tournament.AllowBracketReset
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);
