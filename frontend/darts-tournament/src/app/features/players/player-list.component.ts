@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { Player } from '../../core/models';
 
 @Component({
@@ -129,6 +130,7 @@ export class PlayerListComponent implements OnInit {
   loading = false;
 
   private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
 
   constructor(public authService: AuthService, private apiService: ApiService) {}
 
@@ -147,11 +149,13 @@ export class PlayerListComponent implements OnInit {
   savePlayer() {
     if (this.editingPlayer) {
       this.apiService.updatePlayer(this.editingPlayer.id, this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Joueur modifié');
         this.loadPlayers();
         this.cancelEdit();
       });
     } else {
       this.apiService.createPlayer(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Joueur créé');
         this.loadPlayers();
         this.form = { firstName: '', lastName: '', nickname: '' };
       });
@@ -175,6 +179,7 @@ export class PlayerListComponent implements OnInit {
   deletePlayer(id: number) {
     if (confirm('Voulez-vous vraiment supprimer ce joueur ?')) {
       this.apiService.deletePlayer(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Joueur supprimé');
         this.loadPlayers();
       });
     }

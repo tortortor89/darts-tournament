@@ -1,46 +1,50 @@
 import { Injectable, signal } from '@angular/core';
 
-export interface AppError {
+export type NotificationType = 'success' | 'error';
+
+export interface AppNotification {
   message: string;
-  code?: string;
+  type: NotificationType;
   timestamp: Date;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class ErrorService {
-  private _currentError = signal<AppError | null>(null);
+export class NotificationService {
+  private _current = signal<AppNotification | null>(null);
 
-  readonly currentError = this._currentError.asReadonly();
+  readonly current = this._current.asReadonly();
 
-  showError(message: string, code?: string) {
-    this._currentError.set({
+  showSuccess(message: string) {
+    this._current.set({
       message,
-      code,
+      type: 'success',
       timestamp: new Date()
     });
-
-    // Auto-clear after 5 seconds
-    setTimeout(() => this.clearError(), 5000);
+    setTimeout(() => this.clear(), 3000);
   }
 
-  clearError() {
-    this._currentError.set(null);
+  showError(message: string) {
+    this._current.set({
+      message,
+      type: 'error',
+      timestamp: new Date()
+    });
+    setTimeout(() => this.clear(), 5000);
+  }
+
+  clear() {
+    this._current.set(null);
   }
 
   getErrorMessage(error: any): string {
-    // Handle backend ErrorResponse format
     if (error?.error?.message) {
       return error.error.message;
     }
-
-    // Handle string error
     if (typeof error?.error === 'string') {
       return error.error;
     }
-
-    // Handle HTTP status codes
     switch (error?.status) {
       case 0:
         return 'Impossible de contacter le serveur. Vérifiez votre connexion.';

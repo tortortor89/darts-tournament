@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
 import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
@@ -725,6 +726,7 @@ export class TournamentDetailComponent implements OnInit {
   BracketType = BracketType;
 
   private destroyRef = inject(DestroyRef);
+  private notificationService = inject(NotificationService);
 
   constructor(
     private route: ActivatedRoute,
@@ -791,6 +793,7 @@ export class TournamentDetailComponent implements OnInit {
         Number(this.selectedPlayerId),
         this.selectedSeed || undefined
       ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Joueur ajouté');
         this.loadTournament(this.tournament!.id);
         this.selectedPlayerId = '';
         this.selectedSeed = null;
@@ -802,6 +805,7 @@ export class TournamentDetailComponent implements OnInit {
   removePlayer(playerId: number) {
     if (this.tournament) {
       this.apiService.removePlayerFromTournament(this.tournament.id, playerId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Joueur retiré');
         this.loadTournament(this.tournament!.id);
         this.loadPlayers();
       });
@@ -811,6 +815,7 @@ export class TournamentDetailComponent implements OnInit {
   generateBracket() {
     if (this.tournament) {
       this.apiService.generateBracket(this.tournament.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Bracket généré');
         this.loadTournament(this.tournament!.id);
       });
     }
@@ -886,6 +891,7 @@ export class TournamentDetailComponent implements OnInit {
   updateScore(match: Match) {
     const scores = this.scoreInputs[match.id];
     this.apiService.updateMatchScore(match.id, scores.player1, scores.player2).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.notificationService.showSuccess('Score enregistré');
       this.loadTournament(this.tournament!.id);
     });
   }

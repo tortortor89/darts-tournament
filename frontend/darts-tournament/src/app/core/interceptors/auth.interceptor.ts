@@ -3,11 +3,11 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
-import { ErrorService } from '../services/error.service';
+import { NotificationService } from '../services/notification.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
-  const errorService = inject(ErrorService);
+  const notificationService = inject(NotificationService);
   const router = inject(Router);
   const token = authService.getToken();
 
@@ -28,8 +28,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Show error message to user (except for 401 which redirects)
       if (error.status !== 401) {
-        const message = errorService.getErrorMessage(error);
-        errorService.showError(message, error.error?.code);
+        const message = notificationService.getErrorMessage(error);
+        notificationService.showError(message);
       }
 
       return throwError(() => error);

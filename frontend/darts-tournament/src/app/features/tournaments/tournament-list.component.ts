@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { Tournament, TournamentFormat, TournamentStatus } from '../../core/models';
 
 @Component({
@@ -194,6 +195,8 @@ export class TournamentListComponent implements OnInit {
 
   private destroyRef = inject(DestroyRef);
 
+  private notificationService = inject(NotificationService);
+
   constructor(public authService: AuthService, private apiService: ApiService) {}
 
   ngOnInit() {
@@ -232,6 +235,7 @@ export class TournamentListComponent implements OnInit {
     }
 
     this.apiService.createTournament(data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.notificationService.showSuccess('Tournoi créé avec succès');
       this.loadTournaments();
       this.form = {
         name: '',
@@ -247,6 +251,7 @@ export class TournamentListComponent implements OnInit {
   deleteTournament(id: number) {
     if (confirm('Voulez-vous vraiment supprimer ce tournoi ?')) {
       this.apiService.deleteTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.notificationService.showSuccess('Tournoi supprimé');
         this.loadTournaments();
       });
     }

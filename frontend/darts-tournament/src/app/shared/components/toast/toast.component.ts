@@ -1,26 +1,25 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ErrorService } from '../../../core/services/error.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
-  selector: 'app-error-toast',
+  selector: 'app-toast',
   standalone: true,
   imports: [CommonModule],
   template: `
-    @if (errorService.currentError(); as error) {
-      <div class="error-toast" (click)="errorService.clearError()">
-        <span class="error-icon">!</span>
-        <span class="error-message">{{ error.message }}</span>
+    @if (notificationService.current(); as notif) {
+      <div class="toast" [class.success]="notif.type === 'success'" [class.error]="notif.type === 'error'" (click)="notificationService.clear()">
+        <span class="icon">{{ notif.type === 'success' ? '✓' : '!' }}</span>
+        <span class="message">{{ notif.message }}</span>
         <button class="close-btn">&times;</button>
       </div>
     }
   `,
   styles: [`
-    .error-toast {
+    .toast {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: #dc3545;
       color: white;
       padding: 12px 16px;
       border-radius: 8px;
@@ -34,6 +33,14 @@ import { ErrorService } from '../../../core/services/error.service';
       animation: slideIn 0.3s ease-out;
     }
 
+    .toast.success {
+      background: #28a745;
+    }
+
+    .toast.error {
+      background: #dc3545;
+    }
+
     @keyframes slideIn {
       from {
         transform: translateX(100%);
@@ -45,9 +52,8 @@ import { ErrorService } from '../../../core/services/error.service';
       }
     }
 
-    .error-icon {
+    .icon {
       background: white;
-      color: #dc3545;
       width: 24px;
       height: 24px;
       border-radius: 50%;
@@ -58,7 +64,15 @@ import { ErrorService } from '../../../core/services/error.service';
       flex-shrink: 0;
     }
 
-    .error-message {
+    .toast.success .icon {
+      color: #28a745;
+    }
+
+    .toast.error .icon {
+      color: #dc3545;
+    }
+
+    .message {
       flex: 1;
       font-size: 0.9em;
     }
@@ -78,6 +92,6 @@ import { ErrorService } from '../../../core/services/error.service';
     }
   `]
 })
-export class ErrorToastComponent {
-  errorService = inject(ErrorService);
+export class ToastComponent {
+  notificationService = inject(NotificationService);
 }

@@ -18,7 +18,7 @@
 - [x] Corriger les fuites mémoire (unsubscribe dans les composants)
 - [x] Ajouter des indicateurs de chargement (loading states)
 - [x] Améliorer la gestion d'erreurs avec messages informatifs
-- [ ] Ajouter des notifications toast pour les actions utilisateur
+- [x] Ajouter des notifications toast pour les actions utilisateur
 - [ ] Optimiser le rechargement des données (éviter reload complet)
 - [x] Ajouter vérification d'intégrité pour les scripts CDN (N/A - pas de CDN)
 

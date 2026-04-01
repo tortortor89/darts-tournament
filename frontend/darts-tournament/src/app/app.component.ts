@@ -2,12 +2,12 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
-import { ErrorToastComponent } from './shared/components/error-toast/error-toast.component';
+import { ToastComponent } from './shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ErrorToastComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   template: `
     <nav>
       <div class="nav-brand">Darts Tournament</div>
@@ -28,7 +28,7 @@ import { ErrorToastComponent } from './shared/components/error-toast/error-toast
     <main>
       <router-outlet></router-outlet>
     </main>
-    <app-error-toast></app-error-toast>
+    <app-toast></app-toast>
   `,
   styles: [`
     nav {
