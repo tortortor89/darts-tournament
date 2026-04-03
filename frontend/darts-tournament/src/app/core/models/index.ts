@@ -7,6 +7,12 @@ export interface User {
 export interface AuthResponse {
   token: string;
   username: string;
+  role: string;
+}
+
+export enum UserRole {
+  User = 'User',
+  Admin = 'Admin'
 }
 
 export interface Player {

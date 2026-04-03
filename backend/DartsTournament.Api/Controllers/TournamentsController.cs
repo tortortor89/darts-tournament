@@ -123,7 +123,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<TournamentResponse>> CreateTournament(CreateTournamentRequest request)
     {
         var tournament = new Tournament
@@ -160,7 +160,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateTournament(int id, UpdateTournamentRequest request)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -184,7 +184,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteTournament(int id)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -201,7 +201,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpPost("{id}/players")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddPlayer(int id, AddPlayerToTournamentRequest request)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -245,7 +245,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpDelete("{id}/players/{playerId}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> RemovePlayer(int id, int playerId)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -275,7 +275,7 @@ public class TournamentsController : ControllerBase
     }
 
     [HttpPost("{id}/generate")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GenerateBracket(int id)
     {
         try

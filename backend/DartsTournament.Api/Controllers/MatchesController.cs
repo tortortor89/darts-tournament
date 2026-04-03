@@ -57,7 +57,7 @@ public class MatchesController : ControllerBase
     }
 
     [HttpPut("{id}/score")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateScore(int id, UpdateMatchScoreRequest request)
     {
         try

@@ -44,7 +44,7 @@ public class PlayersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<PlayerResponse>> CreatePlayer(CreatePlayerRequest request)
     {
         var player = new Player
@@ -62,7 +62,7 @@ public class PlayersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdatePlayer(int id, UpdatePlayerRequest request)
     {
         var player = await _context.Players.FindAsync(id);
@@ -82,7 +82,7 @@ public class PlayersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeletePlayer(int id)
     {
         var player = await _context.Players.FindAsync(id);

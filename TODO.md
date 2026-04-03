@@ -2,13 +2,13 @@
 
 ## Priorité Haute - Sécurité / Intégrité
 
-- [ ] Ajouter validation des entrées sur les DTOs (password, username, noms)
+- [x] Ajouter validation des entrées sur les DTOs (password, username, noms)
 - [ ] Externaliser les credentials (BDD, JWT) hors de appsettings.json
 - [x] Protéger les routes Angular avec authGuard
 - [x] Ajouter middleware global de gestion des erreurs (Backend)
-- [ ] Corriger la race condition sur la génération knockout
+- [x] Corriger la race condition sur la génération knockout
 - [x] Implémenter un intercepteur HTTP pour gérer les 401 (Angular)
-- [ ] Gestion des rôles et permissions (Admin, Joueur, Non connecté)
+- [x] Gestion des rôles et permissions (Admin, Joueur, Non connecté)
   - Admin : création/suppression tournois, gestion joueurs, saisie scores
   - Joueur : consultation, inscription aux tournois
   - Non connecté : consultation seule
@@ -38,6 +38,13 @@
 - [x] Améliorer l'affichage Single Elimination (bracket visuel cohérent)
 - [x] Ajouter le format Double Elimination (bracket viewer avec lignes SVG, classement par élimination)
 - [ ] Écrans de gestion de match dédiés (saisie des scores, legs, sets)
+
+### Comptes Joueurs & Inscription
+- [ ] Lier un compte utilisateur à un profil joueur (User -> Player)
+- [ ] Interface de création de compte joueur (inscription publique)
+- [ ] Page profil joueur (édition de ses propres infos)
+- [ ] Auto-inscription aux tournois (pour les utilisateurs connectés avec profil joueur)
+- [ ] Gestion des inscriptions par l'admin (valider/refuser)
 
 ### Statistiques & Joueurs
 - [ ] Page de statistiques par joueur (moyenne, % victoires, historique)

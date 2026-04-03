@@ -20,7 +20,7 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
         <div class="loading">Chargement...</div>
       }
 
-      @if (authService.isAuthenticated()) {
+      @if (authService.isAdmin()) {
         <div class="add-form">
           <h3>Créer un tournoi</h3>
           <form (ngSubmit)="createTournament()">
@@ -72,7 +72,7 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
             @if (tournament.startDate) {
               <p>Date: {{ tournament.startDate | date:'dd/MM/yyyy' }}</p>
             }
-            @if (authService.isAuthenticated() && tournament.status === TournamentStatus.Draft) {
+            @if (authService.isAdmin() && tournament.status === TournamentStatus.Draft) {
               <button (click)="deleteTournament(tournament.id)" class="delete">Supprimer</button>
             }
           </div>

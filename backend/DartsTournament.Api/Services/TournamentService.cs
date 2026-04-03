@@ -922,25 +922,50 @@ public class TournamentService
 
     private async Task CheckAndGenerateKnockoutAsync(int tournamentId)
     {
-        var tournament = await _context.Tournaments.FindAsync(tournamentId);
-        if (tournament == null || !tournament.HasKnockoutPhase)
-            return;
+        // Use a transaction with row-level locking to prevent race conditions
+        // when multiple threads complete the last group match simultaneously
+        await using var transaction = await _context.Database.BeginTransactionAsync(System.Data.IsolationLevel.RepeatableRead);
 
-        // Check if knockout matches already exist
-        var knockoutMatchesExist = await _context.Matches
-            .AnyAsync(m => m.TournamentId == tournamentId && m.IsKnockoutMatch);
-
-        if (knockoutMatchesExist)
-            return;
-
-        // Check if all group matches are completed
-        var allGroupMatchesCompleted = await _context.Matches
-            .Where(m => m.TournamentId == tournamentId && !m.IsKnockoutMatch)
-            .AllAsync(m => m.Status == MatchStatus.Completed);
-
-        if (allGroupMatchesCompleted)
+        try
         {
-            await GenerateKnockoutPhaseAsync(tournamentId);
+            // Lock the tournament row to prevent concurrent knockout generation
+            await _context.Database.ExecuteSqlRawAsync(
+                "SELECT 1 FROM \"Tournaments\" WHERE \"Id\" = {0} FOR UPDATE",
+                tournamentId);
+
+            var tournament = await _context.Tournaments.FindAsync(tournamentId);
+            if (tournament == null || !tournament.HasKnockoutPhase)
+            {
+                await transaction.CommitAsync();
+                return;
+            }
+
+            // Double-check if knockout matches already exist (inside the lock)
+            var knockoutMatchesExist = await _context.Matches
+                .AnyAsync(m => m.TournamentId == tournamentId && m.IsKnockoutMatch);
+
+            if (knockoutMatchesExist)
+            {
+                await transaction.CommitAsync();
+                return;
+            }
+
+            // Check if all group matches are completed
+            var allGroupMatchesCompleted = await _context.Matches
+                .Where(m => m.TournamentId == tournamentId && !m.IsKnockoutMatch)
+                .AllAsync(m => m.Status == MatchStatus.Completed);
+
+            if (allGroupMatchesCompleted)
+            {
+                await GenerateKnockoutPhaseAsync(tournamentId);
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
         }
     }
 

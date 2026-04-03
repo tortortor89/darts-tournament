@@ -34,7 +34,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
         }
       </div>
 
-      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated()) {
+      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin()) {
         <div class="players-section">
           <h3>Joueurs inscrits ({{ tournament.players.length }})</h3>
 
@@ -128,7 +128,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                           @if (match.player2Score !== null) { ({{ match.player2Score }}) }
                         </span>
                       </div>
-                      @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                      @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
                         <div class="score-input">
                           <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
                           <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
@@ -167,7 +167,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                               @if (match.player2Score !== null) { ({{ match.player2Score }}) }
                             </span>
                           </div>
-                          @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                          @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
                             <div class="score-input">
                               <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
                               <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
@@ -207,7 +207,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                             @if (match.player2Score !== null) { ({{ match.player2Score }}) }
                           </span>
                         </div>
-                        @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                        @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
                           <div class="score-input">
                             <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
                             <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
@@ -276,7 +276,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                         <span>{{ match.player2Name }}</span>
                       </div>
                     </div>
-                    @if (authService.isAuthenticated()) {
+                    @if (authService.isAdmin()) {
                       <div class="score-input">
                         <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
                         <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
@@ -348,7 +348,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                         @if (match.player2Score !== null) { ({{ match.player2Score }}) }
                       </span>
                     </div>
-                    @if (authService.isAuthenticated() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
+                    @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
                       <div class="score-input">
                         <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
                         <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">

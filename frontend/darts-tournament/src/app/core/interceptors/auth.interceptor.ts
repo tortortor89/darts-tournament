@@ -26,8 +26,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         router.navigate(['/login']);
       }
 
-      // Show error message to user (except for 401 which redirects)
-      if (error.status !== 401) {
+      // Handle 403 - forbidden (insufficient permissions)
+      if (error.status === 403) {
+        notificationService.showError('Accès refusé. Vous n\'avez pas les permissions nécessaires.');
+      }
+
+      // Show error message to user (except for 401 and 403 which have specific handling)
+      if (error.status !== 401 && error.status !== 403) {
         const message = notificationService.getErrorMessage(error);
         notificationService.showError(message);
       }

@@ -25,20 +25,21 @@ public class AuthController : ControllerBase
             return BadRequest("Username already exists");
         }
 
-        var token = await _authService.LoginAsync(request.Username, request.Password);
-        return Ok(new AuthResponse(token!, user.Username));
+        var loginResult = await _authService.LoginAsync(request.Username, request.Password);
+        return Ok(new AuthResponse(loginResult!.Value.Token, user.Username, user.Role.ToString()));
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var token = await _authService.LoginAsync(request.Username, request.Password);
+        var loginResult = await _authService.LoginAsync(request.Username, request.Password);
 
-        if (token == null)
+        if (loginResult == null)
         {
             return Unauthorized("Invalid username or password");
         }
 
-        return Ok(new AuthResponse(token, request.Username));
+        var (token, user) = loginResult.Value;
+        return Ok(new AuthResponse(token, user.Username, user.Role.ToString()));
     }
 }

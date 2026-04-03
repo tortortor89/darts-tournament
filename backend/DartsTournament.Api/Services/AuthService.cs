@@ -38,7 +38,7 @@ public class AuthService
         return user;
     }
 
-    public async Task<string?> LoginAsync(string username, string password)
+    public async Task<(string Token, User User)?> LoginAsync(string username, string password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
@@ -47,7 +47,7 @@ public class AuthService
             return null;
         }
 
-        return GenerateJwtToken(user);
+        return (GenerateJwtToken(user), user);
     }
 
     private string GenerateJwtToken(User user)

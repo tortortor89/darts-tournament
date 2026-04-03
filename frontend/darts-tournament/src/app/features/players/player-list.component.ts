@@ -19,7 +19,7 @@ import { Player } from '../../core/models';
         <div class="loading">Chargement...</div>
       }
 
-      @if (authService.isAuthenticated()) {
+      @if (authService.isAdmin()) {
         <div class="add-form">
           <h3>{{ editingPlayer ? 'Modifier' : 'Ajouter' }} un joueur</h3>
           <form (ngSubmit)="savePlayer()">
@@ -40,7 +40,7 @@ import { Player } from '../../core/models';
             <th>Nom</th>
             <th>Prénom</th>
             <th>Surnom</th>
-            @if (authService.isAuthenticated()) {
+            @if (authService.isAdmin()) {
               <th>Actions</th>
             }
           </tr>
@@ -51,7 +51,7 @@ import { Player } from '../../core/models';
               <td>{{ player.lastName }}</td>
               <td>{{ player.firstName }}</td>
               <td>{{ player.nickname || '-' }}</td>
-              @if (authService.isAuthenticated()) {
+              @if (authService.isAdmin()) {
                 <td>
                   <button (click)="editPlayer(player)">Modifier</button>
                   <button (click)="deletePlayer(player.id)" class="delete">Supprimer</button>
