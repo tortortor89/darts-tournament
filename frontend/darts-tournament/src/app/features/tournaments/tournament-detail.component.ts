@@ -1,7 +1,7 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -13,7 +13,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
 @Component({
   selector: 'app-tournament-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, BracketViewerComponent, DoubleBracketViewerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, BracketViewerComponent, DoubleBracketViewerComponent],
   template: `
     @if (loading) {
       <div class="container">
@@ -129,11 +129,17 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                         </span>
                       </div>
                       @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
-                        <div class="score-input">
-                          <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                          <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                          <button (click)="updateScore(match)">Valider</button>
+                        <div class="match-actions">
+                          <a [routerLink]="['/matches', match.id, 'play']" class="play-btn">Jouer</a>
+                          <div class="score-input">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                            <button (click)="updateScore(match)">Valider</button>
+                          </div>
                         </div>
+                      }
+                      @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
+                        <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                       }
                     </div>
                   }
@@ -168,11 +174,17 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                             </span>
                           </div>
                           @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
-                            <div class="score-input">
-                              <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                              <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                              <button (click)="updateScore(match)">Valider</button>
+                            <div class="match-actions">
+                              <a [routerLink]="['/matches', match.id, 'play']" class="play-btn">Jouer</a>
+                              <div class="score-input">
+                                <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                                <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                                <button (click)="updateScore(match)">Valider</button>
+                              </div>
                             </div>
+                          }
+                          @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
+                            <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                           }
                         </div>
                       }
@@ -208,11 +220,17 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                           </span>
                         </div>
                         @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
-                          <div class="score-input">
-                            <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                            <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                            <button (click)="updateScore(match)">Valider</button>
+                          <div class="match-actions">
+                            <a [routerLink]="['/matches', match.id, 'play']" class="play-btn">Jouer</a>
+                            <div class="score-input">
+                              <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                              <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                              <button (click)="updateScore(match)">Valider</button>
+                            </div>
                           </div>
+                        }
+                        @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
+                          <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                         }
                       </div>
                     }
@@ -277,12 +295,16 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                       </div>
                     </div>
                     @if (authService.isAdmin()) {
-                      <div class="score-input">
-                        <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                        <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                        <button (click)="updateScore(match)">Valider</button>
+                      <div class="match-actions">
+                        <a [routerLink]="['/matches', match.id, 'play']" class="play-btn">Jouer</a>
+                        <div class="score-input">
+                          <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                          <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                          <button (click)="updateScore(match)">Valider</button>
+                        </div>
                       </div>
                     }
+                    <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                   </div>
                 }
               }
@@ -349,11 +371,17 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                       </span>
                     </div>
                     @if (authService.isAdmin() && match.status !== MatchStatus.Completed && match.player1Id && match.player2Id) {
-                      <div class="score-input">
-                        <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
-                        <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
-                        <button (click)="updateScore(match)">Valider</button>
+                      <div class="match-actions">
+                        <a [routerLink]="['/matches', match.id, 'play']" class="play-btn">Jouer</a>
+                        <div class="score-input">
+                          <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                          <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                          <button (click)="updateScore(match)">Valider</button>
+                        </div>
                       </div>
+                    }
+                    @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
+                      <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                     }
                   </div>
                 }
@@ -655,6 +683,41 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       border: none;
       border-radius: 4px;
       cursor: pointer;
+    }
+    .match-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .play-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .play-btn:hover {
+      background: #218838;
+      color: white;
+    }
+    .spectate-btn {
+      display: inline-block;
+      padding: 6px 12px;
+      background: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.85em;
+      margin-top: 8px;
+    }
+    .spectate-btn:hover {
+      background: #5a6268;
+      color: white;
     }
     .loading {
       text-align: center;

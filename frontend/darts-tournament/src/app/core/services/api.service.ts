@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding } from '../models';
+import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -85,5 +85,30 @@ export class ApiService {
 
   updateMatchScore(id: number, player1Score: number, player2Score: number): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/matches/${id}/score`, { player1Score, player2Score });
+  }
+
+  // Match Sessions (Live Game)
+  getMatchSession(matchId: number): Observable<MatchSession> {
+    return this.http.get<MatchSession>(`${this.API_URL}/matches/${matchId}/session`);
+  }
+
+  startMatchSession(matchId: number, request: StartMatchSessionRequest): Observable<MatchSession> {
+    return this.http.post<MatchSession>(`${this.API_URL}/matches/${matchId}/session/start`, request);
+  }
+
+  recordThrow(matchId: number, request: RecordThrowRequest): Observable<MatchSession> {
+    return this.http.post<MatchSession>(`${this.API_URL}/matches/${matchId}/session/throw`, request);
+  }
+
+  validateMatchSession(matchId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/matches/${matchId}/session/validate`, {});
+  }
+
+  cancelMatchSession(matchId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/matches/${matchId}/session`);
+  }
+
+  getMatchSpectator(matchId: number): Observable<MatchSessionSpectator> {
+    return this.http.get<MatchSessionSpectator>(`${this.API_URL}/matches/${matchId}/spectate`);
   }
 }

@@ -35,3 +35,16 @@ public enum UserRole
     User,
     Admin
 }
+
+public enum GameMode
+{
+    FiveOhOne = 501
+}
+
+public enum MatchSessionStatus
+{
+    Configuration,
+    InProgress,
+    Finished,
+    Cancelled
+}

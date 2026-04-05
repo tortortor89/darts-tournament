@@ -82,6 +82,7 @@ builder.Services.AddAuthorization();
 // Services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TournamentService>();
+builder.Services.AddScoped<MatchSessionService>();
 
 // CORS
 builder.Services.AddCors(options =>

@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<TournamentPlayer> TournamentPlayers => Set<TournamentPlayer>();
     public DbSet<Group> Groups => Set<Group>();
     public DbSet<Match> Matches => Set<Match>();
+    public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
+    public DbSet<Throw> Throws => Set<Throw>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,6 +85,29 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(m => m.WinnerId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // MatchSession
+        modelBuilder.Entity<MatchSession>(entity =>
+        {
+            entity.HasOne(ms => ms.Match)
+                .WithMany()
+                .HasForeignKey(ms => ms.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Throw
+        modelBuilder.Entity<Throw>(entity =>
+        {
+            entity.HasOne(t => t.MatchSession)
+                .WithMany(ms => ms.Throws)
+                .HasForeignKey(t => t.MatchSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(t => t.Player)
+                .WithMany()
+                .HasForeignKey(t => t.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

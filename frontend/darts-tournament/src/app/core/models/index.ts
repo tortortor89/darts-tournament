@@ -128,3 +128,94 @@ export enum MatchStatus {
   InProgress = 1,
   Completed = 2
 }
+
+// Match Session (Live Game)
+export enum GameMode {
+  FiveOhOne = 501
+}
+
+export enum MatchSessionStatus {
+  Configuration = 0,
+  InProgress = 1,
+  Finished = 2,
+  Cancelled = 3
+}
+
+export interface MatchSession {
+  id: number;
+  matchId: number;
+  legsToWin: number;
+  gameMode: GameMode;
+  status: MatchSessionStatus;
+  player1: PlayerSessionInfo;
+  player2: PlayerSessionInfo;
+  currentPlayerId: number;
+  currentLeg: number;
+  currentLegThrows: ThrowInfo[];
+  createdAt: Date;
+  startedAt?: Date;
+  finishedAt?: Date;
+}
+
+export interface PlayerSessionInfo {
+  playerId: number;
+  name: string;
+  legsWon: number;
+  currentScore: number;
+  isStarting: boolean;
+}
+
+export interface ThrowInfo {
+  id: number;
+  playerId: number;
+  playerName: string;
+  legNumber: number;
+  throwNumber: number;
+  score: number;
+  dart1?: string;
+  dart2?: string;
+  dart3?: string;
+  remainingScore: number;
+  isCheckout: boolean;
+  isBust: boolean;
+  createdAt: Date;
+}
+
+export interface MatchSessionSpectator {
+  matchId: number;
+  tournamentName: string;
+  legsToWin: number;
+  status: MatchSessionStatus;
+  player1: PlayerSpectatorInfo;
+  player2: PlayerSpectatorInfo;
+  currentPlayerId: number;
+  currentLeg: number;
+  legsHistory: LegSummary[];
+}
+
+export interface PlayerSpectatorInfo {
+  playerId: number;
+  name: string;
+  legsWon: number;
+  currentScore: number;
+}
+
+export interface LegSummary {
+  legNumber: number;
+  winnerId: number;
+  winnerName: string;
+  winnerDartsThrown: number;
+  winnerAverage?: number;
+}
+
+export interface StartMatchSessionRequest {
+  legsToWin: number;
+  startingPlayerId: number;
+}
+
+export interface RecordThrowRequest {
+  score: number;
+  dart1?: string;
+  dart2?: string;
+  dart3?: string;
+}

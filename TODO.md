@@ -37,7 +37,35 @@
 - [x] Améliorer l'affichage Round Robin (s'inspirer du format Group Stage)
 - [x] Améliorer l'affichage Single Elimination (bracket visuel cohérent)
 - [x] Ajouter le format Double Elimination (bracket viewer avec lignes SVG, classement par élimination)
-- [ ] Écrans de gestion de match dédiés (saisie des scores, legs, sets)
+
+### Gestion de Match
+**Backend :**
+- [x] Modèle MatchSession (config: legsToWin, startingPlayer, gameMode)
+- [x] Modèle état partie (legs gagnés, points restants, historique volées)
+- [x] Endpoint POST /matches/{id}/start - démarrer un match avec config
+- [x] Endpoint GET /matches/{id}/live - récupérer l'état en cours
+- [x] Endpoint POST /matches/{id}/throw - enregistrer une volée/score
+- [x] Endpoint POST /matches/{id}/validate - valider et clôturer le match
+
+**Frontend :**
+- [x] Route /matches/{id}/play - écran de jeu
+- [x] Écran configuration match (legs à gagner, joueur qui commence)
+- [x] Écran de jeu : affichage scores (legs, points restants 501)
+- [x] Saisie score : mode volée (total) avec switch vers mode fléchette par fléchette
+- [x] Logique 501 straight in, double out
+- [x] Écran validation fin de match + mise à jour score tournoi
+- [x] Route /matches/{id}/spectate - vue spectateur (lecture seule, pour projection)
+
+**Optionnel (stats futures) :**
+- [x] Persistance BDD des volées/fléchettes pour statistiques (table Throws créée)
+
+**Évolutions futures :**
+- [ ] Authentification : restreindre l'écran de jeu aux joueurs du match (nécessite lien User -> Player)
+- [ ] Formats de jeu supplémentaires : 301, Cricket
+- [ ] Gestion des sets en plus des legs
+- [ ] Statistiques en temps réel : moyenne, % doubles, checkout rate
+- [ ] Historique : voir le détail d'un match terminé (toutes les volées)
+- [ ] Temps réel : SignalR pour refresh instantané du spectateur
 
 ### Comptes Joueurs & Inscription
 - [ ] Lier un compte utilisateur à un profil joueur (User -> Player)
@@ -57,9 +85,8 @@
 - [ ] Seeding automatique basé sur le classement circuit
 
 ### Fonctionnalités avancées
-- [ ] Support des formats de jeu (501, 301, Cricket)
-- [ ] Gestion des legs et sets (pas juste un score simple)
+- [ ] Support des formats de jeu supplémentaires (301, Cricket) - 501 couvert dans Gestion de Match
+- [ ] Gestion des sets (en plus des legs)
 - [ ] Mode équipes / doubles
 - [ ] Export des résultats (PDF, CSV)
-- [ ] Mode affichage public (écran spectateur sans contrôles)
 - [ ] Dashboard récapitulatif (stats globales, tournois récents)
