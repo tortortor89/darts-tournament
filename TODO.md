@@ -19,14 +19,14 @@
 - [x] Ajouter des indicateurs de chargement (loading states)
 - [x] Améliorer la gestion d'erreurs avec messages informatifs
 - [x] Ajouter des notifications toast pour les actions utilisateur
-- [ ] Optimiser le rechargement des données (éviter reload complet)
+- [x] Optimiser le rechargement des données (éviter reload complet)
 - [x] Ajouter vérification d'intégrité pour les scripts CDN (N/A - pas de CDN)
 
 ## Priorité Basse - Polish / Documentation
 
 - [ ] Écrire des tests unitaires (Backend - Services)
 - [ ] Écrire des tests unitaires (Frontend - Services/Components)
-- [ ] Ajouter documentation Swagger avec commentaires XML
+- [x] Ajouter documentation Swagger avec commentaires XML
 - [ ] Améliorer l'accessibilité (labels, ARIA)
 - [x] Rendre l'URL API configurable par environnement
 - [ ] Implémenter la concurrence optimiste (RowVersion)

@@ -8,8 +8,12 @@ using DartsTournament.Api.Services;
 
 namespace DartsTournament.Api.Controllers;
 
+/// <summary>
+/// Gestion des tournois de fléchettes
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class TournamentsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -21,7 +25,12 @@ public class TournamentsController : ControllerBase
         _tournamentService = tournamentService;
     }
 
+    /// <summary>
+    /// Récupérer la liste de tous les tournois
+    /// </summary>
+    /// <returns>Liste des tournois triés par date de création décroissante</returns>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<TournamentResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TournamentResponse>>> GetTournaments()
     {
         var tournaments = await _context.Tournaments
@@ -46,7 +55,16 @@ public class TournamentsController : ControllerBase
         return Ok(tournaments);
     }
 
+    /// <summary>
+    /// Récupérer les détails d'un tournoi
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <returns>Détails complets du tournoi avec joueurs, groupes et matchs</returns>
+    /// <response code="200">Tournoi trouvé</response>
+    /// <response code="404">Tournoi non trouvé</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(TournamentDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TournamentDetailResponse>> GetTournament(int id)
     {
         var tournament = await _context.Tournaments
@@ -122,8 +140,21 @@ public class TournamentsController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Créer un nouveau tournoi
+    /// </summary>
+    /// <param name="request">Paramètres du tournoi</param>
+    /// <returns>Le tournoi créé</returns>
+    /// <response code="201">Tournoi créé avec succès</response>
+    /// <response code="400">Données invalides</response>
+    /// <response code="401">Non authentifié</response>
+    /// <response code="403">Accès refusé (rôle Admin requis)</response>
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(TournamentResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<TournamentResponse>> CreateTournament(CreateTournamentRequest request)
     {
         var tournament = new Tournament
@@ -159,8 +190,19 @@ public class TournamentsController : ControllerBase
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);
     }
 
+    /// <summary>
+    /// Modifier un tournoi existant
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="request">Nouvelles données</param>
+    /// <response code="204">Tournoi modifié avec succès</response>
+    /// <response code="400">Tournoi déjà démarré ou données invalides</response>
+    /// <response code="404">Tournoi non trouvé</response>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTournament(int id, UpdateTournamentRequest request)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -183,8 +225,16 @@ public class TournamentsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Supprimer un tournoi
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <response code="204">Tournoi supprimé avec succès</response>
+    /// <response code="404">Tournoi non trouvé</response>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTournament(int id)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -200,8 +250,19 @@ public class TournamentsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Ajouter un joueur à un tournoi
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="request">Joueur à ajouter avec seed optionnel</param>
+    /// <response code="200">Joueur ajouté avec succès</response>
+    /// <response code="400">Tournoi déjà démarré ou joueur déjà inscrit</response>
+    /// <response code="404">Tournoi ou joueur non trouvé</response>
     [HttpPost("{id}/players")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AddPlayer(int id, AddPlayerToTournamentRequest request)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -244,8 +305,19 @@ public class TournamentsController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Retirer un joueur d'un tournoi
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="playerId">Identifiant du joueur</param>
+    /// <response code="204">Joueur retiré avec succès</response>
+    /// <response code="400">Tournoi déjà démarré</response>
+    /// <response code="404">Tournoi ou joueur non trouvé</response>
     [HttpDelete("{id}/players/{playerId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemovePlayer(int id, int playerId)
     {
         var tournament = await _context.Tournaments.FindAsync(id);
@@ -274,8 +346,16 @@ public class TournamentsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Générer le bracket du tournoi et démarrer la compétition
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <response code="200">Bracket généré avec succès</response>
+    /// <response code="400">Pas assez de joueurs ou tournoi déjà démarré</response>
     [HttpPost("{id}/generate")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GenerateBracket(int id)
     {
         try
@@ -289,7 +369,16 @@ public class TournamentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Récupérer le classement du tournoi
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <returns>Classement par groupe ou général selon le format</returns>
+    /// <response code="200">Classement récupéré</response>
+    /// <response code="404">Tournoi non trouvé</response>
     [HttpGet("{id}/standings")]
+    [ProducesResponseType(typeof(List<GroupStandingResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<List<GroupStandingResponse>>> GetStandings(int id)
     {
         try

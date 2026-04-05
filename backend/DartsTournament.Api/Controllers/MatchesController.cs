@@ -7,8 +7,12 @@ using DartsTournament.Api.Services;
 
 namespace DartsTournament.Api.Controllers;
 
+/// <summary>
+/// Gestion des matchs et des scores
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class MatchesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -20,7 +24,16 @@ public class MatchesController : ControllerBase
         _tournamentService = tournamentService;
     }
 
+    /// <summary>
+    /// Récupérer les détails d'un match
+    /// </summary>
+    /// <param name="id">Identifiant du match</param>
+    /// <returns>Informations complètes du match</returns>
+    /// <response code="200">Match trouvé</response>
+    /// <response code="404">Match non trouvé</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(MatchResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MatchResponse>> GetMatch(int id)
     {
         var match = await _context.Matches
@@ -56,8 +69,25 @@ public class MatchesController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Enregistrer le score d'un match
+    /// </summary>
+    /// <param name="id">Identifiant du match</param>
+    /// <param name="request">Scores des deux joueurs</param>
+    /// <remarks>
+    /// Le vainqueur est déterminé automatiquement en fonction des scores.
+    /// Pour les formats à élimination, le vainqueur est automatiquement avancé au tour suivant.
+    /// </remarks>
+    /// <response code="200">Score enregistré avec succès</response>
+    /// <response code="400">Match non trouvé ou déjà terminé</response>
+    /// <response code="401">Non authentifié</response>
+    /// <response code="403">Accès refusé (rôle Admin requis)</response>
     [HttpPut("{id}/score")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> UpdateScore(int id, UpdateMatchScoreRequest request)
     {
         try

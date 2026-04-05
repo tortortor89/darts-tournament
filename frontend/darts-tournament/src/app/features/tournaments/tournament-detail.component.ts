@@ -788,26 +788,52 @@ export class TournamentDetailComponent implements OnInit {
 
   addPlayer() {
     if (this.tournament && this.selectedPlayerId) {
+      const playerId = Number(this.selectedPlayerId);
+      const player = this.availablePlayers.find(p => p.id === playerId);
+      const seed = this.selectedSeed || undefined;
+
       this.apiService.addPlayerToTournament(
         this.tournament.id,
-        Number(this.selectedPlayerId),
-        this.selectedSeed || undefined
+        playerId,
+        seed
       ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.notificationService.showSuccess('Joueur ajouté');
-        this.loadTournament(this.tournament!.id);
+        if (player && this.tournament) {
+          const tournamentPlayer = {
+            playerId: player.id,
+            firstName: player.firstName,
+            lastName: player.lastName,
+            nickname: player.nickname,
+            seed: seed
+          };
+          this.tournament.players = [...this.tournament.players, tournamentPlayer];
+          this.availablePlayers = this.availablePlayers.filter(p => p.id !== playerId);
+        }
         this.selectedPlayerId = '';
         this.selectedSeed = null;
-        this.loadPlayers();
       });
     }
   }
 
   removePlayer(playerId: number) {
     if (this.tournament) {
+      const removedPlayer = this.tournament.players.find(p => p.playerId === playerId);
+
       this.apiService.removePlayerFromTournament(this.tournament.id, playerId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.notificationService.showSuccess('Joueur retiré');
-        this.loadTournament(this.tournament!.id);
-        this.loadPlayers();
+        if (this.tournament) {
+          this.tournament.players = this.tournament.players.filter(p => p.playerId !== playerId);
+          if (removedPlayer) {
+            const playerToAdd = {
+              id: removedPlayer.playerId,
+              firstName: removedPlayer.firstName,
+              lastName: removedPlayer.lastName,
+              nickname: removedPlayer.nickname,
+              createdAt: new Date()
+            };
+            this.availablePlayers = [...this.availablePlayers, playerToAdd];
+          }
+        }
       });
     }
   }

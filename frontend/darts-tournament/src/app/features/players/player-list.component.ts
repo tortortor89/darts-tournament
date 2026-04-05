@@ -148,15 +148,19 @@ export class PlayerListComponent implements OnInit {
 
   savePlayer() {
     if (this.editingPlayer) {
-      this.apiService.updatePlayer(this.editingPlayer.id, this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const playerId = this.editingPlayer.id;
+      this.apiService.updatePlayer(playerId, this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.notificationService.showSuccess('Joueur modifié');
-        this.loadPlayers();
+        this.players = this.players.map(p => p.id === playerId
+          ? { ...p, firstName: this.form.firstName, lastName: this.form.lastName, nickname: this.form.nickname }
+          : p
+        );
         this.cancelEdit();
       });
     } else {
-      this.apiService.createPlayer(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      this.apiService.createPlayer(this.form).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newPlayer => {
         this.notificationService.showSuccess('Joueur créé');
-        this.loadPlayers();
+        this.players = [...this.players, newPlayer];
         this.form = { firstName: '', lastName: '', nickname: '' };
       });
     }
@@ -180,7 +184,7 @@ export class PlayerListComponent implements OnInit {
     if (confirm('Voulez-vous vraiment supprimer ce joueur ?')) {
       this.apiService.deletePlayer(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.notificationService.showSuccess('Joueur supprimé');
-        this.loadPlayers();
+        this.players = this.players.filter(p => p.id !== id);
       });
     }
   }

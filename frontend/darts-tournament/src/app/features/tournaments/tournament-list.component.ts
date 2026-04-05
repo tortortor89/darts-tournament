@@ -234,9 +234,9 @@ export class TournamentListComponent implements OnInit {
       data.hasKnockoutPhase = this.form.hasKnockoutPhase;
     }
 
-    this.apiService.createTournament(data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    this.apiService.createTournament(data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newTournament => {
       this.notificationService.showSuccess('Tournoi créé avec succès');
-      this.loadTournaments();
+      this.tournaments = [newTournament, ...this.tournaments];
       this.form = {
         name: '',
         format: TournamentFormat.SingleElimination,
@@ -252,7 +252,7 @@ export class TournamentListComponent implements OnInit {
     if (confirm('Voulez-vous vraiment supprimer ce tournoi ?')) {
       this.apiService.deleteTournament(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.notificationService.showSuccess('Tournoi supprimé');
-        this.loadTournaments();
+        this.tournaments = this.tournaments.filter(t => t.id !== id);
       });
     }
   }
