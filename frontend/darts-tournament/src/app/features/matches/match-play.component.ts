@@ -6,14 +6,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats } from '../../core/models';
+import { ScoreInputComponent, ThrowData } from './components/score-input.component';
 
 type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
-type InputMode = 'total' | 'darts';
 
 @Component({
   selector: 'app-match-play',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe],
+  imports: [CommonModule, FormsModule, DecimalPipe, ScoreInputComponent],
   template: `
     <div class="match-container">
       <!-- Loading -->
@@ -121,47 +121,10 @@ type InputMode = 'total' | 'darts';
           </div>
 
           <!-- Score Input -->
-          <div class="score-input-section">
-            <div class="input-mode-toggle">
-              <button [class.active]="inputMode === 'total'" (click)="inputMode = 'total'">
-                Total
-              </button>
-              <button [class.active]="inputMode === 'darts'" (click)="inputMode = 'darts'">
-                Fléchettes
-              </button>
-            </div>
-
-            @if (inputMode === 'total') {
-              <div class="total-input">
-                <input
-                  type="number"
-                  [(ngModel)]="throwInput.score"
-                  min="0"
-                  max="180"
-                  placeholder="Score"
-                  (keyup.enter)="submitThrow()">
-                <div class="quick-scores">
-                  @for (s of quickScores; track s) {
-                    <button (click)="throwInput.score = s; submitThrow()">{{ s }}</button>
-                  }
-                </div>
-              </div>
-            } @else {
-              <div class="darts-input">
-                <div class="dart-inputs">
-                  <input [(ngModel)]="throwInput.dart1" placeholder="D1" maxlength="4">
-                  <input [(ngModel)]="throwInput.dart2" placeholder="D2" maxlength="4">
-                  <input [(ngModel)]="throwInput.dart3" placeholder="D3" maxlength="4">
-                </div>
-                <div class="dart-help">Format: S1-S20, D1-D20, T1-T20, BULL, DB</div>
-                <div class="calculated-score">Score: {{ calculateDartsScore() }}</div>
-              </div>
-            }
-
-            <button class="submit-throw" (click)="submitThrow()" [disabled]="!canSubmitThrow()">
-              Valider
-            </button>
-          </div>
+          <app-score-input
+            [currentPlayerScore]="getCurrentPlayerScore()"
+            (throwSubmit)="onThrowSubmit($event)">
+          </app-score-input>
 
           <!-- Live Statistics -->
           @if (stats) {
@@ -511,108 +474,10 @@ type InputMode = 'total' | 'darts';
       color: #888;
     }
 
-    /* Score Input */
-    .score-input-section {
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 20px;
+    /* Score Input Component */
+    app-score-input {
+      display: block;
       margin-bottom: 20px;
-    }
-
-    .input-mode-toggle {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-
-    .input-mode-toggle button {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.1);
-      color: white;
-      cursor: pointer;
-    }
-
-    .input-mode-toggle button.active {
-      background: #007bff;
-    }
-
-    .total-input input {
-      width: 100%;
-      padding: 15px;
-      font-size: 2em;
-      text-align: center;
-      border: none;
-      border-radius: 8px;
-      margin-bottom: 15px;
-    }
-
-    .quick-scores {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
-    }
-
-    .quick-scores button {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.2);
-      color: white;
-      cursor: pointer;
-      font-size: 1em;
-    }
-
-    .quick-scores button:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .darts-input .dart-inputs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .darts-input input {
-      flex: 1;
-      padding: 15px;
-      font-size: 1.2em;
-      text-align: center;
-      border: none;
-      border-radius: 8px;
-      text-transform: uppercase;
-    }
-
-    .dart-help {
-      font-size: 0.8em;
-      color: #aaa;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .calculated-score {
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-    }
-
-    .submit-throw {
-      width: 100%;
-      padding: 15px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.2em;
-      cursor: pointer;
-      margin-top: 15px;
-    }
-
-    .submit-throw:disabled {
-      background: #666;
-      cursor: not-allowed;
     }
 
     .match-actions {
@@ -797,21 +662,11 @@ export class MatchPlayComponent implements OnInit {
   session: MatchSession | null = null;
   stats: MatchStats | null = null;
   phase: GamePhase = 'loading';
-  inputMode: InputMode = 'total';
 
   config = {
     legsToWin: 3,
     startingPlayerId: 0
   };
-
-  throwInput = {
-    score: 0,
-    dart1: '',
-    dart2: '',
-    dart3: ''
-  };
-
-  quickScores = [0, 26, 41, 45, 60, 85, 100, 120, 140, 180];
 
   ngOnInit() {
     this.matchId = Number(this.route.snapshot.paramMap.get('id'));
@@ -906,18 +761,12 @@ export class MatchPlayComponent implements OnInit {
       });
   }
 
-  submitThrow() {
-    if (!this.canSubmitThrow()) return;
-
-    const score = this.inputMode === 'total'
-      ? this.throwInput.score
-      : this.calculateDartsScore();
-
+  onThrowSubmit(throwData: ThrowData) {
     const request = {
-      score,
-      dart1: this.throwInput.dart1 || undefined,
-      dart2: this.throwInput.dart2 || undefined,
-      dart3: this.throwInput.dart3 || undefined
+      score: throwData.score,
+      dart1: throwData.dart1,
+      dart2: throwData.dart2,
+      dart3: throwData.dart3
     };
 
     this.apiService.recordThrow(this.matchId, request)
@@ -925,7 +774,6 @@ export class MatchPlayComponent implements OnInit {
       .subscribe({
         next: (session) => {
           this.session = session;
-          this.resetThrowInput();
           this.updatePhase();
           this.loadStats();
         },
@@ -935,52 +783,12 @@ export class MatchPlayComponent implements OnInit {
       });
   }
 
-  canSubmitThrow(): boolean {
-    if (this.inputMode === 'total') {
-      return this.throwInput.score >= 0 && this.throwInput.score <= 180;
-    } else {
-      return this.calculateDartsScore() >= 0;
+  getCurrentPlayerScore(): number {
+    if (!this.session) return 501;
+    if (this.session.currentPlayerId === this.session.player1.playerId) {
+      return this.session.player1.currentScore;
     }
-  }
-
-  calculateDartsScore(): number {
-    let total = 0;
-    total += this.parseDartScore(this.throwInput.dart1);
-    total += this.parseDartScore(this.throwInput.dart2);
-    total += this.parseDartScore(this.throwInput.dart3);
-    return total;
-  }
-
-  parseDartScore(dart: string): number {
-    if (!dart) return 0;
-    dart = dart.toUpperCase().trim();
-
-    if (dart === 'BULL') return 25;
-    if (dart === 'DB') return 50;
-
-    const match = dart.match(/^([SDT])(\d+)$/);
-    if (!match) return 0;
-
-    const [, type, numStr] = match;
-    const num = parseInt(numStr, 10);
-
-    if (num < 1 || num > 20) return 0;
-
-    switch (type) {
-      case 'S': return num;
-      case 'D': return num * 2;
-      case 'T': return num * 3;
-      default: return 0;
-    }
-  }
-
-  resetThrowInput() {
-    this.throwInput = {
-      score: 0,
-      dart1: '',
-      dart2: '',
-      dart3: ''
-    };
+    return this.session.player2.currentScore;
   }
 
   validateMatch() {

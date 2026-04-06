@@ -68,9 +68,9 @@
 - [x] Temps réel : SignalR pour refresh instantané du spectateur
 
 **Amélioration interface de saisie :**
-- [ ] Pavé numérique visuel en mode score total (0-9, effacer, valider)
-- [ ] Tableau interactif : chiffres 1-20 + Bull, avec boutons Simple/Double/Triple
-- [ ] Bouton "il reste xxx" : saisir le score restant plutôt que le score fait
+- [x] Pavé numérique visuel en mode score total (0-9, effacer, valider)
+- [x] Tableau interactif : chiffres 1-20 + Bull, avec boutons Simple/Double/Triple
+- [x] Bouton "il reste xxx" : saisir le score restant plutôt que le score fait
 - [ ] Bouton "Checkout" : valider directement un checkout quand le score le permet
 - [ ] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
 - [ ] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
