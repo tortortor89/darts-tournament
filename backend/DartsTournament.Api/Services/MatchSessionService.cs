@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.DTOs;
+using DartsTournament.Api.Hubs;
 using DartsTournament.Api.Models;
 
 namespace DartsTournament.Api.Services;
@@ -9,11 +11,19 @@ public class MatchSessionService
 {
     private readonly AppDbContext _context;
     private readonly TournamentService _tournamentService;
+    private readonly IHubContext<MatchHub, IMatchHubClient> _matchHub;
+    private readonly MatchStatsService _statsService;
 
-    public MatchSessionService(AppDbContext context, TournamentService tournamentService)
+    public MatchSessionService(
+        AppDbContext context,
+        TournamentService tournamentService,
+        IHubContext<MatchHub, IMatchHubClient> matchHub,
+        MatchStatsService statsService)
     {
         _context = context;
         _tournamentService = tournamentService;
+        _matchHub = matchHub;
+        _statsService = statsService;
     }
 
     /// <summary>
@@ -86,7 +96,14 @@ public class MatchSessionService
         await _context.SaveChangesAsync();
 
         // Recharger avec les relations
-        return (await GetSessionByIdAsync(session.Id))!;
+        var reloadedSession = (await GetSessionByIdAsync(session.Id))!;
+
+        // Broadcaster l'événement de démarrage
+        var sessionResponse = BuildSessionResponse(reloadedSession);
+        await _matchHub.Clients.Group($"match-{matchId}")
+            .SessionStarted(new SessionStartedEvent(matchId, sessionResponse));
+
+        return reloadedSession;
     }
 
     /// <summary>
@@ -174,6 +191,13 @@ public class MatchSessionService
         else
             session.Player2CurrentScore = newScore;
 
+        // Capturer les infos avant de potentiellement modifier le leg
+        var legNumberBeforeCheckout = session.CurrentLeg;
+        var winnerId = session.CurrentPlayerId;
+        var winnerPlayer = session.CurrentPlayerId == session.Match.Player1Id
+            ? session.Match.Player1!
+            : session.Match.Player2!;
+
         // Si checkout, le joueur gagne le leg
         if (isCheckout)
         {
@@ -189,7 +213,85 @@ public class MatchSessionService
 
         await _context.SaveChangesAsync();
 
-        return (await GetSessionByIdAsync(sessionId))!;
+        var reloadedSession = (await GetSessionByIdAsync(sessionId))!;
+
+        // Construire la réponse de la volée
+        var throwResponse = new ThrowResponse(
+            throwEntity.Id,
+            throwEntity.PlayerId,
+            $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+            throwEntity.LegNumber,
+            throwEntity.ThrowNumber,
+            throwEntity.Score,
+            throwEntity.Dart1,
+            throwEntity.Dart2,
+            throwEntity.Dart3,
+            throwEntity.RemainingScore,
+            throwEntity.IsCheckout,
+            throwEntity.IsBust,
+            throwEntity.CreatedAt
+        );
+
+        // Calculer les stats
+        var stats = _statsService.CalculateStats(reloadedSession);
+
+        // Broadcaster l'événement de volée
+        await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+            .ThrowRecorded(new ThrowRecordedEvent(
+                reloadedSession.MatchId,
+                throwResponse,
+                reloadedSession.Player1CurrentScore,
+                reloadedSession.Player2CurrentScore,
+                reloadedSession.CurrentPlayerId,
+                stats
+            ));
+
+        // Si leg gagné, broadcaster l'événement
+        if (isCheckout)
+        {
+            var legThrows = reloadedSession.Throws
+                .Where(t => t.LegNumber == legNumberBeforeCheckout && t.PlayerId == winnerId)
+                .ToList();
+            var dartsThrown = legThrows.Count * 3;
+            var totalScored = legThrows.Sum(t => t.Score);
+            var average = dartsThrown > 0 ? (double)totalScored / dartsThrown * 3 : 0;
+
+            var legSummary = new LegSummary(
+                legNumberBeforeCheckout,
+                winnerId,
+                $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                dartsThrown,
+                Math.Round(average, 2)
+            );
+
+            await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+                .LegWon(new LegWonEvent(
+                    reloadedSession.MatchId,
+                    legNumberBeforeCheckout,
+                    winnerId,
+                    $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                    reloadedSession.Player1LegsWon,
+                    reloadedSession.Player2LegsWon,
+                    reloadedSession.CurrentLeg,
+                    legSummary
+                ));
+
+            // Si match terminé, broadcaster l'événement
+            if (reloadedSession.Status == MatchSessionStatus.Finished)
+            {
+                await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+                    .MatchFinished(new MatchFinishedEvent(
+                        reloadedSession.MatchId,
+                        winnerId,
+                        $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                        reloadedSession.Player1LegsWon,
+                        reloadedSession.Player2LegsWon,
+                        stats
+                    ));
+            }
+        }
+
+        return reloadedSession;
     }
 
     /// <summary>
@@ -276,10 +378,15 @@ public class MatchSessionService
         if (session.Status == MatchSessionStatus.Finished)
             throw new InvalidOperationException("Impossible d'annuler une session terminée");
 
+        var matchId = session.MatchId;
         session.Status = MatchSessionStatus.Cancelled;
         session.Match.Status = MatchStatus.Pending;
 
         await _context.SaveChangesAsync();
+
+        // Broadcaster l'annulation
+        await _matchHub.Clients.Group($"match-{matchId}")
+            .SessionCancelled(matchId);
     }
 
     /// <summary>

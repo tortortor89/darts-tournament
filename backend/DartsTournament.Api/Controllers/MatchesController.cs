@@ -19,12 +19,18 @@ public class MatchesController : ControllerBase
     private readonly AppDbContext _context;
     private readonly TournamentService _tournamentService;
     private readonly MatchSessionService _matchSessionService;
+    private readonly MatchStatsService _statsService;
 
-    public MatchesController(AppDbContext context, TournamentService tournamentService, MatchSessionService matchSessionService)
+    public MatchesController(
+        AppDbContext context,
+        TournamentService tournamentService,
+        MatchSessionService matchSessionService,
+        MatchStatsService statsService)
     {
         _context = context;
         _tournamentService = tournamentService;
         _matchSessionService = matchSessionService;
+        _statsService = statsService;
     }
 
     /// <summary>
@@ -271,6 +277,29 @@ public class MatchesController : ControllerBase
         }
 
         return Ok(_matchSessionService.BuildSpectatorResponse(session));
+    }
+
+    /// <summary>
+    /// Récupérer les statistiques en temps réel du match
+    /// </summary>
+    /// <param name="id">Identifiant du match</param>
+    /// <returns>Statistiques des deux joueurs</returns>
+    /// <response code="200">Statistiques calculées</response>
+    /// <response code="404">Session non trouvée</response>
+    [HttpGet("{id}/session/stats")]
+    [ProducesResponseType(typeof(MatchStatsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MatchStatsResponse>> GetMatchStats(int id)
+    {
+        var session = await _matchSessionService.GetOrCreateSessionAsync(id);
+
+        if (session == null)
+        {
+            return NotFound("Aucune session active pour ce match");
+        }
+
+        var stats = _statsService.CalculateStats(session);
+        return Ok(stats);
     }
 
     #endregion

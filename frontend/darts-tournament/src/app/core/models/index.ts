@@ -219,3 +219,60 @@ export interface RecordThrowRequest {
   dart2?: string;
   dart3?: string;
 }
+
+// Statistics
+export interface MatchStats {
+  player1Stats: PlayerStats;
+  player2Stats: PlayerStats;
+}
+
+export interface PlayerStats {
+  playerId: number;
+  name: string;
+  threeDartAverage: number;
+  checkoutPercentage?: number;
+  first9Average?: number;
+  highestCheckout?: number;
+  totalDartsThrown: number;
+  totalScore: number;
+  legsWon: number;
+  checkoutAttempts: number;
+  checkoutSuccesses: number;
+  highestScore?: number;
+  oneEighties: number;
+}
+
+// SignalR Events
+export interface ThrowRecordedEvent {
+  matchId: number;
+  throw: ThrowInfo;
+  player1CurrentScore: number;
+  player2CurrentScore: number;
+  currentPlayerId: number;
+  stats: MatchStats;
+}
+
+export interface LegWonEvent {
+  matchId: number;
+  legNumber: number;
+  winnerId: number;
+  winnerName: string;
+  player1LegsWon: number;
+  player2LegsWon: number;
+  newCurrentLeg: number;
+  legSummary: LegSummary;
+}
+
+export interface MatchFinishedEvent {
+  matchId: number;
+  winnerId: number;
+  winnerName: string;
+  player1LegsWon: number;
+  player2LegsWon: number;
+  finalStats: MatchStats;
+}
+
+export interface SessionStartedEvent {
+  matchId: number;
+  session: MatchSession;
+}

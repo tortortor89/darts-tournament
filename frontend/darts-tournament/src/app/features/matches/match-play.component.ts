@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy, DestroyRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo } from '../../core/models';
+import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats } from '../../core/models';
 
 type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 type InputMode = 'total' | 'darts';
@@ -13,7 +13,7 @@ type InputMode = 'total' | 'darts';
 @Component({
   selector: 'app-match-play',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DecimalPipe],
   template: `
     <div class="match-container">
       <!-- Loading -->
@@ -163,6 +163,35 @@ type InputMode = 'total' | 'darts';
             </button>
           </div>
 
+          <!-- Live Statistics -->
+          @if (stats) {
+            <div class="stats-panel">
+              <h4>Statistiques</h4>
+              <div class="stats-compact">
+                <div class="stat-item">
+                  <span class="p1">{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</span>
+                  <span class="label">Moy.</span>
+                  <span class="p2">{{ stats.player2Stats.threeDartAverage | number:'1.1-1' }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="p1">{{ stats.player1Stats.oneEighties }}</span>
+                  <span class="label">180</span>
+                  <span class="p2">{{ stats.player2Stats.oneEighties }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="p1">{{ stats.player1Stats.highestScore || '-' }}</span>
+                  <span class="label">Best</span>
+                  <span class="p2">{{ stats.player2Stats.highestScore || '-' }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="p1">{{ stats.player1Stats.checkoutPercentage ? (stats.player1Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
+                  <span class="label">CO%</span>
+                  <span class="p2">{{ stats.player2Stats.checkoutPercentage ? (stats.player2Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+
           <!-- Actions -->
           <div class="match-actions">
             <button class="cancel-btn" (click)="cancelMatch()">Annuler le match</button>
@@ -190,6 +219,54 @@ type InputMode = 'total' | 'darts';
           <div class="winner-announcement">
             Vainqueur : {{ getWinner()?.name }}
           </div>
+
+          <!-- Final Statistics -->
+          @if (stats) {
+            <div class="final-stats">
+              <h3>Statistiques du match</h3>
+              <table class="stats-table">
+                <thead>
+                  <tr>
+                    <th>{{ session.player1.name }}</th>
+                    <th></th>
+                    <th>{{ session.player2.name }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</td>
+                    <td>Moyenne</td>
+                    <td>{{ stats.player2Stats.threeDartAverage | number:'1.1-1' }}</td>
+                  </tr>
+                  <tr>
+                    <td>{{ stats.player1Stats.first9Average ? (stats.player1Stats.first9Average | number:'1.1-1') : '-' }}</td>
+                    <td>Moy. 9 prem.</td>
+                    <td>{{ stats.player2Stats.first9Average ? (stats.player2Stats.first9Average | number:'1.1-1') : '-' }}</td>
+                  </tr>
+                  <tr>
+                    <td>{{ stats.player1Stats.checkoutPercentage ? (stats.player1Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</td>
+                    <td>Checkout</td>
+                    <td>{{ stats.player2Stats.checkoutPercentage ? (stats.player2Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</td>
+                  </tr>
+                  <tr>
+                    <td>{{ stats.player1Stats.highestCheckout || '-' }}</td>
+                    <td>+ Haut CO</td>
+                    <td>{{ stats.player2Stats.highestCheckout || '-' }}</td>
+                  </tr>
+                  <tr class="highlight-row">
+                    <td>{{ stats.player1Stats.oneEighties }}</td>
+                    <td>180</td>
+                    <td>{{ stats.player2Stats.oneEighties }}</td>
+                  </tr>
+                  <tr>
+                    <td>{{ stats.player1Stats.highestScore || '-' }}</td>
+                    <td>Best</td>
+                    <td>{{ stats.player2Stats.highestScore || '-' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          }
 
           <div class="validation-actions">
             <button class="validate-btn" (click)="validateMatch()">
@@ -623,6 +700,89 @@ type InputMode = 'total' | 'darts';
       color: rgba(255,255,255,0.7);
       border-color: rgba(255,255,255,0.3);
     }
+
+    /* Stats Panel (Playing) */
+    .stats-panel {
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stats-panel h4 {
+      margin: 0 0 10px 0;
+      font-size: 0.9em;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .stats-compact {
+      display: flex;
+      justify-content: space-around;
+      gap: 10px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .stat-item .label {
+      font-size: 0.75em;
+      color: #888;
+    }
+
+    .stat-item .p1, .stat-item .p2 {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    /* Final Stats Table */
+    .final-stats {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .final-stats h3 {
+      margin: 0 0 15px 0;
+      font-size: 1em;
+      text-align: center;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .stats-table th, .stats-table td {
+      padding: 8px 12px;
+      text-align: center;
+    }
+
+    .stats-table th {
+      font-size: 0.9em;
+      color: rgba(255,255,255,0.8);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .stats-table td:first-child, .stats-table td:last-child {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .stats-table td:nth-child(2) {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85em;
+    }
+
+    .stats-table tr.highlight-row td {
+      color: #ffc107;
+    }
   `]
 })
 export class MatchPlayComponent implements OnInit {
@@ -635,6 +795,7 @@ export class MatchPlayComponent implements OnInit {
   matchId: number = 0;
   match: Match | null = null;
   session: MatchSession | null = null;
+  stats: MatchStats | null = null;
   phase: GamePhase = 'loading';
   inputMode: InputMode = 'total';
 
@@ -683,10 +844,24 @@ export class MatchPlayComponent implements OnInit {
         next: (session) => {
           this.session = session;
           this.updatePhase();
+          this.loadStats();
         },
         error: () => {
           // No session exists, go to config
           this.phase = 'config';
+        }
+      });
+  }
+
+  loadStats() {
+    this.apiService.getMatchStats(this.matchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stats) => {
+          this.stats = stats;
+        },
+        error: () => {
+          // Stats not available yet
         }
       });
   }
@@ -752,6 +927,7 @@ export class MatchPlayComponent implements OnInit {
           this.session = session;
           this.resetThrowInput();
           this.updatePhase();
+          this.loadStats();
         },
         error: (err) => {
           this.notificationService.showError(err.error || 'Erreur lors de l\'enregistrement');

@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.Services;
 using DartsTournament.Api.Middleware;
+using DartsTournament.Api.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +84,10 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TournamentService>();
 builder.Services.AddScoped<MatchSessionService>();
+builder.Services.AddScoped<MatchStatsService>();
+
+// SignalR
+builder.Services.AddSignalR();
 
 // CORS
 builder.Services.AddCors(options =>
@@ -91,7 +96,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -111,5 +117,6 @@ app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<MatchHub>("/hubs/match");
 
 app.Run();

@@ -1,18 +1,25 @@
 import { Component, OnInit, OnDestroy, DestroyRef, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { interval } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
-import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
+import { SignalRService, ConnectionStatus } from '../../core/services/signalr.service';
+import { MatchSessionSpectator, MatchSessionStatus, MatchStats } from '../../core/models';
 
 @Component({
   selector: 'app-match-spectate',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DecimalPipe],
   template: `
     <div class="spectate-container">
+      <!-- Connection Status -->
+      <div class="connection-status" [class]="connectionStatus">
+        <span class="status-dot"></span>
+        {{ getConnectionStatusText() }}
+      </div>
+
       @if (loading) {
         <div class="loading">
           <div class="spinner"></div>
@@ -23,7 +30,7 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
       @if (error) {
         <div class="error">
           <p>{{ error }}</p>
-          <button (click)="loadSession()">Réessayer</button>
+          <button (click)="loadSession()">Reessayer</button>
         </div>
       }
 
@@ -43,7 +50,7 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
             </div>
 
             <div class="center-info">
-              <div class="legs-target">Premier à {{ session.legsToWin }}</div>
+              <div class="legs-target">Premier a {{ session.legsToWin }}</div>
               <div class="vs">VS</div>
               <div class="current-leg">Leg {{ session.currentLeg }}</div>
               @if (session.status === MatchSessionStatus.Finished) {
@@ -59,6 +66,58 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
               </div>
             </div>
           </div>
+
+          <!-- Live Statistics -->
+          @if (stats) {
+            <div class="stats-panel">
+              <h3>Statistiques en direct</h3>
+              <div class="stats-grid">
+                <!-- Average -->
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</div>
+                  <div class="stat-label">Moyenne</div>
+                  <div class="stat-value right">{{ stats.player2Stats.threeDartAverage | number:'1.1-1' }}</div>
+                </div>
+
+                <!-- First 9 Average -->
+                @if (stats.player1Stats.first9Average || stats.player2Stats.first9Average) {
+                  <div class="stat-row">
+                    <div class="stat-value left">{{ stats.player1Stats.first9Average ? (stats.player1Stats.first9Average | number:'1.1-1') : '-' }}</div>
+                    <div class="stat-label">Moy. 9 premieres</div>
+                    <div class="stat-value right">{{ stats.player2Stats.first9Average ? (stats.player2Stats.first9Average | number:'1.1-1') : '-' }}</div>
+                  </div>
+                }
+
+                <!-- Checkout % -->
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.checkoutPercentage ? (stats.player1Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</div>
+                  <div class="stat-label">Checkout</div>
+                  <div class="stat-value right">{{ stats.player2Stats.checkoutPercentage ? (stats.player2Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</div>
+                </div>
+
+                <!-- Highest Checkout -->
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.highestCheckout || '-' }}</div>
+                  <div class="stat-label">+ Haut checkout</div>
+                  <div class="stat-value right">{{ stats.player2Stats.highestCheckout || '-' }}</div>
+                </div>
+
+                <!-- 180s -->
+                <div class="stat-row">
+                  <div class="stat-value left highlight">{{ stats.player1Stats.oneEighties }}</div>
+                  <div class="stat-label">180</div>
+                  <div class="stat-value right highlight">{{ stats.player2Stats.oneEighties }}</div>
+                </div>
+
+                <!-- Highest Score -->
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.highestScore || '-' }}</div>
+                  <div class="stat-label">Meilleure volee</div>
+                  <div class="stat-value right">{{ stats.player2Stats.highestScore || '-' }}</div>
+                </div>
+              </div>
+            </div>
+          }
 
           <!-- Legs History -->
           @if (session.legsHistory.length > 0) {
@@ -87,9 +146,52 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
       background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
       color: white;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 20px;
+      position: relative;
+    }
+
+    .connection-status {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #6c757d;
+    }
+
+    .connection-status.connected .status-dot {
+      background: #28a745;
+      box-shadow: 0 0 8px #28a745;
+    }
+
+    .connection-status.connecting .status-dot,
+    .connection-status.reconnecting .status-dot {
+      background: #ffc107;
+      animation: pulse 1s infinite;
+    }
+
+    .connection-status.disconnected .status-dot {
+      background: #dc3545;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
     .loading {
@@ -241,8 +343,67 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
       border-radius: 10px;
     }
 
+    /* Statistics Panel */
+    .stats-panel {
+      margin-top: 30px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .stats-panel h3 {
+      margin: 0 0 15px 0;
+      font-size: 1em;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .stats-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 20px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .stat-value {
+      font-size: 1.3em;
+      font-weight: bold;
+    }
+
+    .stat-value.left {
+      text-align: right;
+    }
+
+    .stat-value.right {
+      text-align: left;
+    }
+
+    .stat-value.highlight {
+      color: #ffc107;
+    }
+
+    .stat-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+      text-align: center;
+      min-width: 140px;
+    }
+
     .legs-history {
-      margin-top: 40px;
+      margin-top: 30px;
       background: rgba(255,255,255,0.05);
       border-radius: 12px;
       padding: 20px;
@@ -320,27 +481,49 @@ import { MatchSessionSpectator, MatchSessionStatus } from '../../core/models';
       .center-info {
         order: -1;
       }
+
+      .stat-row {
+        gap: 10px;
+      }
+
+      .stat-label {
+        min-width: 100px;
+        font-size: 0.8em;
+      }
+
+      .stat-value {
+        font-size: 1.1em;
+      }
     }
   `]
 })
-export class MatchSpectateComponent implements OnInit {
+export class MatchSpectateComponent implements OnInit, OnDestroy {
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private apiService = inject(ApiService);
+  private signalRService = inject(SignalRService);
 
   matchId: number = 0;
   session: MatchSessionSpectator | null = null;
+  stats: MatchStats | null = null;
   loading = true;
   error: string | null = null;
+  connectionStatus: ConnectionStatus = 'disconnected';
 
   MatchSessionStatus = MatchSessionStatus;
 
-  private refreshInterval = 3000; // Refresh every 3 seconds
+  private pollingSubscription: Subscription | null = null;
+  private usePollingFallback = false;
 
-  ngOnInit() {
+  async ngOnInit() {
     this.matchId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadSession();
-    this.startAutoRefresh();
+    await this.setupSignalR();
+  }
+
+  ngOnDestroy() {
+    this.signalRService.leaveMatch(this.matchId);
+    this.stopPolling();
   }
 
   loadSession() {
@@ -353,6 +536,7 @@ export class MatchSpectateComponent implements OnInit {
         next: (session) => {
           this.session = session;
           this.loading = false;
+          this.loadStats();
         },
         error: (err) => {
           this.loading = false;
@@ -361,8 +545,106 @@ export class MatchSpectateComponent implements OnInit {
       });
   }
 
-  startAutoRefresh() {
-    interval(this.refreshInterval)
+  loadStats() {
+    this.apiService.getMatchStats(this.matchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stats) => {
+          this.stats = stats;
+        },
+        error: () => {
+          // Stats not available, ignore
+        }
+      });
+  }
+
+  async setupSignalR() {
+    try {
+      await this.signalRService.startConnection();
+      await this.signalRService.joinMatch(this.matchId);
+
+      // Subscribe to connection status
+      this.signalRService.connectionStatus;
+      this.connectionStatus = this.signalRService.connectionStatus();
+
+      // Watch for status changes
+      const checkStatus = () => {
+        this.connectionStatus = this.signalRService.connectionStatus();
+        if (this.connectionStatus === 'disconnected' && !this.usePollingFallback) {
+          this.startPollingFallback();
+        }
+      };
+
+      // Use effect-like behavior with interval check
+      setInterval(checkStatus, 1000);
+
+      // Subscribe to SignalR events
+      this.signalRService.onThrowRecorded
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId && this.session) {
+            this.session.player1.currentScore = event.player1CurrentScore;
+            this.session.player2.currentScore = event.player2CurrentScore;
+            this.session.currentPlayerId = event.currentPlayerId;
+            this.stats = event.stats;
+          }
+        });
+
+      this.signalRService.onLegWon
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId && this.session) {
+            this.session.player1.legsWon = event.player1LegsWon;
+            this.session.player2.legsWon = event.player2LegsWon;
+            this.session.currentLeg = event.newCurrentLeg;
+            this.session.player1.currentScore = 501;
+            this.session.player2.currentScore = 501;
+            this.session.legsHistory.push(event.legSummary);
+          }
+        });
+
+      this.signalRService.onMatchFinished
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId && this.session) {
+            this.session.status = MatchSessionStatus.Finished;
+            this.session.player1.legsWon = event.player1LegsWon;
+            this.session.player2.legsWon = event.player2LegsWon;
+            this.stats = event.finalStats;
+          }
+        });
+
+      this.signalRService.onSessionStarted
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId) {
+            this.loadSession();
+          }
+        });
+
+      this.signalRService.onSessionCancelled
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(matchId => {
+          if (matchId === this.matchId) {
+            this.session = null;
+            this.stats = null;
+            this.error = 'La session a ete annulee';
+          }
+        });
+
+    } catch (err) {
+      console.error('SignalR setup failed, falling back to polling', err);
+      this.startPollingFallback();
+    }
+  }
+
+  startPollingFallback() {
+    if (this.pollingSubscription) return;
+
+    this.usePollingFallback = true;
+    this.connectionStatus = 'disconnected';
+
+    this.pollingSubscription = interval(3000)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         switchMap(() => this.apiService.getMatchSpectator(this.matchId))
@@ -371,11 +653,28 @@ export class MatchSpectateComponent implements OnInit {
         next: (session) => {
           this.session = session;
           this.error = null;
+          this.loadStats();
         },
         error: () => {
           // Silently ignore refresh errors
         }
       });
+  }
+
+  stopPolling() {
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe();
+      this.pollingSubscription = null;
+    }
+  }
+
+  getConnectionStatusText(): string {
+    switch (this.connectionStatus) {
+      case 'connected': return 'En direct';
+      case 'connecting': return 'Connexion...';
+      case 'reconnecting': return 'Reconnexion...';
+      case 'disconnected': return this.usePollingFallback ? 'Actualisation auto' : 'Deconnecte';
+    }
   }
 
   isWinner(playerId: number): boolean {

@@ -63,9 +63,18 @@
 - [ ] Authentification : restreindre l'écran de jeu aux joueurs du match (nécessite lien User -> Player)
 - [ ] Formats de jeu supplémentaires : 301, Cricket
 - [ ] Gestion des sets en plus des legs
-- [ ] Statistiques en temps réel : moyenne, % doubles, checkout rate
+- [x] Statistiques en temps réel : moyenne, % doubles, checkout rate
 - [ ] Historique : voir le détail d'un match terminé (toutes les volées)
-- [ ] Temps réel : SignalR pour refresh instantané du spectateur
+- [x] Temps réel : SignalR pour refresh instantané du spectateur
+
+**Amélioration interface de saisie :**
+- [ ] Pavé numérique visuel en mode score total (0-9, effacer, valider)
+- [ ] Tableau interactif : chiffres 1-20 + Bull, avec boutons Simple/Double/Triple
+- [ ] Bouton "il reste xxx" : saisir le score restant plutôt que le score fait
+- [ ] Bouton "Checkout" : valider directement un checkout quand le score le permet
+- [ ] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
+- [ ] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
+- [ ] Combiner les deux questions ci-dessus quand nécessaire (ex: "Checkout en 2 fléchettes, 1 tentée sur double")
 
 ### Comptes Joueurs & Inscription
 - [ ] Lier un compte utilisateur à un profil joueur (User -> Player)
