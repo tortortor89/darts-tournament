@@ -85,6 +85,7 @@ public class MatchSessionService
             Status = MatchSessionStatus.InProgress,
             Player1CurrentScore = 501,
             Player2CurrentScore = 501,
+            TrackDoubles = request.TrackDoubles,
             StartedAt = DateTime.UtcNow
         };
 
@@ -180,7 +181,9 @@ public class MatchSessionService
             Dart3 = request.Dart3,
             RemainingScore = newScore,
             IsCheckout = isCheckout,
-            IsBust = isBust
+            IsBust = isBust,
+            DartsUsed = request.DartsUsed,
+            DoublesAttempted = request.DoublesAttempted
         };
 
         _context.Throws.Add(throwEntity);
@@ -229,6 +232,8 @@ public class MatchSessionService
             throwEntity.RemainingScore,
             throwEntity.IsCheckout,
             throwEntity.IsBust,
+            throwEntity.DartsUsed,
+            throwEntity.DoublesAttempted,
             throwEntity.CreatedAt
         );
 
@@ -411,6 +416,8 @@ public class MatchSessionService
                 t.RemainingScore,
                 t.IsCheckout,
                 t.IsBust,
+                t.DartsUsed,
+                t.DoublesAttempted,
                 t.CreatedAt
             ))
             .ToList();
@@ -440,7 +447,8 @@ public class MatchSessionService
             currentLegThrows,
             session.CreatedAt,
             session.StartedAt,
-            session.FinishedAt
+            session.FinishedAt,
+            session.TrackDoubles
         );
     }
 

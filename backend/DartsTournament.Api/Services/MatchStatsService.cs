@@ -25,7 +25,12 @@ public class MatchStatsService
 
         // Moyenne 3 fléchettes
         var totalScore = playerThrows.Sum(t => t.Score);
-        var dartsThrown = playerThrows.Count * 3;
+
+        // Calculer le nombre de fléchettes lancées
+        // Utiliser DartsUsed quand disponible, sinon fallback sur 3 par volée
+        var dartsThrown = playerThrows
+            .Sum(t => t.DartsUsed ?? 3);
+
         var average = dartsThrown > 0 ? (double)totalScore / dartsThrown * 3 : 0;
 
         // Checkout %
@@ -63,6 +68,11 @@ public class MatchStatsService
         // Nombre de 180
         var oneEighties = playerThrows.Count(t => t.Score == 180);
 
+        // DÉSACTIVÉ : % Réussite sur doubles
+        // Cette stat est désormais optionnelle et n'est plus calculée par défaut
+        // car elle nécessite le tracking avancé des doubles tentés
+        double? doublesHitRate = null;
+
         return new PlayerStatsInfo(
             playerId,
             $"{player.FirstName} {player.LastName}",
@@ -76,7 +86,8 @@ public class MatchStatsService
             checkoutAttempts,
             checkoutSuccesses,
             highestScore > 0 ? highestScore : null,
-            oneEighties
+            oneEighties,
+            doublesHitRate.HasValue ? Math.Round(doublesHitRate.Value, 1) : null
         );
     }
 }

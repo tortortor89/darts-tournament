@@ -27,6 +27,10 @@ public class Throw
     // Score restant après cette volée
     public int RemainingScore { get; set; }
 
+    // Statistiques détaillées (optionnel)
+    public int? DartsUsed { get; set; }        // Nombre de fléchettes utilisées (1, 2 ou 3) - surtout pour les checkouts
+    public int? DoublesAttempted { get; set; } // Nombre de doubles tentés dans cette volée - pour stats précises
+
     // Métadonnées
     public bool IsCheckout { get; set; } = false;
     public bool IsBust { get; set; } = false;

@@ -24,5 +24,6 @@ public record PlayerStatsInfo(
     int CheckoutAttempts,
     int CheckoutSuccesses,
     int? HighestScore,
-    int OneEighties
+    int OneEighties,
+    double? DoublesHitRate
 );

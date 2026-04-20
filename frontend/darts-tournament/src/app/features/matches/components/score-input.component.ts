@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -9,6 +9,8 @@ export interface ThrowData {
   dart1?: string;
   dart2?: string;
   dart3?: string;
+  dartsUsed?: number;          // Nombre de fléchettes utilisées (1, 2 ou 3)
+  doublesAttempted?: number;   // Nombre de doubles tentés
 }
 
 @Component({
@@ -114,9 +116,80 @@ export interface ThrowData {
         </div>
       }
 
+      @if (showCheckoutButton) {
+        <button class="checkout-btn" (click)="initiateCheckout()" type="button">
+          CHECKOUT ({{currentPlayerScore}})
+        </button>
+      }
+
       <button class="submit-throw" (click)="submitThrow()" [disabled]="!canSubmit()">
         Valider
       </button>
+
+      <!-- Checkout Modal -->
+      @if (checkoutModalVisible()) {
+        <div class="modal-overlay" (click)="cancelCheckout()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <h3>Checkout en {{currentPlayerScore}} points</h3>
+
+            @if (!selectedDartsForCheckout) {
+              <!-- Étape 1 : Demander le nombre de fléchettes -->
+              <div class="modal-section">
+                <label>Avec combien de fléchettes as-tu réussi ce checkout ?</label>
+                <div class="dart-count-buttons">
+                  <button (click)="selectDartsForCheckout(1)">1 fléchette</button>
+                  <button (click)="selectDartsForCheckout(2)">2 fléchettes</button>
+                  <button (click)="selectDartsForCheckout(3)">3 fléchettes</button>
+                </div>
+              </div>
+
+              <button class="cancel-btn" (click)="cancelCheckout()">
+                Annuler
+              </button>
+            } @else {
+              <!-- Étape 2 : Demander le nombre de doubles tentés (min = nb fléchettes, max = 3) -->
+              <div class="modal-section">
+                <label>Combien de fléchettes as-tu tentées sur un double durant cette volée ?</label>
+                <div class="dart-count-buttons">
+                  @for (count of getDoublesAttemptedOptions(selectedDartsForCheckout); track count) {
+                    <button (click)="submitCheckout(selectedDartsForCheckout, count)">
+                      {{ count }} {{ count === 1 ? 'fléchette' : 'fléchettes' }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <button class="back-btn" (click)="selectedDartsForCheckout = undefined">
+                ← Retour
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Doubles Attempted Modal (CAS 2 & 3: normal play) -->
+      @if (doublesAttemptedModalVisible()) {
+        <div class="modal-overlay" (click)="cancelDoublesAttemptedModal()">
+          <div class="modal-content" (click)="$event.stopPropagation()">
+            <h3>Tentative sur double</h3>
+            <p class="modal-info">Score avant la volée : {{currentPlayerScore}} points</p>
+
+            <div class="modal-section">
+              <label>Combien de fléchettes as-tu tentées sur un double durant cette volée ?</label>
+              <div class="dart-count-buttons doubles-grid">
+                <button (click)="submitThrowWithDoublesAttempted(0)">Aucune</button>
+                <button (click)="submitThrowWithDoublesAttempted(1)">1 fléchette</button>
+                <button (click)="submitThrowWithDoublesAttempted(2)">2 fléchettes</button>
+                <button (click)="submitThrowWithDoublesAttempted(3)">3 fléchettes</button>
+              </div>
+            </div>
+
+            <button class="cancel-btn" (click)="cancelDoublesAttemptedModal()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -457,11 +530,147 @@ export interface ThrowData {
       background: #666;
       cursor: not-allowed;
     }
+
+    /* Checkout button */
+    .checkout-btn {
+      width: 100%;
+      background: #28a745;
+      color: white;
+      font-weight: bold;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+      cursor: pointer;
+      animation: pulse 1.5s infinite;
+      transition: background 0.2s;
+    }
+
+    .checkout-btn:hover {
+      background: #218838;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: #1e1e2e;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+      color: white;
+    }
+
+    .modal-content h3 {
+      margin: 0 0 20px 0;
+      text-align: center;
+      color: #4caf50;
+    }
+
+    .modal-section {
+      margin-bottom: 20px;
+    }
+
+    .modal-section label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 0.95em;
+      color: #aaa;
+    }
+
+    .dart-count-buttons {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .dart-count-buttons button {
+      flex: 1;
+      padding: 20px;
+      font-size: 1.1em;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .dart-count-buttons button:hover {
+      background: #0056b3;
+    }
+
+    .dart-count-buttons button:active {
+      background: #004085;
+    }
+
+    .cancel-btn {
+      width: 100%;
+      padding: 12px;
+      background: rgba(220, 53, 69, 0.3);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+
+    .cancel-btn:hover {
+      background: rgba(220, 53, 69, 0.5);
+    }
+
+    .back-btn {
+      width: 100%;
+      padding: 12px;
+      background: rgba(108, 117, 125, 0.3);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+
+    .back-btn:hover {
+      background: rgba(108, 117, 125, 0.5);
+    }
+
+    .modal-info {
+      text-align: center;
+      color: #4caf50;
+      font-size: 1.1em;
+      margin: 0 0 15px 0;
+    }
+
+    .doubles-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
   `]
 })
 export class ScoreInputComponent {
   @Input() quickScores: number[] = [0, 26, 41, 45, 60, 85, 100, 120, 140, 180];
   @Input() currentPlayerScore: number = 501;
+  @Input() trackDoubles: boolean = false;  // Active le tracking des doubles tentés
 
   @Output() throwSubmit = new EventEmitter<ThrowData>();
 
@@ -472,6 +681,28 @@ export class ScoreInputComponent {
   dart2: string = '';
   dart3: string = '';
   selectedMultiplier: 'S' | 'D' | 'T' = 'S';
+
+  // Checkout functionality
+  checkoutModalVisible = signal(false);
+  selectedDartsForCheckout?: number;
+
+  // Doubles attempted modal (for normal play on scores <= 50)
+  doublesAttemptedModalVisible = signal(false);
+  pendingThrowData?: Omit<ThrowData, 'doublesAttempted'>;
+
+  // Show checkout button when score is finishable in 3 darts
+  // Finishable: 170, 167, 164, 161, 160, and all scores <= 158 (except 1)
+  // Non-finishable in 3 darts: 169, 168, 166, 165, 163, 162, 159
+  get showCheckoutButton(): boolean {
+    const score = this.currentPlayerScore;
+    if (score <= 1) return false;
+
+    // Scores finishable in 3 darts
+    if (score <= 158) return true;
+    if (score === 160 || score === 161 || score === 164 || score === 167 || score === 170) return true;
+
+    return false;
+  }
 
   setInputMode(mode: InputMode) {
     this.inputMode = mode;
@@ -571,15 +802,100 @@ export class ScoreInputComponent {
       score = this.getNumpadValue();
     }
 
-    const throwData: ThrowData = {
+    const throwData: Omit<ThrowData, 'doublesAttempted'> = {
       score,
       dart1: this.dart1 || undefined,
       dart2: this.dart2 || undefined,
       dart3: this.dart3 || undefined
     };
 
-    this.throwSubmit.emit(throwData);
+    // MODE A : En mode fléchettes
+    if (this.inputMode === 'darts') {
+      // Si trackDoubles est activé, calculer automatiquement les doubles tentés
+      if (this.trackDoubles) {
+        const doublesAttempted = this.calculateDoublesAttempted();
+        this.throwSubmit.emit({
+          ...throwData,
+          doublesAttempted: doublesAttempted > 0 ? doublesAttempted : undefined
+        });
+      } else {
+        // Sans tracking, ne pas inclure doublesAttempted
+        this.throwSubmit.emit(throwData);
+      }
+      this.resetInput();
+    }
+    // MODE B : En mode total
+    else {
+      // Si trackDoubles est activé, gérer les 4 cas selon les règles
+      if (this.trackDoubles) {
+        this.handleTotalModeSubmit(throwData, score);
+      } else {
+        // Sans tracking, soumettre directement sans popup
+        this.throwSubmit.emit(throwData);
+        this.resetInput();
+      }
+    }
+  }
+
+  /**
+   * Gère la soumission en Mode B (score total) selon les 4 cas spécifiés
+   */
+  private handleTotalModeSubmit(throwData: Omit<ThrowData, 'doublesAttempted'>, score: number) {
+    const scoreAvantVolee = this.currentPlayerScore;
+    const scoreApresVolee = scoreAvantVolee - score;
+
+    const estCheckout = scoreApresVolee === 0;
+    const estBust = score > scoreAvantVolee || scoreApresVolee === 1;
+    const etaitEnPositionDoubleAvant = this.isInDoublePosition(scoreAvantVolee);
+    const estEnPositionDoubleApres = this.isInDoublePosition(estBust ? scoreAvantVolee : scoreApresVolee);
+
+    // CAS 1 — Checkout réussi
+    if (estCheckout) {
+      this.pendingThrowData = throwData;
+      this.checkoutModalVisible.set(true);
+      return;
+    }
+
+    // CAS 2 — Pas de checkout, joueur était en position de double avant la volée
+    if (etaitEnPositionDoubleAvant && !estCheckout) {
+      this.pendingThrowData = throwData;
+      this.doublesAttemptedModalVisible.set(true);
+      return;
+    }
+
+    // CAS 3 — Pas de checkout, joueur n'était pas en position avant, mais l'est devenu
+    // (Inclut le cas où après un bust, le score reste en position de double)
+    if (!etaitEnPositionDoubleAvant && estEnPositionDoubleApres && !estCheckout) {
+      this.pendingThrowData = throwData;
+      this.doublesAttemptedModalVisible.set(true);
+      return;
+    }
+
+    // CAS 4 — Aucune popup nécessaire
+    // Pas en position avant, pas en position après, pas de checkout
+    this.throwSubmit.emit({
+      ...throwData,
+      doublesAttempted: 0
+    });
     this.resetInput();
+  }
+
+  submitThrowWithDoublesAttempted(doublesAttempted: number) {
+    if (!this.pendingThrowData) return;
+
+    this.throwSubmit.emit({
+      ...this.pendingThrowData,
+      doublesAttempted
+    });
+
+    this.doublesAttemptedModalVisible.set(false);
+    this.pendingThrowData = undefined;
+    this.resetInput();
+  }
+
+  cancelDoublesAttemptedModal() {
+    this.doublesAttemptedModalVisible.set(false);
+    this.pendingThrowData = undefined;
   }
 
   canSubmit(): boolean {
@@ -622,6 +938,149 @@ export class ScoreInputComponent {
       case 'T': return num * 3;
       default: return 0;
     }
+  }
+
+  /**
+   * Calcule automatiquement le nombre de doubles tentés en mode fléchettes
+   * selon les règles exactes :
+   * - Cas Bull (score = 50): miss (0), S25, ou DB (50)
+   * - Cas doubles D1-D20 (score pair <= 40): miss (0), simple (moitié), ou double (score exact)
+   */
+  calculateDoublesAttempted(): number {
+    let remainingScore = this.currentPlayerScore;
+    let doublesAttempted = 0;
+
+    const darts = [this.dart1, this.dart2, this.dart3].filter(d => d);
+
+    for (const dart of darts) {
+      const dartScore = this.parseDartScore(dart);
+
+      // Vérifier si c'est une tentative sur double selon les règles exactes
+      if (this.isDoubleAttempt(remainingScore, dartScore)) {
+        doublesAttempted++;
+      }
+
+      // Soustraire le score de cette fléchette pour la prochaine itération
+      remainingScore -= dartScore;
+
+      // Si bust, le score reste inchangé
+      if (remainingScore < 0 || remainingScore === 1) {
+        remainingScore = this.currentPlayerScore;
+      }
+    }
+
+    return doublesAttempted;
+  }
+
+  /**
+   * Détermine si une fléchette est une tentative sur double selon les règles exactes
+   * @param scoreAvant Score restant AVANT le lancer
+   * @param valeurSaisie Points marqués par la fléchette
+   */
+  private isDoubleAttempt(scoreAvant: number, valeurSaisie: number): boolean {
+    // Cas Bull (score = 50)
+    if (scoreAvant === 50) {
+      return valeurSaisie === 0     // Miss complet
+          || valeurSaisie === 25    // S25 (Bull simple), tentative ratée
+          || valeurSaisie === 50;   // DB réussi, checkout
+    }
+
+    // Cas doubles classiques D1..D20
+    if (scoreAvant % 2 === 0 && scoreAvant <= 40) {
+      return valeurSaisie === 0                    // Miss complet
+          || valeurSaisie === scoreAvant / 2       // Simple = moitié (ex: S16 pour 32)
+          || valeurSaisie === scoreAvant;          // Double réussi, checkout
+    }
+
+    return false;
+  }
+
+  /**
+   * Vérifie si un score est en position de double
+   * Position de double = 50 (Bull) OU (pair ET <= 40)
+   */
+  isInDoublePosition(score: number): boolean {
+    return score === 50 || (score % 2 === 0 && score >= 2 && score <= 40);
+  }
+
+  /**
+   * Vérifie si un score est finissable (alias pour isInDoublePosition)
+   */
+  isScoreFinishable(score: number): boolean {
+    return this.isInDoublePosition(score);
+  }
+
+  /**
+   * Retourne le double cible et le single correspondant pour un score donné
+   */
+  getTargetDouble(score: number): { double: string, single: string } | null {
+    if (score === 50) return { double: 'DB', single: 'BULL' };
+    if (score >= 2 && score <= 40 && score % 2 === 0) {
+      const num = score / 2;
+      return { double: `D${num}`, single: `S${num}` };
+    }
+    return null;
+  }
+
+  // Checkout button functionality
+  initiateCheckout() {
+    this.selectedDartsForCheckout = undefined;
+    this.checkoutModalVisible.set(true);
+  }
+
+  selectDartsForCheckout(darts: number) {
+    // CAS 1 - Checkout réussi
+    // Si 1 fléchette : doublesAttempted = 1 automatiquement
+    if (darts === 1) {
+      this.submitCheckout(1, 1);
+    } else {
+      // Si >= 2 fléchettes : afficher popup pour demander nombre de doubles tentés
+      this.selectedDartsForCheckout = darts;
+    }
+  }
+
+  submitCheckout(dartsUsed: number, doublesAttempted: number) {
+    const checkoutScore = this.currentPlayerScore;
+
+    if (!this.pendingThrowData) {
+      // Cas du bouton CHECKOUT direct
+      this.throwSubmit.emit({
+        score: checkoutScore,
+        dartsUsed,
+        doublesAttempted
+      });
+    } else {
+      // Cas de la popup normale qui déclenche un checkout
+      this.throwSubmit.emit({
+        ...this.pendingThrowData,
+        dartsUsed,
+        doublesAttempted
+      });
+      this.pendingThrowData = undefined;
+    }
+
+    this.checkoutModalVisible.set(false);
+    this.selectedDartsForCheckout = undefined;
+    this.resetInput();
+  }
+
+  cancelCheckout() {
+    this.checkoutModalVisible.set(false);
+    this.selectedDartsForCheckout = undefined;
+    this.pendingThrowData = undefined;
+  }
+
+  /**
+   * Retourne les options de doubles tentés pour un checkout
+   * Minimum = nombre de fléchettes utilisées (la dernière était forcément un double)
+   * Maximum = 3
+   */
+  getDoublesAttemptedOptions(dartsUsed: number): number[] {
+    const options: number[] = [];
+    for (let i = dartsUsed; i <= 3; i++) {
+      options.push(i);
+    }
+    return options;
   }
 
   resetInput() {

@@ -155,6 +155,7 @@ export interface MatchSession {
   createdAt: Date;
   startedAt?: Date;
   finishedAt?: Date;
+  trackDoubles: boolean;
 }
 
 export interface PlayerSessionInfo {
@@ -211,6 +212,7 @@ export interface LegSummary {
 export interface StartMatchSessionRequest {
   legsToWin: number;
   startingPlayerId: number;
+  trackDoubles?: boolean;
 }
 
 export interface RecordThrowRequest {

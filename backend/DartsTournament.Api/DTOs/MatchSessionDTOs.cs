@@ -11,7 +11,9 @@ public record StartMatchSessionRequest(
     int LegsToWin,
 
     [Required(ErrorMessage = "L'ID du joueur qui commence est requis")]
-    int StartingPlayerId
+    int StartingPlayerId,
+
+    bool TrackDoubles = false  // Active le tracking avancé des doubles tentés
 );
 
 /// <summary>
@@ -23,7 +25,13 @@ public record RecordThrowRequest(
 
     string? Dart1,
     string? Dart2,
-    string? Dart3
+    string? Dart3,
+
+    [Range(1, 3, ErrorMessage = "Le nombre de fléchettes utilisées doit être entre 1 et 3")]
+    int? DartsUsed,
+
+    [Range(1, 3, ErrorMessage = "Le nombre de doubles tentés doit être entre 1 et 3")]
+    int? DoublesAttempted
 );
 
 /// <summary>
@@ -42,7 +50,8 @@ public record MatchSessionResponse(
     List<ThrowResponse> CurrentLegThrows,
     DateTime CreatedAt,
     DateTime? StartedAt,
-    DateTime? FinishedAt
+    DateTime? FinishedAt,
+    bool TrackDoubles
 );
 
 /// <summary>
@@ -72,6 +81,8 @@ public record ThrowResponse(
     int RemainingScore,
     bool IsCheckout,
     bool IsBust,
+    int? DartsUsed,
+    int? DoublesAttempted,
     DateTime CreatedAt
 );
 

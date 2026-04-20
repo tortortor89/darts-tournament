@@ -70,6 +70,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
               <div class="game-mode">501 - Straight In, Double Out</div>
             </div>
 
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="config.trackDoubles">
+                <span>Tracking avancé des doubles tentés</span>
+              </label>
+              <span class="hint">Active les popups pour suivre les tentatives de doubles (pour statistiques détaillées)</span>
+            </div>
+
             <button class="start-btn" (click)="startMatch()" [disabled]="!config.startingPlayerId">
               Commencer le match
             </button>
@@ -123,6 +131,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
           <!-- Score Input -->
           <app-score-input
             [currentPlayerScore]="getCurrentPlayerScore()"
+            [trackDoubles]="session.trackDoubles"
             (throwSubmit)="onThrowSubmit($event)">
           </app-score-input>
 
@@ -327,6 +336,24 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       margin-top: 8px;
       color: #666;
       font-size: 0.9em;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .checkbox-label span {
+      flex: 1;
     }
 
     .game-mode {
@@ -665,7 +692,8 @@ export class MatchPlayComponent implements OnInit {
 
   config = {
     legsToWin: 3,
-    startingPlayerId: 0
+    startingPlayerId: 0,
+    trackDoubles: false
   };
 
   ngOnInit() {
@@ -747,7 +775,8 @@ export class MatchPlayComponent implements OnInit {
 
     this.apiService.startMatchSession(this.matchId, {
       legsToWin: this.config.legsToWin,
-      startingPlayerId: this.config.startingPlayerId
+      startingPlayerId: this.config.startingPlayerId,
+      trackDoubles: this.config.trackDoubles
     }).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {
