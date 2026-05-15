@@ -27,13 +27,15 @@ public class TournamentService
         if (tournament.Status != TournamentStatus.Draft)
             throw new InvalidOperationException("Tournament has already started");
 
+        // Only include approved players in bracket generation
         var players = tournament.TournamentPlayers
+            .Where(tp => tp.Status == RegistrationStatus.Approved)
             .OrderBy(tp => tp.Seed ?? int.MaxValue)
             .Select(tp => tp.Player)
             .ToList();
 
         if (players.Count < 2)
-            throw new InvalidOperationException("At least 2 players required");
+            throw new InvalidOperationException("At least 2 approved players required to generate bracket");
 
         // Clear existing matches
         var existingMatches = await _context.Matches

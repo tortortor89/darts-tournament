@@ -71,17 +71,17 @@
 - [x] Pavé numérique visuel en mode score total (0-9, effacer, valider)
 - [x] Tableau interactif : chiffres 1-20 + Bull, avec boutons Simple/Double/Triple
 - [x] Bouton "il reste xxx" : saisir le score restant plutôt que le score fait
-- [ ] Bouton "Checkout" : valider directement un checkout quand le score le permet
-- [ ] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
-- [ ] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
-- [ ] Combiner les deux questions ci-dessus quand nécessaire (ex: "Checkout en 2 fléchettes, 1 tentée sur double")
+- [x] Bouton "Checkout" : valider directement un checkout quand le score le permet
+- [x] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
+- [x] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
+- [x] Combiner les deux questions ci-dessus quand nécessaire (ex: "Checkout en 2 fléchettes, 1 tentée sur double")
 
 ### Comptes Joueurs & Inscription
-- [ ] Lier un compte utilisateur à un profil joueur (User -> Player)
-- [ ] Interface de création de compte joueur (inscription publique)
-- [ ] Page profil joueur (édition de ses propres infos)
-- [ ] Auto-inscription aux tournois (pour les utilisateurs connectés avec profil joueur)
-- [ ] Gestion des inscriptions par l'admin (valider/refuser)
+- [x] Lier un compte utilisateur à un profil joueur (User -> Player)
+- [x] Interface de création de compte joueur (inscription publique)
+- [x] Page profil joueur (édition de ses propres infos)
+- [x] Auto-inscription aux tournois (pour les utilisateurs connectés avec profil joueur)
+- [x] Gestion des inscriptions par l'admin (valider/refuser)
 
 ### Statistiques & Joueurs
 - [ ] Page de statistiques par joueur (moyenne, % victoires, historique)

@@ -11,4 +11,6 @@ public class TournamentPlayer
     public int? Seed { get; set; }
     public int? GroupId { get; set; }
     public Group? Group { get; set; }
+
+    public RegistrationStatus Status { get; set; } = RegistrationStatus.Approved;
 }

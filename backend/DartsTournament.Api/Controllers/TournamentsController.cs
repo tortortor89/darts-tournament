@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,13 @@ public class TournamentsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly TournamentService _tournamentService;
+    private readonly PlayerService _playerService;
 
-    public TournamentsController(AppDbContext context, TournamentService tournamentService)
+    public TournamentsController(AppDbContext context, TournamentService tournamentService, PlayerService playerService)
     {
         _context = context;
         _tournamentService = tournamentService;
+        _playerService = playerService;
     }
 
     /// <summary>
@@ -102,7 +105,8 @@ public class TournamentsController : ControllerBase
                 tp.Player.LastName,
                 tp.Player.Nickname,
                 tp.Seed,
-                tp.GroupId
+                tp.GroupId,
+                tp.Status
             )).ToList(),
             tournament.Groups.Select(g => new GroupResponse(
                 g.Id,
@@ -113,7 +117,8 @@ public class TournamentsController : ControllerBase
                     tp.Player.LastName,
                     tp.Player.Nickname,
                     tp.Seed,
-                    tp.GroupId
+                    tp.GroupId,
+                    tp.Status
                 )).ToList()
             )).ToList(),
             tournament.Matches.OrderBy(m => m.Round).ThenBy(m => m.Position).Select(m => new MatchResponse(
@@ -344,6 +349,209 @@ public class TournamentsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// S'inscrire au tournoi (auto-inscription)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <response code="200">Inscription réussie</response>
+    /// <response code="400">Impossible de s'inscrire (déjà inscrit, tournoi démarré, pas de profil joueur)</response>
+    /// <response code="404">Tournoi non trouvé</response>
+    [HttpPost("{id}/register")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RegisterToTournament(int id)
+    {
+        // Get user ID from JWT claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        // Get linked player
+        var player = await _playerService.GetLinkedPlayerForUserAsync(userId);
+        if (player == null)
+        {
+            return BadRequest(new { message = "Vous devez avoir un profil joueur pour vous inscrire à un tournoi" });
+        }
+
+        // Get tournament
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        // Check tournament status
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de s'inscrire à un tournoi qui a déjà commencé" });
+        }
+
+        // Check if already registered
+        var exists = await _context.TournamentPlayers
+            .AnyAsync(tp => tp.TournamentId == id && tp.PlayerId == player.Id);
+
+        if (exists)
+        {
+            return BadRequest(new { message = "Vous êtes déjà inscrit à ce tournoi" });
+        }
+
+        // Register player with Pending status
+        var tournamentPlayer = new TournamentPlayer
+        {
+            TournamentId = id,
+            PlayerId = player.Id,
+            Seed = null,  // Auto-registration without seed
+            Status = RegistrationStatus.Pending  // Requires admin approval
+        };
+
+        _context.TournamentPlayers.Add(tournamentPlayer);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Inscription envoyée. En attente d'approbation par l'administrateur." });
+    }
+
+    /// <summary>
+    /// Se désinscrire du tournoi (auto-désinscription)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <response code="200">Désinscription réussie</response>
+    /// <response code="400">Impossible de se désinscrire (tournoi démarré, pas inscrit)</response>
+    /// <response code="404">Tournoi non trouvé</response>
+    [HttpDelete("{id}/unregister")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UnregisterFromTournament(int id)
+    {
+        // Get user ID from JWT claims
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        // Get linked player
+        var player = await _playerService.GetLinkedPlayerForUserAsync(userId);
+        if (player == null)
+        {
+            return BadRequest(new { message = "Vous n'avez pas de profil joueur" });
+        }
+
+        // Get tournament
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        // Check tournament status
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de se désinscrire d'un tournoi qui a déjà commencé" });
+        }
+
+        // Check if registered
+        var tournamentPlayer = await _context.TournamentPlayers
+            .FirstOrDefaultAsync(tp => tp.TournamentId == id && tp.PlayerId == player.Id);
+
+        if (tournamentPlayer == null)
+        {
+            return BadRequest(new { message = "Vous n'êtes pas inscrit à ce tournoi" });
+        }
+
+        // Unregister player
+        _context.TournamentPlayers.Remove(tournamentPlayer);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Désinscription réussie" });
+    }
+
+    /// <summary>
+    /// Approuver l'inscription d'un joueur (Admin)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="playerId">Identifiant du joueur</param>
+    /// <response code="200">Inscription approuvée</response>
+    /// <response code="400">Tournoi déjà démarré ou joueur non inscrit</response>
+    /// <response code="404">Tournoi ou joueur non trouvé</response>
+    [HttpPost("{id}/registrations/{playerId}/approve")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApproveRegistration(int id, int playerId)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible d'approuver des inscriptions pour un tournoi qui a déjà commencé" });
+        }
+
+        var tournamentPlayer = await _context.TournamentPlayers
+            .FirstOrDefaultAsync(tp => tp.TournamentId == id && tp.PlayerId == playerId);
+
+        if (tournamentPlayer == null)
+        {
+            return NotFound(new { message = "Joueur non inscrit à ce tournoi" });
+        }
+
+        tournamentPlayer.Status = RegistrationStatus.Approved;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Inscription approuvée" });
+    }
+
+    /// <summary>
+    /// Refuser l'inscription d'un joueur (Admin)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="playerId">Identifiant du joueur</param>
+    /// <response code="200">Inscription refusée et supprimée</response>
+    /// <response code="400">Tournoi déjà démarré ou joueur non inscrit</response>
+    /// <response code="404">Tournoi ou joueur non trouvé</response>
+    [HttpPost("{id}/registrations/{playerId}/reject")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectRegistration(int id, int playerId)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de refuser des inscriptions pour un tournoi qui a déjà commencé" });
+        }
+
+        var tournamentPlayer = await _context.TournamentPlayers
+            .FirstOrDefaultAsync(tp => tp.TournamentId == id && tp.PlayerId == playerId);
+
+        if (tournamentPlayer == null)
+        {
+            return NotFound(new { message = "Joueur non inscrit à ce tournoi" });
+        }
+
+        // Remove the registration when rejected
+        _context.TournamentPlayers.Remove(tournamentPlayer);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Inscription refusée" });
     }
 
     /// <summary>

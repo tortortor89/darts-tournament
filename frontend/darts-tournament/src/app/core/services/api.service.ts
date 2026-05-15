@@ -104,6 +104,23 @@ export class ApiService {
     return this.http.delete<void>(`${this.API_URL}/tournaments/${tournamentId}/players/${playerId}`);
   }
 
+  // Self-registration
+  registerToTournament(tournamentId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/tournaments/${tournamentId}/register`, {});
+  }
+
+  unregisterFromTournament(tournamentId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/tournaments/${tournamentId}/unregister`);
+  }
+
+  approveRegistration(tournamentId: number, playerId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/tournaments/${tournamentId}/registrations/${playerId}/approve`, {});
+  }
+
+  rejectRegistration(tournamentId: number, playerId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/tournaments/${tournamentId}/registrations/${playerId}/reject`, {});
+  }
+
   generateBracket(tournamentId: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/tournaments/${tournamentId}/generate`, {});
   }

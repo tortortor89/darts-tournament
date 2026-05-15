@@ -74,7 +74,7 @@ public record TournamentDetailResponse(
     List<MatchResponse> Matches
 );
 
-public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId);
+public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);
 public record GroupResponse(int Id, string Name, List<TournamentPlayerResponse> Players);
 
 public record GroupStandingResponse(

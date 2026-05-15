@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType } from '../../core/models';
+import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType, RegistrationStatus } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
 import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
 
@@ -34,11 +34,89 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
         }
       </div>
 
-      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin()) {
+      <!-- Self-registration section (for authenticated users with player profile) -->
+      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated() && !authService.isAdmin()) {
+        <div class="self-registration-section">
+          @if (authService.hasLinkedPlayer()) {
+            @if (isUserRegistered()) {
+              @let userPlayer = tournament.players.find(p => p.playerId === authService.linkedPlayerId());
+              @if (userPlayer) {
+                @if (userPlayer.status === RegistrationStatus.Pending) {
+                  <div class="status-pending">
+                    <p>⏳ Votre inscription est en attente d'approbation par l'administrateur</p>
+                  </div>
+                  <button class="btn-unregister" (click)="unregisterFromTournament()">
+                    Annuler mon inscription
+                  </button>
+                } @else if (userPlayer.status === RegistrationStatus.Approved) {
+                  <div class="status-approved">
+                    <p>✓ Votre inscription a été approuvée</p>
+                  </div>
+                  <button class="btn-unregister" (click)="unregisterFromTournament()">
+                    Se désinscrire du tournoi
+                  </button>
+                }
+              }
+            } @else {
+              <button class="btn-register" (click)="registerToTournament()">
+                S'inscrire au tournoi
+              </button>
+            }
+          } @else {
+            <div class="warning">
+              <p>Vous devez avoir un profil joueur pour vous inscrire.</p>
+              <a routerLink="/profile">Créer ou lier mon profil joueur</a>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Players list visible to everyone in Draft status -->
+      @if (tournament.status === TournamentStatus.Draft) {
         <div class="players-section">
           <h3>Joueurs inscrits ({{ tournament.players.length }})</h3>
 
+          @if (!authService.isAdmin()) {
+            <ul class="player-list">
+              @for (player of tournament.players; track player.playerId) {
+                <li>
+                  {{ player.firstName }} {{ player.lastName }}
+                  @if (player.nickname) { ({{ player.nickname }}) }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin()) {
+        <div class="players-section">
+          <h3>Gestion des joueurs (Admin)</h3>
+
+          <!-- Pending registrations -->
+          @if (getPendingRegistrations().length > 0) {
+            <div class="pending-section">
+              <h4>Inscriptions en attente ({{ getPendingRegistrations().length }})</h4>
+              <ul class="player-list pending">
+                @for (player of getPendingRegistrations(); track player.playerId) {
+                  <li>
+                    <span>
+                      {{ player.firstName }} {{ player.lastName }}
+                      @if (player.nickname) { ({{ player.nickname }}) }
+                    </span>
+                    <div class="registration-actions">
+                      <button (click)="approveRegistration(player.playerId)" class="approve">✓ Approuver</button>
+                      <button (click)="rejectRegistration(player.playerId)" class="reject">✗ Refuser</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- Add player manually -->
           <div class="add-player">
+            <h4>Ajouter un joueur manuellement</h4>
             <select [(ngModel)]="selectedPlayerId">
               <option value="">Sélectionner un joueur</option>
               @for (player of availablePlayers; track player.id) {
@@ -49,19 +127,27 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
             <button (click)="addPlayer()" [disabled]="!selectedPlayerId">Ajouter</button>
           </div>
 
-          <ul class="player-list">
-            @for (player of tournament.players; track player.playerId) {
-              <li>
-                {{ player.firstName }} {{ player.lastName }}
-                @if (player.nickname) { ({{ player.nickname }}) }
-                @if (player.seed) { - Seed: {{ player.seed }} }
-                <button (click)="removePlayer(player.playerId)" class="remove">X</button>
-              </li>
-            }
-          </ul>
+          <!-- Approved players -->
+          <div class="approved-section">
+            <h4>Joueurs approuvés ({{ getApprovedRegistrations().length }})</h4>
+            <ul class="player-list">
+              @for (player of getApprovedRegistrations(); track player.playerId) {
+                <li>
+                  <span>
+                    {{ player.firstName }} {{ player.lastName }}
+                    @if (player.nickname) { ({{ player.nickname }}) }
+                    @if (player.seed) { - Seed: {{ player.seed }} }
+                  </span>
+                  <button (click)="removePlayer(player.playerId)" class="remove">X</button>
+                </li>
+              }
+            </ul>
+          </div>
 
-          @if (tournament.players.length >= 2) {
-            <button (click)="generateBracket()" class="generate">Générer le bracket</button>
+          @if (getApprovedRegistrations().length >= 2) {
+            <button (click)="generateBracket()" class="generate">Générer le bracket ({{ getApprovedRegistrations().length }} joueurs)</button>
+          } @else {
+            <p class="info-text">Au moins 2 joueurs approuvés sont nécessaires pour générer le bracket</p>
           }
         </div>
       }
@@ -454,6 +540,66 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       font-size: 16px;
     }
 
+    /* Self-registration section */
+    .self-registration-section {
+      margin-bottom: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      text-align: center;
+      color: white;
+    }
+    .btn-register {
+      padding: 12px 30px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-register:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .btn-unregister {
+      padding: 10px 20px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .btn-unregister:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .self-registration-section .info-text {
+      margin-top: 10px;
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+    .self-registration-section .warning {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 4px;
+      border-left: 4px solid #ffc107;
+    }
+    .self-registration-section .warning p {
+      margin: 0 0 10px 0;
+    }
+    .self-registration-section .warning a {
+      color: white;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
     /* Standings */
     .standings-grid {
       display: grid;
@@ -772,6 +918,72 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .match-input-card .match-info {
       margin-bottom: 10px;
     }
+
+    /* Registration Management */
+    .pending-section, .approved-section {
+      margin-bottom: 20px;
+    }
+    .pending-section h4, .approved-section h4 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .add-player h4 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    .player-list.pending li {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+    }
+    .registration-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .registration-actions .approve {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .registration-actions .approve:hover {
+      background: #218838;
+    }
+    .registration-actions .reject {
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .registration-actions .reject:hover {
+      background: #c82333;
+    }
+    .status-pending {
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .status-pending p {
+      margin: 0;
+      font-size: 1.1em;
+    }
+    .status-approved {
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-bottom: 15px;
+    }
+    .status-approved p {
+      margin: 0;
+      font-size: 1.1em;
+      font-weight: 600;
+    }
   `]
 })
 export class TournamentDetailComponent implements OnInit {
@@ -787,6 +999,7 @@ export class TournamentDetailComponent implements OnInit {
   TournamentStatus = TournamentStatus;
   MatchStatus = MatchStatus;
   BracketType = BracketType;
+  RegistrationStatus = RegistrationStatus;
 
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
@@ -867,7 +1080,8 @@ export class TournamentDetailComponent implements OnInit {
             firstName: player.firstName,
             lastName: player.lastName,
             nickname: player.nickname,
-            seed: seed
+            seed: seed,
+            status: RegistrationStatus.Approved
           };
           this.tournament.players = [...this.tournament.players, tournamentPlayer];
           this.availablePlayers = this.availablePlayers.filter(p => p.id !== playerId);
@@ -899,6 +1113,113 @@ export class TournamentDetailComponent implements OnInit {
         }
       });
     }
+  }
+
+  isUserRegistered(): boolean {
+    if (!this.tournament || !this.authService.linkedPlayerId()) {
+      return false;
+    }
+    const linkedPlayerId = this.authService.linkedPlayerId();
+    return this.tournament.players.some(p => p.playerId === linkedPlayerId);
+  }
+
+  registerToTournament() {
+    if (!this.tournament) return;
+
+    this.apiService.registerToTournament(this.tournament.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Inscription réussie');
+          this.loadTournament(this.tournament!.id);
+        },
+        error: (error) => {
+          const message = error.error?.message || 'Erreur lors de l\'inscription';
+          this.notificationService.showError(message);
+        }
+      });
+  }
+
+  unregisterFromTournament() {
+    if (!this.tournament) return;
+
+    if (!confirm('Voulez-vous vraiment vous désinscrire de ce tournoi ?')) {
+      return;
+    }
+
+    this.apiService.unregisterFromTournament(this.tournament.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Désinscription réussie');
+          this.loadTournament(this.tournament!.id);
+        },
+        error: (error) => {
+          const message = error.error?.message || 'Erreur lors de la désinscription';
+          this.notificationService.showError(message);
+        }
+      });
+  }
+
+  approveRegistration(playerId: number) {
+    if (!this.tournament) return;
+
+    this.apiService.approveRegistration(this.tournament.id, playerId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Inscription approuvée');
+          this.loadTournament(this.tournament!.id);
+        },
+        error: (error) => {
+          const message = error.error?.message || 'Erreur lors de l\'approbation';
+          this.notificationService.showError(message);
+        }
+      });
+  }
+
+  rejectRegistration(playerId: number) {
+    if (!this.tournament) return;
+
+    if (!confirm('Voulez-vous vraiment refuser cette inscription ?')) {
+      return;
+    }
+
+    this.apiService.rejectRegistration(this.tournament.id, playerId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.notificationService.showSuccess('Inscription refusée');
+          this.loadTournament(this.tournament!.id);
+        },
+        error: (error) => {
+          const message = error.error?.message || 'Erreur lors du refus';
+          this.notificationService.showError(message);
+        }
+      });
+  }
+
+  getRegistrationStatusLabel(status: RegistrationStatus): string {
+    switch (status) {
+      case RegistrationStatus.Pending:
+        return 'En attente';
+      case RegistrationStatus.Approved:
+        return 'Approuvé';
+      case RegistrationStatus.Rejected:
+        return 'Refusé';
+      default:
+        return '';
+    }
+  }
+
+  getPendingRegistrations() {
+    if (!this.tournament) return [];
+    return this.tournament.players.filter(p => p.status === RegistrationStatus.Pending);
+  }
+
+  getApprovedRegistrations() {
+    if (!this.tournament) return [];
+    return this.tournament.players.filter(p => p.status === RegistrationStatus.Approved);
   }
 
   generateBracket() {

@@ -48,3 +48,10 @@ public enum MatchSessionStatus
     Finished,
     Cancelled
 }
+
+public enum RegistrationStatus
+{
+    Pending,
+    Approved,
+    Rejected
+}

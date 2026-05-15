@@ -60,6 +60,7 @@ export interface TournamentPlayer {
   nickname?: string;
   seed?: number;
   groupId?: number;
+  status: RegistrationStatus;
 }
 
 export interface Group {
@@ -131,6 +132,12 @@ export enum MatchStatus {
   Pending = 0,
   InProgress = 1,
   Completed = 2
+}
+
+export enum RegistrationStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2
 }
 
 // Match Session (Live Game)
