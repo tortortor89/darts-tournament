@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
+
 namespace DartsTournament.Api.Models;
 
 /// <summary>
@@ -31,6 +34,21 @@ public class MatchSession
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? StartedAt { get; set; }
     public DateTime? FinishedAt { get; set; }
+
+    // État Cricket (JSON pour flexibilité)
+    public string? CricketStateJson { get; set; }  // Sérialisé: CricketGameState
+
+    // Helper pour deserializer
+    [NotMapped]
+    public CricketGameState? CricketState
+    {
+        get => string.IsNullOrEmpty(CricketStateJson)
+            ? null
+            : JsonSerializer.Deserialize<CricketGameState>(CricketStateJson);
+        set => CricketStateJson = value == null
+            ? null
+            : JsonSerializer.Serialize(value);
+    }
 
     // Navigation
     public ICollection<Throw> Throws { get; set; } = new List<Throw>();

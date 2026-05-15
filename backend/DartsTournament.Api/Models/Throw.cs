@@ -35,4 +35,7 @@ public class Throw
     public bool IsCheckout { get; set; } = false;
     public bool IsBust { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Cricket data (optionnel)
+    public string? CricketDataJson { get; set; }  // Optionnel: { "target": 20, "hits": 3, "pointsScored": 60 }
 }

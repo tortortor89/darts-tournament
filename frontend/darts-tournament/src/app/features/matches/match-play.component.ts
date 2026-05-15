@@ -5,15 +5,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats } from '../../core/models';
+import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, RecordCricketThrowRequest } from '../../core/models';
 import { ScoreInputComponent, ThrowData } from './components/score-input.component';
+import { CricketDisplayComponent } from './components/cricket-display.component';
+import { CricketInputComponent } from './components/cricket-input.component';
 
 type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
 @Component({
   selector: 'app-match-play',
   standalone: true,
-  imports: [CommonModule, FormsModule, DecimalPipe, ScoreInputComponent],
+  imports: [CommonModule, FormsModule, DecimalPipe, ScoreInputComponent, CricketDisplayComponent, CricketInputComponent],
   template: `
     <div class="match-container">
       <!-- Loading -->
@@ -67,10 +69,25 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
             <div class="form-group">
               <label>Mode de jeu</label>
-              <div class="game-mode">501 - Straight In, Double Out</div>
+              <div class="game-mode-selector">
+                <button
+                  type="button"
+                  [class.selected]="config.gameMode === GameMode.FiveOhOne"
+                  (click)="config.gameMode = GameMode.FiveOhOne">
+                  501
+                </button>
+                <button
+                  type="button"
+                  [class.selected]="config.gameMode === GameMode.Cricket"
+                  (click)="config.gameMode = GameMode.Cricket">
+                  Cricket
+                </button>
+              </div>
+              <span class="hint" *ngIf="config.gameMode === GameMode.FiveOhOne">Straight In, Double Out</span>
+              <span class="hint" *ngIf="config.gameMode === GameMode.Cricket">Cibles 15-20 + Bull, 3 hits pour fermer</span>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" *ngIf="config.gameMode === GameMode.FiveOhOne">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="config.trackDoubles">
                 <span>Tracking avancé des doubles tentés</span>
@@ -114,54 +131,70 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             </div>
           </div>
 
-          <!-- Throw History for current leg -->
-          <div class="throw-history">
-            <h4>Historique du leg</h4>
-            <div class="throws-list">
-              @for (t of session.currentLegThrows; track t.id) {
-                <div class="throw-item" [class.bust]="t.isBust" [class.checkout]="t.isCheckout">
-                  <span class="throw-player">{{ getPlayerShortName(t.playerId) }}</span>
-                  <span class="throw-score">{{ t.isBust ? 'BUST' : t.score }}</span>
-                  <span class="throw-remaining">→ {{ t.remainingScore }}</span>
-                </div>
-              }
-            </div>
-          </div>
-
-          <!-- Score Input -->
-          <app-score-input
-            [currentPlayerScore]="getCurrentPlayerScore()"
-            [trackDoubles]="session.trackDoubles"
-            (throwSubmit)="onThrowSubmit($event)">
-          </app-score-input>
-
-          <!-- Live Statistics -->
-          @if (stats) {
-            <div class="stats-panel">
-              <h4>Statistiques</h4>
-              <div class="stats-compact">
-                <div class="stat-item">
-                  <span class="p1">{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</span>
-                  <span class="label">Moy.</span>
-                  <span class="p2">{{ stats.player2Stats.threeDartAverage | number:'1.1-1' }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="p1">{{ stats.player1Stats.oneEighties }}</span>
-                  <span class="label">180</span>
-                  <span class="p2">{{ stats.player2Stats.oneEighties }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="p1">{{ stats.player1Stats.highestScore || '-' }}</span>
-                  <span class="label">Best</span>
-                  <span class="p2">{{ stats.player2Stats.highestScore || '-' }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="p1">{{ stats.player1Stats.checkoutPercentage ? (stats.player1Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
-                  <span class="label">CO%</span>
-                  <span class="p2">{{ stats.player2Stats.checkoutPercentage ? (stats.player2Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
-                </div>
+          <!-- Mode 501 -->
+          @if (session.gameMode === GameMode.FiveOhOne) {
+            <!-- Throw History for current leg -->
+            <div class="throw-history">
+              <h4>Historique du leg</h4>
+              <div class="throws-list">
+                @for (t of session.currentLegThrows; track t.id) {
+                  <div class="throw-item" [class.bust]="t.isBust" [class.checkout]="t.isCheckout">
+                    <span class="throw-player">{{ getPlayerShortName(t.playerId) }}</span>
+                    <span class="throw-score">{{ t.isBust ? 'BUST' : t.score }}</span>
+                    <span class="throw-remaining">→ {{ t.remainingScore }}</span>
+                  </div>
+                }
               </div>
             </div>
+
+            <!-- Score Input -->
+            <app-score-input
+              [currentPlayerScore]="getCurrentPlayerScore()"
+              [trackDoubles]="session.trackDoubles"
+              (throwSubmit)="onThrowSubmit($event)">
+            </app-score-input>
+
+            <!-- Live Statistics -->
+            @if (stats) {
+              <div class="stats-panel">
+                <h4>Statistiques</h4>
+                <div class="stats-compact">
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</span>
+                    <span class="label">Moy.</span>
+                    <span class="p2">{{ stats.player2Stats.threeDartAverage | number:'1.1-1' }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.oneEighties }}</span>
+                    <span class="label">180</span>
+                    <span class="p2">{{ stats.player2Stats.oneEighties }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.highestScore || '-' }}</span>
+                    <span class="label">Best</span>
+                    <span class="p2">{{ stats.player2Stats.highestScore || '-' }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.checkoutPercentage ? (stats.player1Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
+                    <span class="label">CO%</span>
+                    <span class="p2">{{ stats.player2Stats.checkoutPercentage ? (stats.player2Stats.checkoutPercentage | number:'1.0-0') + '%' : '-' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Mode Cricket -->
+          @if (session.gameMode === GameMode.Cricket && session.cricketState) {
+            <app-cricket-display
+              [cricketState]="session.cricketState"
+              [player1Name]="session.player1.name"
+              [player2Name]="session.player2.name">
+            </app-cricket-display>
+
+            <app-cricket-input
+              (throwSubmit)="onCricketThrowSubmit($event)">
+            </app-cricket-input>
           }
 
           <!-- Actions -->
@@ -309,12 +342,12 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       font-weight: 600;
     }
 
-    .legs-selector, .starter-selector {
+    .legs-selector, .starter-selector, .game-mode-selector {
       display: flex;
       gap: 10px;
     }
 
-    .legs-selector button, .starter-selector button {
+    .legs-selector button, .starter-selector button, .game-mode-selector button {
       flex: 1;
       padding: 12px;
       border: 2px solid #ddd;
@@ -325,7 +358,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       transition: all 0.2s;
     }
 
-    .legs-selector button.selected, .starter-selector button.selected {
+    .legs-selector button.selected, .starter-selector button.selected, .game-mode-selector button.selected {
       border-color: #007bff;
       background: #007bff;
       color: white;
@@ -690,10 +723,13 @@ export class MatchPlayComponent implements OnInit {
   stats: MatchStats | null = null;
   phase: GamePhase = 'loading';
 
+  GameMode = GameMode;  // Pour utiliser dans le template
+
   config = {
     legsToWin: 3,
     startingPlayerId: 0,
-    trackDoubles: false
+    trackDoubles: false,
+    gameMode: GameMode.FiveOhOne
   };
 
   ngOnInit() {
@@ -776,7 +812,8 @@ export class MatchPlayComponent implements OnInit {
     this.apiService.startMatchSession(this.matchId, {
       legsToWin: this.config.legsToWin,
       startingPlayerId: this.config.startingPlayerId,
-      trackDoubles: this.config.trackDoubles
+      trackDoubles: this.config.trackDoubles,
+      gameMode: this.config.gameMode
     }).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {
@@ -805,6 +842,39 @@ export class MatchPlayComponent implements OnInit {
           this.session = session;
           this.updatePhase();
           this.loadStats();
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error || 'Erreur lors de l\'enregistrement');
+        }
+      });
+  }
+
+  onCricketThrowSubmit(request: RecordCricketThrowRequest) {
+    this.apiService.recordCricketThrow(this.matchId, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          // Afficher le feedback
+          if (response.closedTarget) {
+            this.notificationService.showSuccess(
+              `${response.target === 25 ? 'BULL' : response.target} fermé !`
+            );
+          } else if (response.pointsScored > 0) {
+            this.notificationService.showSuccess(
+              `${response.pointsScored} points marqués`
+            );
+          }
+
+          // Recharger la session pour rafraîchir l'état
+          this.apiService.getMatchSession(this.matchId)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe({
+              next: (session) => {
+                this.session = session;
+                this.updatePhase();
+                this.loadStats();
+              }
+            });
         },
         error: (err) => {
           this.notificationService.showError(err.error || 'Erreur lors de l\'enregistrement');

@@ -196,6 +196,33 @@ public class MatchesController : ControllerBase
     }
 
     /// <summary>
+    /// Enregistrer un throw Cricket
+    /// </summary>
+    [HttpPost("{id}/session/cricket-throw")]
+    [ProducesResponseType(typeof(CricketThrowResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CricketThrowResponse>> RecordCricketThrow(int id, [FromBody] RecordCricketThrowRequest request)
+    {
+        var session = await _matchSessionService.GetOrCreateSessionAsync(id);
+
+        if (session == null)
+        {
+            return NotFound("Aucune session active pour ce match");
+        }
+
+        try
+        {
+            var response = await _matchSessionService.RecordCricketThrowAsync(session.Id, request);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Valider et clôturer le match (met à jour le score du tournoi)
     /// </summary>
     /// <param name="id">Identifiant du match</param>

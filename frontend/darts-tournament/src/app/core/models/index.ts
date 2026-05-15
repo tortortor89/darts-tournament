@@ -142,7 +142,8 @@ export enum RegistrationStatus {
 
 // Match Session (Live Game)
 export enum GameMode {
-  FiveOhOne = 501
+  FiveOhOne = 501,
+  Cricket = 301
 }
 
 export enum MatchSessionStatus {
@@ -167,6 +168,7 @@ export interface MatchSession {
   startedAt?: Date;
   finishedAt?: Date;
   trackDoubles: boolean;
+  cricketState?: CricketDisplayState;
 }
 
 export interface PlayerSessionInfo {
@@ -224,6 +226,7 @@ export interface StartMatchSessionRequest {
   legsToWin: number;
   startingPlayerId: number;
   trackDoubles?: boolean;
+  gameMode?: GameMode;
 }
 
 export interface RecordThrowRequest {
@@ -346,4 +349,33 @@ export interface HeadToHeadRecord {
   totalLegsLost: number;
   lastMatchDate?: Date;
   lastMatchTournament?: string;
+}
+
+// Cricket interfaces
+export interface CricketTargetState {
+  target: number;
+  hits: number;
+  closed: boolean;
+}
+
+export interface CricketDisplayState {
+  player1Targets: { [target: number]: CricketTargetState };
+  player2Targets: { [target: number]: CricketTargetState };
+  player1Score: number;
+  player2Score: number;
+}
+
+export interface CricketThrowResponse {
+  playerId: number;
+  playerName: string;
+  target: number;
+  hits: number;
+  pointsScored: number;
+  closedTarget: boolean;
+  currentState: CricketDisplayState;
+}
+
+export interface RecordCricketThrowRequest {
+  target: number;
+  hits: number;
 }

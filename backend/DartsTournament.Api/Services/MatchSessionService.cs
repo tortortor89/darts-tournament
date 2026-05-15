@@ -13,17 +13,20 @@ public class MatchSessionService
     private readonly TournamentService _tournamentService;
     private readonly IHubContext<MatchHub, IMatchHubClient> _matchHub;
     private readonly MatchStatsService _statsService;
+    private readonly CricketService _cricketService;
 
     public MatchSessionService(
         AppDbContext context,
         TournamentService tournamentService,
         IHubContext<MatchHub, IMatchHubClient> matchHub,
-        MatchStatsService statsService)
+        MatchStatsService statsService,
+        CricketService cricketService)
     {
         _context = context;
         _tournamentService = tournamentService;
         _matchHub = matchHub;
         _statsService = statsService;
+        _cricketService = cricketService;
     }
 
     /// <summary>
@@ -78,16 +81,28 @@ public class MatchSessionService
         {
             MatchId = matchId,
             LegsToWin = request.LegsToWin,
-            GameMode = GameMode.FiveOhOne,
+            GameMode = request.GameMode,
             StartingPlayerId = request.StartingPlayerId,
             CurrentPlayerId = request.StartingPlayerId,
             CurrentLegStartingPlayerId = request.StartingPlayerId,
             Status = MatchSessionStatus.InProgress,
-            Player1CurrentScore = 501,
-            Player2CurrentScore = 501,
             TrackDoubles = request.TrackDoubles,
             StartedAt = DateTime.UtcNow
         };
+
+        // Initialisation selon le mode
+        if (request.GameMode == GameMode.FiveOhOne)
+        {
+            session.Player1CurrentScore = 501;
+            session.Player2CurrentScore = 501;
+        }
+        else if (request.GameMode == GameMode.Cricket)
+        {
+            var cricketState = _cricketService.InitializeState(match.Player1Id!.Value, match.Player2Id!.Value);
+            session.CricketState = cricketState;
+            session.Player1CurrentScore = 0;  // Réutilisé pour le score Cricket
+            session.Player2CurrentScore = 0;
+        }
 
         _context.MatchSessions.Add(session);
 
@@ -422,6 +437,17 @@ public class MatchSessionService
             ))
             .ToList();
 
+        // Construire l'état Cricket si applicable
+        CricketDisplayState? cricketDisplayState = null;
+        if (session.GameMode == GameMode.Cricket && session.CricketState != null)
+        {
+            cricketDisplayState = _cricketService.BuildDisplayState(
+                session.CricketState,
+                match.Player1Id!.Value,
+                match.Player2Id!.Value
+            );
+        }
+
         return new MatchSessionResponse(
             session.Id,
             session.MatchId,
@@ -448,7 +474,8 @@ public class MatchSessionService
             session.CreatedAt,
             session.StartedAt,
             session.FinishedAt,
-            session.TrackDoubles
+            session.TrackDoubles,
+            cricketDisplayState
         );
     }
 
@@ -506,5 +533,155 @@ public class MatchSessionService
             session.CurrentLeg,
             legsHistory
         );
+    }
+
+    /// <summary>
+    /// Enregistre un throw Cricket
+    /// </summary>
+    public async Task<CricketThrowResponse> RecordCricketThrowAsync(int sessionId, RecordCricketThrowRequest request)
+    {
+        var session = await GetSessionByIdAsync(sessionId);
+
+        if (session == null)
+            throw new InvalidOperationException("Session non trouvée");
+
+        if (session.Status != MatchSessionStatus.InProgress)
+            throw new InvalidOperationException("Cette session n'est pas en cours");
+
+        if (session.GameMode != GameMode.Cricket)
+            throw new InvalidOperationException("Cette session n'est pas en mode Cricket");
+
+        var cricketState = session.CricketState!;
+        var currentPlayerId = session.CurrentPlayerId;
+        var opponentId = currentPlayerId == session.Match.Player1Id
+            ? session.Match.Player2Id!.Value
+            : session.Match.Player1Id!.Value;
+
+        // Traiter le throw
+        var result = _cricketService.ProcessThrow(
+            cricketState,
+            currentPlayerId,
+            opponentId,
+            request.Target,
+            request.Hits
+        );
+
+        // Sauvegarder l'état mis à jour
+        session.CricketState = cricketState;
+
+        // Mettre à jour les scores dans les champs CurrentScore
+        session.Player1CurrentScore = cricketState.PlayerStates[session.Match.Player1Id!.Value].Score;
+        session.Player2CurrentScore = cricketState.PlayerStates[session.Match.Player2Id!.Value].Score;
+
+        // Calculer le numéro du throw
+        var throwNumber = session.Throws
+            .Count(t => t.LegNumber == session.CurrentLeg && t.PlayerId == currentPlayerId) + 1;
+
+        // Créer le Throw entity
+        var throwEntity = new Throw
+        {
+            MatchSessionId = sessionId,
+            PlayerId = currentPlayerId,
+            LegNumber = session.CurrentLeg,
+            ThrowNumber = throwNumber,
+            Score = result.PointsScored,  // Points marqués
+            Dart1 = FormatCricketDart(request.Target, request.Hits),
+            RemainingScore = 0,  // Non utilisé en Cricket
+            IsCheckout = false,  // Sera mis à true si leg gagné
+            IsBust = false,
+            CricketDataJson = System.Text.Json.JsonSerializer.Serialize(new { target = request.Target, hits = request.Hits, pointsScored = result.PointsScored })
+        };
+
+        _context.Throws.Add(throwEntity);
+
+        // Vérifier si le joueur a gagné le leg
+        bool legWon = _cricketService.HasPlayerWonLeg(cricketState, currentPlayerId, opponentId);
+
+        if (legWon)
+        {
+            throwEntity.IsCheckout = true;
+            HandleCricketLegWon(session);
+        }
+        else
+        {
+            // Passer au joueur suivant
+            session.CurrentPlayerId = opponentId;
+        }
+
+        await _context.SaveChangesAsync();
+
+        var displayState = _cricketService.BuildDisplayState(cricketState, session.Match.Player1Id!.Value, session.Match.Player2Id!.Value);
+
+        var currentPlayer = currentPlayerId == session.Match.Player1Id ? session.Match.Player1! : session.Match.Player2!;
+
+        var response = new CricketThrowResponse(
+            currentPlayerId,
+            $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+            request.Target,
+            request.Hits,
+            result.PointsScored,
+            result.ClosedTarget,
+            displayState
+        );
+
+        // TODO: Broadcaster via SignalR
+
+        return response;
+    }
+
+    /// <summary>
+    /// Gère la fin d'un leg Cricket
+    /// </summary>
+    private void HandleCricketLegWon(MatchSession session)
+    {
+        // Incrémenter les legs gagnés
+        if (session.CurrentPlayerId == session.Match.Player1Id)
+            session.Player1LegsWon++;
+        else
+            session.Player2LegsWon++;
+
+        // Vérifier si le match est gagné
+        if (session.Player1LegsWon >= session.LegsToWin || session.Player2LegsWon >= session.LegsToWin)
+        {
+            session.Status = MatchSessionStatus.Finished;
+            session.FinishedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            // Nouveau leg - réinitialiser l'état Cricket
+            session.CurrentLeg++;
+            var cricketState = _cricketService.InitializeState(
+                session.Match.Player1Id!.Value,
+                session.Match.Player2Id!.Value
+            );
+            session.CricketState = cricketState;
+            session.Player1CurrentScore = 0;
+            session.Player2CurrentScore = 0;
+
+            // Alterner qui commence
+            session.CurrentLegStartingPlayerId = session.CurrentLegStartingPlayerId == session.Match.Player1Id
+                ? session.Match.Player2Id!.Value
+                : session.Match.Player1Id!.Value;
+            session.CurrentPlayerId = session.CurrentLegStartingPlayerId;
+        }
+    }
+
+    private string FormatCricketDart(int target, int hits)
+    {
+        if (target == 25)
+        {
+            // Bull: 1 hit = SB (25), 2+ hits = inclut DB
+            return hits == 1 ? "BULL" : (hits == 2 ? "BULL,DB" : "BULL,DB,DB");
+        }
+
+        var prefix = hits switch
+        {
+            1 => "S",
+            2 => "D",
+            3 => "T",
+            _ => "S"
+        };
+
+        return $"{prefix}{target}";
     }
 }

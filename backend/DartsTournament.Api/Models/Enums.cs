@@ -38,7 +38,8 @@ public enum UserRole
 
 public enum GameMode
 {
-    FiveOhOne = 501
+    FiveOhOne = 501,
+    Cricket = 301
 }
 
 public enum MatchSessionStatus

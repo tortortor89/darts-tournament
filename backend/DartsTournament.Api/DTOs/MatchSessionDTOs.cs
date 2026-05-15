@@ -13,7 +13,9 @@ public record StartMatchSessionRequest(
     [Required(ErrorMessage = "L'ID du joueur qui commence est requis")]
     int StartingPlayerId,
 
-    bool TrackDoubles = false  // Active le tracking avancé des doubles tentés
+    bool TrackDoubles = false,  // Active le tracking avancé des doubles tentés
+
+    GameMode GameMode = GameMode.FiveOhOne  // Mode de jeu (501 par défaut)
 );
 
 /// <summary>
@@ -51,7 +53,8 @@ public record MatchSessionResponse(
     DateTime CreatedAt,
     DateTime? StartedAt,
     DateTime? FinishedAt,
-    bool TrackDoubles
+    bool TrackDoubles,
+    CricketDisplayState? CricketState  // État Cricket (null si mode 501)
 );
 
 /// <summary>
