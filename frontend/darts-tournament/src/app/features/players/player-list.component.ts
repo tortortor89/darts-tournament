@@ -1,6 +1,7 @@
 import { Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -10,7 +11,7 @@ import { Player } from '../../core/models';
 @Component({
   selector: 'app-player-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="container">
       <h2>Joueurs</h2>
@@ -40,6 +41,7 @@ import { Player } from '../../core/models';
             <th>Nom</th>
             <th>Prénom</th>
             <th>Surnom</th>
+            <th>Stats</th>
             @if (authService.isAdmin()) {
               <th>Utilisateur Lié</th>
               <th>Actions</th>
@@ -52,6 +54,9 @@ import { Player } from '../../core/models';
               <td>{{ player.lastName }}</td>
               <td>{{ player.firstName }}</td>
               <td>{{ player.nickname || '-' }}</td>
+              <td>
+                <a [routerLink]="['/players', player.id, 'stats']" class="btn-stats">📊 Stats</a>
+              </td>
               @if (authService.isAdmin()) {
                 <td>{{ player.linkedUsername || '-' }}</td>
                 <td>
@@ -122,6 +127,21 @@ import { Player } from '../../core/models';
       text-align: center;
       padding: 20px;
       color: #666;
+    }
+    .btn-stats {
+      display: inline-block;
+      padding: 6px 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-stats:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
   `]
 })

@@ -86,6 +86,7 @@ builder.Services.AddScoped<TournamentService>();
 builder.Services.AddScoped<MatchSessionService>();
 builder.Services.AddScoped<MatchStatsService>();
 builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<PlayerStatsService>();
 
 // SignalR
 builder.Services.AddSignalR();

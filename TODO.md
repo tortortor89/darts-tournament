@@ -84,8 +84,8 @@
 - [x] Gestion des inscriptions par l'admin (valider/refuser)
 
 ### Statistiques & Joueurs
-- [ ] Page de statistiques par joueur (moyenne, % victoires, historique)
-- [ ] Historique des confrontations directes entre joueurs
+- [x] Page de statistiques par joueur (moyenne, % victoires, historique)
+- [x] Historique des confrontations directes entre joueurs
 - [ ] Graphiques d'évolution des performances
 
 ### Circuit & Classement

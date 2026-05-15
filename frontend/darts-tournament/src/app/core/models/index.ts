@@ -289,3 +289,61 @@ export interface SessionStartedEvent {
   matchId: number;
   session: MatchSession;
 }
+
+// Player Statistics
+export interface PlayerCareerStats {
+  playerId: number;
+  playerName: string;
+  totalMatches: number;
+  matchesWon: number;
+  matchesLost: number;
+  winPercentage: number;
+  detailedStats?: PlayerStatsAggregated;
+  tournamentsPlayed: number;
+  tournamentsWon: number;
+  firstMatchDate?: Date;
+  lastMatchDate?: Date;
+}
+
+export interface PlayerStatsAggregated {
+  threeDartAverage: number;
+  checkoutPercentage?: number;
+  first9Average?: number;
+  highestCheckout?: number;
+  totalDartsThrown: number;
+  totalScore: number;
+  totalLegsWon: number;
+  totalCheckoutAttempts: number;
+  totalCheckoutSuccesses: number;
+  highestScore?: number;
+  totalOneEighties: number;
+  matchesWithStats: number;
+}
+
+export interface PlayerTournamentHistoryItem {
+  tournamentId: number;
+  tournamentName: string;
+  format: TournamentFormat;
+  status: TournamentStatus;
+  startDate?: Date;
+  matchesPlayed: number;
+  matchesWon: number;
+  matchesLost: number;
+  result: string;
+  groupId?: number;
+  groupName?: string;
+  groupRank?: number;
+}
+
+export interface HeadToHeadRecord {
+  opponentId: number;
+  opponentName: string;
+  matchesPlayed: number;
+  matchesWon: number;
+  matchesLost: number;
+  winPercentage: number;
+  totalLegsWon: number;
+  totalLegsLost: number;
+  lastMatchDate?: Date;
+  lastMatchTournament?: string;
+}

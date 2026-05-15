@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats } from '../models';
+import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -56,6 +56,18 @@ export class ApiService {
 
   unlinkPlayer(playerId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/players/${playerId}/unlink`);
+  }
+
+  getPlayerCareerStats(id: number): Observable<PlayerCareerStats> {
+    return this.http.get<PlayerCareerStats>(`${this.API_URL}/players/${id}/stats`);
+  }
+
+  getPlayerTournamentHistory(id: number): Observable<PlayerTournamentHistoryItem[]> {
+    return this.http.get<PlayerTournamentHistoryItem[]>(`${this.API_URL}/players/${id}/tournament-history`);
+  }
+
+  getPlayerHeadToHead(id: number): Observable<HeadToHeadRecord[]> {
+    return this.http.get<HeadToHeadRecord[]>(`${this.API_URL}/players/${id}/head-to-head`);
   }
 
   adminLinkPlayerToUser(playerId: number, userId: number): Observable<void> {

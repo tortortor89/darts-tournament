@@ -19,11 +19,13 @@ public class PlayersController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly PlayerService _playerService;
+    private readonly PlayerStatsService _playerStatsService;
 
-    public PlayersController(AppDbContext context, PlayerService playerService)
+    public PlayersController(AppDbContext context, PlayerService playerService, PlayerStatsService playerStatsService)
     {
         _context = context;
         _playerService = playerService;
+        _playerStatsService = playerStatsService;
     }
 
     /// <summary>
@@ -338,5 +340,78 @@ public class PlayersController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Récupérer les statistiques complètes d'un joueur
+    /// </summary>
+    /// <param name="id">Identifiant du joueur</param>
+    /// <returns>Statistiques de carrière complètes</returns>
+    /// <response code="200">Statistiques récupérées</response>
+    /// <response code="404">Joueur non trouvé</response>
+    [HttpGet("{id}/stats")]
+    [ProducesResponseType(typeof(PlayerCareerStatsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PlayerCareerStatsResponse>> GetPlayerStats(int id)
+    {
+        var player = await _context.Players.FindAsync(id);
+        if (player == null)
+        {
+            return NotFound(new { message = "Joueur non trouvé" });
+        }
+
+        try
+        {
+            var stats = await _playerStatsService.GetCareerStatsAsync(id);
+            return Ok(stats);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Récupérer l'historique des tournois d'un joueur
+    /// </summary>
+    /// <param name="id">Identifiant du joueur</param>
+    /// <returns>Liste des tournois avec résultats</returns>
+    /// <response code="200">Historique récupéré</response>
+    /// <response code="404">Joueur non trouvé</response>
+    [HttpGet("{id}/tournament-history")]
+    [ProducesResponseType(typeof(List<PlayerTournamentHistoryItem>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<PlayerTournamentHistoryItem>>> GetPlayerTournamentHistory(int id)
+    {
+        var player = await _context.Players.FindAsync(id);
+        if (player == null)
+        {
+            return NotFound(new { message = "Joueur non trouvé" });
+        }
+
+        var history = await _playerStatsService.GetTournamentHistoryAsync(id);
+        return Ok(history);
+    }
+
+    /// <summary>
+    /// Récupérer les confrontations directes d'un joueur contre ses adversaires
+    /// </summary>
+    /// <param name="id">Identifiant du joueur</param>
+    /// <returns>Liste des confrontations directes</returns>
+    /// <response code="200">Confrontations récupérées</response>
+    /// <response code="404">Joueur non trouvé</response>
+    [HttpGet("{id}/head-to-head")]
+    [ProducesResponseType(typeof(List<HeadToHeadRecord>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<HeadToHeadRecord>>> GetPlayerHeadToHead(int id)
+    {
+        var player = await _context.Players.FindAsync(id);
+        if (player == null)
+        {
+            return NotFound(new { message = "Joueur non trouvé" });
+        }
+
+        var h2h = await _playerStatsService.GetHeadToHeadStatsAsync(id);
+        return Ok(h2h);
     }
 }
