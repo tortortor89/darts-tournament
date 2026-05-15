@@ -1,9 +1,11 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Models;
+using DartsTournament.Api.Services;
 
 namespace DartsTournament.Api.Controllers;
 
@@ -16,10 +18,12 @@ namespace DartsTournament.Api.Controllers;
 public class PlayersController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly PlayerService _playerService;
 
-    public PlayersController(AppDbContext context)
+    public PlayersController(AppDbContext context, PlayerService playerService)
     {
         _context = context;
+        _playerService = playerService;
     }
 
     /// <summary>
@@ -144,5 +148,195 @@ public class PlayersController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // ===== User-Player Linking Endpoints =====
+
+    /// <summary>
+    /// Récupérer la liste des joueurs disponibles (non liés) pour liaison
+    /// </summary>
+    /// <returns>Liste des joueurs non liés</returns>
+    [HttpGet("available")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<PlayerResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<PlayerResponse>>> GetAvailablePlayers()
+    {
+        var players = await _playerService.GetAvailablePlayersAsync();
+        return Ok(players);
+    }
+
+    /// <summary>
+    /// Récupérer les détails d'un joueur avec information de l'utilisateur lié
+    /// </summary>
+    /// <param name="id">Identifiant du joueur</param>
+    /// <returns>Détails du joueur avec utilisateur lié</returns>
+    [HttpGet("{id}/detail")]
+    [ProducesResponseType(typeof(PlayerDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PlayerDetailResponse>> GetPlayerDetail(int id)
+    {
+        var player = await _playerService.GetPlayerDetailAsync(id);
+
+        if (player == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(player);
+    }
+
+    /// <summary>
+    /// Créer son propre profil joueur (lié au compte utilisateur)
+    /// </summary>
+    /// <param name="request">Informations du joueur</param>
+    /// <returns>Le profil joueur créé</returns>
+    [HttpPost("create-own")]
+    [Authorize]
+    [ProducesResponseType(typeof(PlayerDetailResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PlayerDetailResponse>> CreateOwnPlayer(CreateOwnPlayerRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var player = await _playerService.CreatePlayerForUserAsync(
+                userId,
+                request.FirstName,
+                request.LastName,
+                request.Nickname
+            );
+
+            var response = await _playerService.GetPlayerDetailAsync(player.Id);
+            return CreatedAtAction(nameof(GetPlayerDetail), new { id = player.Id }, response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Modifier son propre profil joueur
+    /// </summary>
+    /// <param name="request">Nouvelles informations du profil</param>
+    /// <returns>Le profil joueur mis à jour</returns>
+    [HttpPut("update-own")]
+    [Authorize]
+    [ProducesResponseType(typeof(PlayerDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PlayerDetailResponse>> UpdateOwnPlayer(UpdatePlayerRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var player = await _playerService.UpdateOwnPlayerAsync(
+                userId,
+                request.FirstName,
+                request.LastName,
+                request.Nickname
+            );
+
+            var response = await _playerService.GetPlayerDetailAsync(player.Id);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Lier son compte à un profil joueur existant
+    /// </summary>
+    /// <param name="request">ID du joueur à lier</param>
+    /// <returns>Confirmation de la liaison</returns>
+    [HttpPost("link")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> LinkToPlayer(LinkPlayerRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin = User.IsInRole("Admin");
+
+        try
+        {
+            await _playerService.LinkPlayerToUserAsync(userId, request.PlayerId, isAdmin);
+            return Ok(new { message = "Profil joueur lié avec succès" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Délier un profil joueur de son utilisateur
+    /// </summary>
+    /// <param name="id">ID du joueur à délier</param>
+    /// <returns>Confirmation du déliage</returns>
+    [HttpDelete("{id}/unlink")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> UnlinkPlayer(int id)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var isAdmin = User.IsInRole("Admin");
+
+        try
+        {
+            await _playerService.UnlinkPlayerAsync(id, userId, isAdmin);
+            return Ok(new { message = "Profil joueur délié avec succès" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// [Admin] Lier un joueur à un utilisateur spécifique
+    /// </summary>
+    /// <param name="playerId">ID du joueur</param>
+    /// <param name="userId">ID de l'utilisateur</param>
+    /// <returns>Confirmation de la liaison</returns>
+    [HttpPost("{playerId}/link-user/{userId}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AdminLinkPlayerToUser(int playerId, int userId)
+    {
+        try
+        {
+            await _playerService.LinkPlayerToUserAsync(userId, playerId, isAdmin: true);
+            return Ok(new { message = "Liaison effectuée avec succès" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

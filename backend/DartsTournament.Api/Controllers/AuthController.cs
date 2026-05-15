@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Services;
@@ -39,7 +41,15 @@ public class AuthController : ControllerBase
         }
 
         var loginResult = await _authService.LoginAsync(request.Username, request.Password);
-        return Ok(new AuthResponse(loginResult!.Value.Token, user.Username, user.Role.ToString()));
+        var (token, _, linkedPlayer) = loginResult!.Value;
+
+        return Ok(new AuthResponse(
+            token,
+            user.Username,
+            user.Role.ToString(),
+            linkedPlayer?.Id,
+            linkedPlayer != null ? $"{linkedPlayer.FirstName} {linkedPlayer.LastName}" : null
+        ));
     }
 
     /// <summary>
@@ -61,7 +71,44 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid username or password");
         }
 
-        var (token, user) = loginResult.Value;
-        return Ok(new AuthResponse(token, user.Username, user.Role.ToString()));
+        var (token, user, linkedPlayer) = loginResult.Value;
+        return Ok(new AuthResponse(
+            token,
+            user.Username,
+            user.Role.ToString(),
+            linkedPlayer?.Id,
+            linkedPlayer != null ? $"{linkedPlayer.FirstName} {linkedPlayer.LastName}" : null
+        ));
+    }
+
+    /// <summary>
+    /// Changer le mot de passe de l'utilisateur connecté
+    /// </summary>
+    /// <param name="request">Mot de passe actuel et nouveau mot de passe</param>
+    /// <returns>Confirmation du changement</returns>
+    /// <response code="200">Mot de passe changé avec succès</response>
+    /// <response code="400">Mot de passe actuel incorrect ou données invalides</response>
+    /// <response code="401">Non authentifié</response>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var success = await _authService.ChangePasswordAsync(userId, request.CurrentPassword, request.NewPassword);
+
+        if (!success)
+        {
+            return BadRequest(new { message = "Le mot de passe actuel est incorrect" });
+        }
+
+        return Ok(new { message = "Mot de passe changé avec succès" });
     }
 }

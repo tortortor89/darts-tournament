@@ -28,6 +28,17 @@ public class AppDbContext : DbContext
             entity.HasIndex(u => u.Username).IsUnique();
         });
 
+        // Player-User relationship (1:1 optional)
+        modelBuilder.Entity<Player>(entity =>
+        {
+            entity.HasOne(p => p.User)
+                .WithOne(u => u.LinkedPlayer)
+                .HasForeignKey<Player>(p => p.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(p => p.UserId).IsUnique();
+        });
+
         // TournamentPlayer (composite key)
         modelBuilder.Entity<TournamentPlayer>(entity =>
         {

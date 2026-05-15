@@ -33,6 +33,40 @@ export class ApiService {
     return this.http.delete<void>(`${this.API_URL}/players/${id}`);
   }
 
+  // Player-User Linking
+  getAvailablePlayers(): Observable<Player[]> {
+    return this.http.get<Player[]>(`${this.API_URL}/players/available`);
+  }
+
+  getPlayerDetail(id: number): Observable<Player> {
+    return this.http.get<Player>(`${this.API_URL}/players/${id}/detail`);
+  }
+
+  createOwnPlayer(player: { firstName: string; lastName: string; nickname?: string }): Observable<Player> {
+    return this.http.post<Player>(`${this.API_URL}/players/create-own`, player);
+  }
+
+  updateOwnPlayer(player: { firstName: string; lastName: string; nickname?: string }): Observable<Player> {
+    return this.http.put<Player>(`${this.API_URL}/players/update-own`, player);
+  }
+
+  linkToPlayer(playerId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/players/link`, { playerId });
+  }
+
+  unlinkPlayer(playerId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/players/${playerId}/unlink`);
+  }
+
+  adminLinkPlayerToUser(playerId: number, userId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/players/${playerId}/link-user/${userId}`, {});
+  }
+
+  // Auth
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/auth/change-password`, { currentPassword, newPassword });
+  }
+
   // Tournaments
   getTournaments(): Observable<Tournament[]> {
     return this.http.get<Tournament[]>(`${this.API_URL}/tournaments`);

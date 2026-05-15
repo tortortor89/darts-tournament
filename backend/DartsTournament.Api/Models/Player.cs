@@ -8,5 +8,9 @@ public class Player
     public string? Nickname { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // User link (nullable - a Player can exist without a linked User)
+    public int? UserId { get; set; }
+    public User? User { get; set; }
+
     public ICollection<TournamentPlayer> TournamentPlayers { get; set; } = new List<TournamentPlayer>();
 }

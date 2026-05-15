@@ -6,11 +6,13 @@ import { TournamentListComponent } from './features/tournaments/tournament-list.
 import { TournamentDetailComponent } from './features/tournaments/tournament-detail.component';
 import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
+import { ProfileComponent } from './features/profile/profile.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/tournaments', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'profile', component: ProfileComponent },
   { path: 'players', component: PlayerListComponent },
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },

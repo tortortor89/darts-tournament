@@ -21,4 +21,19 @@ public record LoginRequest(
     string Password
 );
 
-public record AuthResponse(string Token, string Username, string Role);
+public record AuthResponse(
+    string Token,
+    string Username,
+    string Role,
+    int? LinkedPlayerId,
+    string? LinkedPlayerName
+);
+
+public record ChangePasswordRequest(
+    [Required(ErrorMessage = "Le mot de passe actuel est requis")]
+    string CurrentPassword,
+
+    [Required(ErrorMessage = "Le nouveau mot de passe est requis")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Le nouveau mot de passe doit contenir au moins 8 caractères")]
+    string NewPassword
+);

@@ -38,16 +38,39 @@ public class AuthService
         return user;
     }
 
-    public async Task<(string Token, User User)?> LoginAsync(string username, string password)
+    public async Task<(string Token, User User, Player? LinkedPlayer)?> LoginAsync(string username, string password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        var user = await _context.Users
+            .Include(u => u.LinkedPlayer)
+            .FirstOrDefaultAsync(u => u.Username == username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
             return null;
         }
 
-        return (GenerateJwtToken(user), user);
+        return (GenerateJwtToken(user), user, user.LinkedPlayer);
+    }
+
+    public async Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
+        {
+            return false;
+        }
+
+        // Verify current password
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
+        {
+            return false;
+        }
+
+        // Update password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 
     private string GenerateJwtToken(User user)

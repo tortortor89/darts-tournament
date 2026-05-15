@@ -7,4 +7,7 @@ public class User
     public required string PasswordHash { get; set; }
     public UserRole Role { get; set; } = UserRole.User;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Linked Player (navigation property)
+    public Player? LinkedPlayer { get; set; }
 }

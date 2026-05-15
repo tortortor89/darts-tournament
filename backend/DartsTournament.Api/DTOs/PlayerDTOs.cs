@@ -29,3 +29,34 @@ public record UpdatePlayerRequest(
 );
 
 public record PlayerResponse(int Id, string FirstName, string LastName, string? Nickname, DateTime CreatedAt);
+
+// Link to existing player
+public record LinkPlayerRequest(
+    [Required(ErrorMessage = "L'ID du joueur est requis")]
+    int PlayerId
+);
+
+// Create own player profile
+public record CreateOwnPlayerRequest(
+    [Required(ErrorMessage = "Le prénom est requis")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "Le prénom doit contenir entre 1 et 50 caractères")]
+    string FirstName,
+
+    [Required(ErrorMessage = "Le nom est requis")]
+    [StringLength(50, MinimumLength = 1, ErrorMessage = "Le nom doit contenir entre 1 et 50 caractères")]
+    string LastName,
+
+    [StringLength(50, ErrorMessage = "Le surnom ne peut pas dépasser 50 caractères")]
+    string? Nickname
+);
+
+// Response with linked user info
+public record PlayerDetailResponse(
+    int Id,
+    string FirstName,
+    string LastName,
+    string? Nickname,
+    DateTime CreatedAt,
+    int? UserId,
+    string? LinkedUsername
+);

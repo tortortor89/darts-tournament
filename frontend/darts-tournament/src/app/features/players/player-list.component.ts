@@ -41,6 +41,7 @@ import { Player } from '../../core/models';
             <th>Prénom</th>
             <th>Surnom</th>
             @if (authService.isAdmin()) {
+              <th>Utilisateur Lié</th>
               <th>Actions</th>
             }
           </tr>
@@ -52,6 +53,7 @@ import { Player } from '../../core/models';
               <td>{{ player.firstName }}</td>
               <td>{{ player.nickname || '-' }}</td>
               @if (authService.isAdmin()) {
+                <td>{{ player.linkedUsername || '-' }}</td>
                 <td>
                   <button (click)="editPlayer(player)">Modifier</button>
                   <button (click)="deletePlayer(player.id)" class="delete">Supprimer</button>

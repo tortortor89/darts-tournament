@@ -17,6 +17,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       </div>
       <div class="nav-auth">
         @if (authService.isAuthenticated()) {
+          <a routerLink="/profile" routerLinkActive="active">Profil</a>
           <span>{{ authService.currentUser() }}</span>
           <button (click)="logout()">Déconnexion</button>
         } @else {

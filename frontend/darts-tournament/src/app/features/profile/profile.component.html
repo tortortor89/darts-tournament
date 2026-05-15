@@ -1,0 +1,255 @@
+<div class="profile-container">
+  <h2>Mon Profil</h2>
+
+  <!-- Messages -->
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">{{ errorMessage() }}</div>
+  }
+
+  <!-- User Info Section -->
+  <div class="section">
+    <h3>Compte Utilisateur</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Nom d'utilisateur</label>
+        <span>{{ authService.currentUser() }}</span>
+      </div>
+      <div class="info-item">
+        <label>Rôle</label>
+        <span>{{ authService.currentRole() }}</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <button
+        class="btn btn-secondary"
+        (click)="togglePasswordForm()"
+        [disabled]="loading()">
+        {{ showPasswordForm() ? 'Annuler' : 'Changer le mot de passe' }}
+      </button>
+    </div>
+
+    @if (showPasswordForm()) {
+      <div class="form-section" style="margin-top: 1rem;">
+        <h4>Changer le Mot de Passe</h4>
+        <form (ngSubmit)="changePassword()" #passwordFormRef="ngForm">
+          <div class="form-group">
+            <label for="currentPassword">Mot de passe actuel *</label>
+            <input
+              type="password"
+              id="currentPassword"
+              name="currentPassword"
+              [(ngModel)]="passwordForm.currentPassword"
+              required>
+          </div>
+
+          <div class="form-group">
+            <label for="newPassword">Nouveau mot de passe *</label>
+            <input
+              type="password"
+              id="newPassword"
+              name="newPassword"
+              [(ngModel)]="passwordForm.newPassword"
+              required
+              minlength="8">
+            <small>Au moins 8 caractères</small>
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword">Confirmer le nouveau mot de passe *</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              [(ngModel)]="passwordForm.confirmPassword"
+              required>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!passwordFormRef.valid || loading()">
+            {{ loading() ? 'Changement...' : 'Changer le mot de passe' }}
+          </button>
+        </form>
+      </div>
+    }
+  </div>
+
+  <!-- Linked Player Section -->
+  @if (authService.hasLinkedPlayer()) {
+    <div class="section">
+      <h3>Profil Joueur Lié</h3>
+      <div class="player-info">
+        <p class="player-name">{{ authService.linkedPlayerName() }}</p>
+        <div class="button-group">
+          <button
+            class="btn btn-secondary"
+            (click)="toggleEditPlayerForm()"
+            [disabled]="loading()">
+            {{ showEditPlayerForm() ? 'Annuler' : 'Modifier' }}
+          </button>
+          <button
+            class="btn btn-danger"
+            (click)="unlinkPlayer()"
+            [disabled]="loading()">
+            {{ loading() ? 'Traitement...' : 'Délier ce profil' }}
+          </button>
+        </div>
+      </div>
+
+      @if (showEditPlayerForm()) {
+        <div class="form-section" style="margin-top: 1rem;">
+          <h4>Modifier les Informations</h4>
+          <form (ngSubmit)="updatePlayerProfile()" #editPlayerFormRef="ngForm">
+            <div class="form-group">
+              <label for="editFirstName">Prénom *</label>
+              <input
+                type="text"
+                id="editFirstName"
+                name="editFirstName"
+                [(ngModel)]="editPlayerForm.firstName"
+                required
+                maxlength="50">
+            </div>
+
+            <div class="form-group">
+              <label for="editLastName">Nom *</label>
+              <input
+                type="text"
+                id="editLastName"
+                name="editLastName"
+                [(ngModel)]="editPlayerForm.lastName"
+                required
+                maxlength="50">
+            </div>
+
+            <div class="form-group">
+              <label for="editNickname">Surnom (optionnel)</label>
+              <input
+                type="text"
+                id="editNickname"
+                name="editNickname"
+                [(ngModel)]="editPlayerForm.nickname"
+                maxlength="50">
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="!editPlayerFormRef.valid || loading()">
+              {{ loading() ? 'Mise à jour...' : 'Enregistrer' }}
+            </button>
+          </form>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="section">
+      <h3>Profil Joueur</h3>
+      <p class="info-text">
+        Vous n'avez pas encore de profil joueur lié. Pour participer aux tournois,
+        vous devez soit créer un nouveau profil, soit lier votre compte à un profil existant.
+      </p>
+
+      <div class="action-buttons">
+        <button
+          class="btn btn-primary"
+          (click)="toggleCreateForm()"
+          [disabled]="loading()">
+          {{ showCreateForm() ? 'Annuler' : 'Créer Mon Profil' }}
+        </button>
+        <button
+          class="btn btn-secondary"
+          (click)="toggleLinkList()"
+          [disabled]="loading()">
+          {{ showLinkList() ? 'Annuler' : 'Lier à un Profil Existant' }}
+        </button>
+      </div>
+
+      <!-- Create Player Form -->
+      @if (showCreateForm()) {
+        <div class="form-section">
+          <h4>Créer un Nouveau Profil Joueur</h4>
+          <form (ngSubmit)="createOwnPlayer()" #createForm="ngForm">
+            <div class="form-group">
+              <label for="firstName">Prénom *</label>
+              <input
+                type="text"
+                id="firstName"
+                name="firstName"
+                [(ngModel)]="newPlayer.firstName"
+                required
+                maxlength="50">
+            </div>
+
+            <div class="form-group">
+              <label for="lastName">Nom *</label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                [(ngModel)]="newPlayer.lastName"
+                required
+                maxlength="50">
+            </div>
+
+            <div class="form-group">
+              <label for="nickname">Surnom (optionnel)</label>
+              <input
+                type="text"
+                id="nickname"
+                name="nickname"
+                [(ngModel)]="newPlayer.nickname"
+                maxlength="50">
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="!createForm.valid || loading()">
+              {{ loading() ? 'Création...' : 'Créer' }}
+            </button>
+          </form>
+        </div>
+      }
+
+      <!-- Link to Existing Player -->
+      @if (showLinkList()) {
+        <div class="form-section">
+          <h4>Lier à un Profil Existant</h4>
+
+          @if (loading()) {
+            <p>Chargement des joueurs disponibles...</p>
+          } @else if (availablePlayers().length === 0) {
+            <p class="info-text">Aucun joueur disponible pour la liaison. Tous les joueurs existants sont déjà liés à des comptes.</p>
+          } @else {
+            <div class="players-list">
+              @for (player of availablePlayers(); track player.id) {
+                <div class="player-item">
+                  <div class="player-details">
+                    <span class="player-name">
+                      {{ player.firstName }} {{ player.lastName }}
+                      @if (player.nickname) {
+                        <span class="nickname">"{{ player.nickname }}"</span>
+                      }
+                    </span>
+                  </div>
+                  <button
+                    class="btn btn-sm btn-primary"
+                    (click)="linkToPlayer(player.id)"
+                    [disabled]="loading()">
+                    Lier
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

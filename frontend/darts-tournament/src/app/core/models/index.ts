@@ -8,6 +8,8 @@ export interface AuthResponse {
   token: string;
   username: string;
   role: string;
+  linkedPlayerId?: number;
+  linkedPlayerName?: string;
 }
 
 export enum UserRole {
@@ -21,6 +23,8 @@ export interface Player {
   lastName: string;
   nickname?: string;
   createdAt: Date;
+  userId?: number;
+  linkedUsername?: string;
 }
 
 export interface Tournament {
