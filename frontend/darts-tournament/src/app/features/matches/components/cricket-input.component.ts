@@ -1,6 +1,10 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RecordCricketThrowRequest } from '../../../core/models';
+import { CricketHit } from '../../../core/models';
+
+interface CricketInputState {
+  [target: number]: number; // target -> nombre de marques
+}
 
 @Component({
   selector: 'app-cricket-input',
@@ -8,30 +12,52 @@ import { RecordCricketThrowRequest } from '../../../core/models';
   imports: [CommonModule],
   template: `
     <div class="cricket-input">
-      <h4>Saisie Cricket</h4>
+      <h4>Saisie Cricket - Visite complète</h4>
+
+      <div class="instructions">
+        <p>Cliquez sur les cibles pour ajouter des marques (max {{ maxMarks }})</p>
+        <p class="info">
+          <strong>Marques: {{ totalMarks }}/{{ maxMarks }}</strong>
+          @if (distinctTargets > 0) {
+            <span class="targets-count"> • Cibles touchées: {{ distinctTargets }}/3</span>
+          }
+        </p>
+      </div>
 
       <!-- Grille de cibles -->
       <div class="target-grid">
         @for (target of targets; track target) {
           <button
             class="target-btn"
-            [class.selected]="selectedTarget === target"
-            (click)="selectTarget(target)">
-            {{ target === 25 ? 'BULL' : target }}
+            [class.has-marks]="targetMarks[target] > 0"
+            [class.disabled]="!canAddMark(target)"
+            [disabled]="!canAddMark(target)"
+            (click)="addMark(target)">
+            <div class="target-label">{{ target === 25 ? 'BULL' : target }}</div>
+            @if (targetMarks[target] > 0) {
+              <div class="marks-display">{{ getMarkSymbol(targetMarks[target]) }}</div>
+            }
           </button>
         }
       </div>
 
-      @if (selectedTarget !== null) {
-        <div class="hits-selector">
-          <p>Cible sélectionnée: <strong>{{ selectedTarget === 25 ? 'BULL' : selectedTarget }}</strong></p>
-          <div class="hits-buttons">
-            <button (click)="submitHits(1)" class="simple">Simple (1 hit)</button>
-            <button (click)="submitHits(2)" class="double">Double (2 hits)</button>
-            <button (click)="submitHits(3)" class="triple">Triple (3 hits)</button>
-          </div>
-          <button class="cancel-btn" (click)="cancel()">Annuler</button>
-        </div>
+      <!-- Boutons d'action -->
+      <div class="action-buttons">
+        <button
+          class="clear-btn"
+          (click)="clear()"
+          [disabled]="totalMarks === 0">
+          Effacer
+        </button>
+        <button
+          class="submit-btn"
+          (click)="submit()">
+          Valider visite
+        </button>
+      </div>
+
+      @if (errorMessage) {
+        <div class="error-message">{{ errorMessage }}</div>
       }
     </div>
   `,
@@ -46,8 +72,32 @@ import { RecordCricketThrowRequest } from '../../../core/models';
 
     h4 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       color: #333;
+    }
+
+    .instructions {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+
+    .instructions p {
+      margin: 5px 0;
+      font-size: 0.95em;
+      color: #555;
+    }
+
+    .info {
+      font-size: 1.1em !important;
+      margin-top: 10px !important;
+    }
+
+    .targets-count {
+      color: #007bff;
     }
 
     .target-grid {
@@ -58,88 +108,109 @@ import { RecordCricketThrowRequest } from '../../../core/models';
     }
 
     .target-btn {
-      padding: 20px;
-      font-size: 1.5em;
+      padding: 15px;
+      font-size: 1.3em;
       font-weight: bold;
-      border: 2px solid #007bff;
+      border: 3px solid #007bff;
       background: white;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
+      position: relative;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
 
-    .target-btn:hover {
+    .target-btn:hover:not(:disabled) {
       background: #e7f3ff;
-    }
-
-    .target-btn.selected {
-      background: #007bff;
-      color: white;
       transform: scale(1.05);
     }
 
-    .hits-selector {
-      text-align: center;
-      padding: 20px;
-      background: white;
-      border-radius: 8px;
-      border: 2px solid #007bff;
-    }
-
-    .hits-selector p {
-      margin-bottom: 15px;
-      font-size: 1.1em;
-    }
-
-    .hits-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin: 20px 0;
-      flex-wrap: wrap;
-    }
-
-    .hits-buttons button {
-      padding: 15px 25px;
-      font-size: 1.1em;
+    .target-btn.has-marks {
+      background: #007bff;
       color: white;
+      border-color: #0056b3;
+    }
+
+    .target-btn.has-marks:hover:not(:disabled) {
+      background: #0056b3;
+    }
+
+    .target-btn.disabled,
+    .target-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .target-label {
+      font-size: 1.2em;
+    }
+
+    .marks-display {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: white;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .action-buttons button {
+      padding: 15px 30px;
+      font-size: 1.1em;
+      font-weight: 600;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
-      font-weight: 600;
+      flex: 1;
+      max-width: 200px;
     }
 
-    .hits-buttons button.simple {
-      background: #28a745;
+    .action-buttons button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    .hits-buttons button.double {
-      background: #ffc107;
-      color: #000;
+    .clear-btn {
+      background: #6c757d;
+      color: white;
     }
 
-    .hits-buttons button.triple {
-      background: #dc3545;
-    }
-
-    .hits-buttons button:hover {
+    .clear-btn:hover:not(:disabled) {
+      background: #5a6268;
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
-    .cancel-btn {
-      padding: 10px 20px;
-      background: #6c757d;
+    .submit-btn {
+      background: #28a745;
       color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1em;
     }
 
-    .cancel-btn:hover {
-      background: #5a6268;
+    .submit-btn:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .error-message {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      text-align: center;
     }
 
     @media (max-width: 768px) {
@@ -148,42 +219,102 @@ import { RecordCricketThrowRequest } from '../../../core/models';
       }
 
       .target-btn {
-        padding: 15px;
-        font-size: 1.3em;
+        padding: 12px;
+        font-size: 1.1em;
+        min-height: 70px;
       }
 
-      .hits-buttons {
+      .action-buttons {
         flex-direction: column;
       }
 
-      .hits-buttons button {
-        width: 100%;
+      .action-buttons button {
+        max-width: 100%;
       }
     }
   `]
 })
 export class CricketInputComponent {
-  @Output() throwSubmit = new EventEmitter<RecordCricketThrowRequest>();
+  @Output() turnSubmit = new EventEmitter<CricketHit[]>();
 
   targets = [20, 19, 18, 17, 16, 15, 25];  // 25 = Bull
-  selectedTarget: number | null = null;
+  targetMarks: CricketInputState = {
+    15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0
+  };
 
-  selectTarget(target: number) {
-    this.selectedTarget = target;
+  maxMarks = 9;  // 3 fléchettes × triple
+  maxTargets = 3;
+  errorMessage = '';
+
+  get totalMarks(): number {
+    return Object.values(this.targetMarks).reduce((sum, marks) => sum + marks, 0);
   }
 
-  submitHits(hits: number) {
-    if (this.selectedTarget === null) return;
-
-    this.throwSubmit.emit({
-      target: this.selectedTarget,
-      hits: hits
-    });
-
-    this.selectedTarget = null;
+  get distinctTargets(): number {
+    return Object.values(this.targetMarks).filter(marks => marks > 0).length;
   }
 
-  cancel() {
-    this.selectedTarget = null;
+  canAddMark(target: number): boolean {
+    // Vérifier si on a atteint le max de marques
+    if (this.totalMarks >= this.maxMarks) {
+      return false;
+    }
+
+    // Si cette cible n'a pas encore de marques et qu'on a déjà 3 cibles différentes
+    if (this.targetMarks[target] === 0 && this.distinctTargets >= this.maxTargets) {
+      return false;
+    }
+
+    return true;
+  }
+
+  addMark(target: number): void {
+    this.errorMessage = '';
+
+    if (!this.canAddMark(target)) {
+      if (this.totalMarks >= this.maxMarks) {
+        this.errorMessage = 'Maximum 9 marques atteint (3 fléchettes)';
+      } else if (this.targetMarks[target] === 0 && this.distinctTargets >= this.maxTargets) {
+        this.errorMessage = 'Maximum 3 cibles différentes';
+      }
+      return;
+    }
+
+    this.targetMarks[target]++;
+  }
+
+  getMarkSymbol(count: number): string {
+    // Afficher le symbole en fonction du nombre de marques
+    switch (count) {
+      case 1: return '/';
+      case 2: return 'X';
+      case 3: return '⊗';
+      default: return count.toString();
+    }
+  }
+
+  clear(): void {
+    this.targetMarks = {
+      15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0
+    };
+    this.errorMessage = '';
+  }
+
+  submit(): void {
+    // Convertir l'état en liste de CricketHit
+    const hits: CricketHit[] = [];
+
+    for (const target of this.targets) {
+      const marks = this.targetMarks[target];
+      if (marks > 0) {
+        hits.push({ target, marks });
+      }
+    }
+
+    // Émettre la visite (peut être vide pour 3 ratés)
+    this.turnSubmit.emit(hits);
+
+    // Réinitialiser après soumission
+    this.clear();
   }
 }

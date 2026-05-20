@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketThrowResponse, RecordCricketThrowRequest } from '../models';
+import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -163,8 +163,8 @@ export class ApiService {
     return this.http.post<MatchSession>(`${this.API_URL}/matches/${matchId}/session/throw`, request);
   }
 
-  recordCricketThrow(matchId: number, request: RecordCricketThrowRequest): Observable<CricketThrowResponse> {
-    return this.http.post<CricketThrowResponse>(`${this.API_URL}/matches/${matchId}/session/cricket-throw`, request);
+  recordCricketTurn(matchId: number, hits: CricketHit[]): Observable<CricketTurnResponse> {
+    return this.http.post<CricketTurnResponse>(`${this.API_URL}/matches/${matchId}/session/cricket-turn`, { hits });
   }
 
   validateMatchSession(matchId: number): Observable<void> {

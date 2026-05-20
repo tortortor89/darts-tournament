@@ -14,14 +14,39 @@ public class CricketService
     }
 
     /// <summary>
-    /// Traite un throw Cricket et met à jour l'état
+    /// Traite une visite complète au Cricket (plusieurs hits possibles)
     /// </summary>
-    public CricketThrowResult ProcessThrow(
+    public List<CricketHitResult> ProcessTurn(
+        CricketGameState state,
+        int playerId,
+        int opponentId,
+        List<CricketHit> hits)
+    {
+        var results = new List<CricketHitResult>();
+
+        foreach (var hit in hits)
+        {
+            var result = ProcessHit(state, playerId, opponentId, hit.Target, hit.Marks);
+            results.Add(new CricketHitResult(
+                hit.Target,
+                hit.Marks,
+                result.PointsScored,
+                result.ClosedTarget
+            ));
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Traite un hit Cricket sur une cible et met à jour l'état
+    /// </summary>
+    private CricketThrowResult ProcessHit(
         CricketGameState state,
         int playerId,
         int opponentId,
         int target,
-        int hits)
+        int marks)
     {
         var playerState = state.PlayerStates[playerId];
         var opponentState = state.PlayerStates[opponentId];
@@ -29,14 +54,14 @@ public class CricketService
         var result = new CricketThrowResult
         {
             Target = target,
-            HitsCount = hits,
+            HitsCount = marks,
             PointsScored = 0,
             ClosedTarget = false
         };
 
         var currentHits = playerState.TargetHits[target];
-        var newHits = Math.Min(currentHits + hits, 3);  // Max 3
-        var excessHits = (currentHits + hits) - 3;      // Hits au-delà de 3
+        var newHits = Math.Min(currentHits + marks, 3);  // Max 3
+        var excessMarks = Math.Max((currentHits + marks) - 3, 0);  // Marques au-delà de 3
 
         playerState.TargetHits[target] = newHits;
 
@@ -46,11 +71,11 @@ public class CricketService
             result.ClosedTarget = true;
         }
 
-        // Scoring: si on a déjà fermé ET l'adversaire n'a pas fermé
-        if (currentHits >= 3 && opponentState.TargetHits[target] < 3)
+        // Scoring: si on a des marques en excès ET l'adversaire n'a pas fermé
+        if (excessMarks > 0 && opponentState.TargetHits[target] < 3)
         {
-            // On marque avec les hits en excès
-            result.PointsScored = excessHits * GetTargetValue(target);
+            // On marque avec les marques en excès
+            result.PointsScored = excessMarks * GetTargetValue(target);
             playerState.Score += result.PointsScored;
         }
 
@@ -65,16 +90,11 @@ public class CricketService
         var playerState = state.PlayerStates[playerId];
         var opponentState = state.PlayerStates[opponentId];
 
-        // Gagner : toutes les cibles fermées ET (score >= adversaire OU adversaire n'a pas tout fermé)
+        // Gagner : toutes les cibles fermées ET score supérieur à l'adversaire
         if (!playerState.AllTargetsClosed())
             return false;
 
-        // Si adversaire n'a pas tout fermé, on gagne
-        if (!opponentState.AllTargetsClosed())
-            return true;
-
-        // Si les deux ont tout fermé, celui avec le plus de points gagne
-        return playerState.Score >= opponentState.Score;
+        return playerState.Score > opponentState.Score;
     }
 
     /// <summary>

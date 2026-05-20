@@ -3,14 +3,22 @@ using System.ComponentModel.DataAnnotations;
 namespace DartsTournament.Api.DTOs;
 
 /// <summary>
-/// Requête pour enregistrer un throw Cricket
+/// Requête pour enregistrer une visite complète au Cricket (3 fléchettes max)
 /// </summary>
-public record RecordCricketThrowRequest(
+public record RecordCricketTurnRequest(
+    [Required]
+    List<CricketHit> Hits  // Liste des hits de la visite (peut être vide pour 3 ratés)
+);
+
+/// <summary>
+/// Un hit Cricket : cible touchée et nombre de marques
+/// </summary>
+public record CricketHit(
     [Required]
     int Target,  // 15, 16, 17, 18, 19, 20, 25 (Bull)
 
-    [Range(1, 3, ErrorMessage = "Le nombre de hits doit être entre 1 et 3")]
-    int Hits  // 1 = simple, 2 = double, 3 = triple
+    [Range(1, 9, ErrorMessage = "Le nombre de marques doit être entre 1 et 9")]
+    int Marks  // Nombre de marques sur cette cible dans la visite
 );
 
 /// <summary>
@@ -33,14 +41,22 @@ public record CricketTargetState(
 );
 
 /// <summary>
-/// Réponse après un throw Cricket
+/// Réponse après une visite Cricket
 /// </summary>
-public record CricketThrowResponse(
+public record CricketTurnResponse(
     int PlayerId,
     string PlayerName,
-    int Target,
-    int Hits,
-    int PointsScored,
-    bool ClosedTarget,
+    List<CricketHitResult> HitResults,  // Résultats pour chaque cible touchée
+    int TotalPointsScored,
     CricketDisplayState CurrentState
+);
+
+/// <summary>
+/// Résultat d'un hit sur une cible lors d'une visite
+/// </summary>
+public record CricketHitResult(
+    int Target,
+    int Marks,
+    int PointsScored,
+    bool ClosedTarget
 );

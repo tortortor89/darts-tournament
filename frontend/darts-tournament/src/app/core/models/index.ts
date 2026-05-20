@@ -365,17 +365,22 @@ export interface CricketDisplayState {
   player2Score: number;
 }
 
-export interface CricketThrowResponse {
-  playerId: number;
-  playerName: string;
+export interface CricketHit {
   target: number;
-  hits: number;
-  pointsScored: number;
-  closedTarget: boolean;
-  currentState: CricketDisplayState;
+  marks: number;
 }
 
-export interface RecordCricketThrowRequest {
+export interface CricketHitResult {
   target: number;
-  hits: number;
+  marks: number;
+  pointsScored: number;
+  closedTarget: boolean;
+}
+
+export interface CricketTurnResponse {
+  playerId: number;
+  playerName: string;
+  hitResults: CricketHitResult[];
+  totalPointsScored: number;
+  currentState: CricketDisplayState;
 }

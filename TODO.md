@@ -61,11 +61,14 @@
 
 **Évolutions futures :**
 - [ ] Authentification : restreindre l'écran de jeu aux joueurs du match (nécessite lien User -> Player)
-- [ ] Formats de jeu supplémentaires : 301, Cricket
+- [x] Formats de jeu supplémentaires : Cricket (saisie visite complète, scoring, victoire)
+- [ ] Format de jeu 301
 - [ ] Gestion des sets en plus des legs
 - [x] Statistiques en temps réel : moyenne, % doubles, checkout rate
 - [ ] Historique : voir le détail d'un match terminé (toutes les volées)
 - [x] Temps réel : SignalR pour refresh instantané du spectateur
+- [ ] Statistiques Cricket : calcul des stats spécifiques au Cricket
+- [ ] Vue spectateur Cricket : affichage temps réel pour spectateurs
 
 **Amélioration interface de saisie :**
 - [x] Pavé numérique visuel en mode score total (0-9, effacer, valider)
@@ -75,6 +78,7 @@
 - [x] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
 - [x] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
 - [x] Combiner les deux questions ci-dessus quand nécessaire (ex: "Checkout en 2 fléchettes, 1 tentée sur double")
+- [ ] Interface Cricket : optimiser l'affichage pour tenir sans scroll (réduire hauteurs, espacements)
 
 ### Comptes Joueurs & Inscription
 - [x] Lier un compte utilisateur à un profil joueur (User -> Player)
@@ -94,7 +98,8 @@
 - [ ] Seeding automatique basé sur le classement circuit
 
 ### Fonctionnalités avancées
-- [ ] Support des formats de jeu supplémentaires (301, Cricket) - 501 couvert dans Gestion de Match
+- [x] Support Cricket (visite complète avec validation, scoring, stats basiques)
+- [ ] Support format 301
 - [ ] Gestion des sets (en plus des legs)
 - [ ] Mode équipes / doubles
 - [ ] Export des résultats (PDF, CSV)

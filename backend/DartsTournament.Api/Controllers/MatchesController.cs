@@ -196,13 +196,13 @@ public class MatchesController : ControllerBase
     }
 
     /// <summary>
-    /// Enregistrer un throw Cricket
+    /// Enregistrer une visite complète Cricket (turn)
     /// </summary>
-    [HttpPost("{id}/session/cricket-throw")]
-    [ProducesResponseType(typeof(CricketThrowResponse), StatusCodes.Status200OK)]
+    [HttpPost("{id}/session/cricket-turn")]
+    [ProducesResponseType(typeof(CricketTurnResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<CricketThrowResponse>> RecordCricketThrow(int id, [FromBody] RecordCricketThrowRequest request)
+    public async Task<ActionResult<CricketTurnResponse>> RecordCricketTurn(int id, [FromBody] RecordCricketTurnRequest request)
     {
         var session = await _matchSessionService.GetOrCreateSessionAsync(id);
 
@@ -213,7 +213,7 @@ public class MatchesController : ControllerBase
 
         try
         {
-            var response = await _matchSessionService.RecordCricketThrowAsync(session.Id, request);
+            var response = await _matchSessionService.RecordCricketTurnAsync(session.Id, request);
             return Ok(response);
         }
         catch (InvalidOperationException ex)

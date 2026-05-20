@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, RecordCricketThrowRequest } from '../../core/models';
+import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit } from '../../core/models';
 import { ScoreInputComponent, ThrowData } from './components/score-input.component';
 import { CricketDisplayComponent } from './components/cricket-display.component';
 import { CricketInputComponent } from './components/cricket-input.component';
@@ -193,7 +193,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             </app-cricket-display>
 
             <app-cricket-input
-              (throwSubmit)="onCricketThrowSubmit($event)">
+              (turnSubmit)="onCricketThrowSubmit($event)">
             </app-cricket-input>
           }
 
@@ -849,20 +849,21 @@ export class MatchPlayComponent implements OnInit {
       });
   }
 
-  onCricketThrowSubmit(request: RecordCricketThrowRequest) {
-    this.apiService.recordCricketThrow(this.matchId, request)
+  onCricketThrowSubmit(hits: CricketHit[]) {
+    this.apiService.recordCricketTurn(this.matchId, hits)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          // Afficher le feedback
-          if (response.closedTarget) {
-            this.notificationService.showSuccess(
-              `${response.target === 25 ? 'BULL' : response.target} fermé !`
-            );
-          } else if (response.pointsScored > 0) {
-            this.notificationService.showSuccess(
-              `${response.pointsScored} points marqués`
-            );
+          // Afficher le feedback pour chaque cible touchée
+          const closedTargets = response.hitResults.filter(r => r.closedTarget);
+
+          if (closedTargets.length > 0) {
+            const targetNames = closedTargets.map(r => r.target === 25 ? 'BULL' : r.target.toString()).join(', ');
+            this.notificationService.showSuccess(`Cible(s) fermée(s): ${targetNames}`);
+          }
+
+          if (response.totalPointsScored > 0) {
+            this.notificationService.showSuccess(`${response.totalPointsScored} points marqués`);
           }
 
           // Recharger la session pour rafraîchir l'état

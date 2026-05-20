@@ -536,9 +536,9 @@ public class MatchSessionService
     }
 
     /// <summary>
-    /// Enregistre un throw Cricket
+    /// Enregistre une visite complète Cricket (turn)
     /// </summary>
-    public async Task<CricketThrowResponse> RecordCricketThrowAsync(int sessionId, RecordCricketThrowRequest request)
+    public async Task<CricketTurnResponse> RecordCricketTurnAsync(int sessionId, RecordCricketTurnRequest request)
     {
         var session = await GetSessionByIdAsync(sessionId);
 
@@ -551,18 +551,20 @@ public class MatchSessionService
         if (session.GameMode != GameMode.Cricket)
             throw new InvalidOperationException("Cette session n'est pas en mode Cricket");
 
+        // Validation de la visite
+        ValidateCricketTurn(request.Hits);
+
         var cricketState = session.CricketState!;
         var currentPlayerId = session.CurrentPlayerId;
         var opponentId = currentPlayerId == session.Match.Player1Id
             ? session.Match.Player2Id!.Value
             : session.Match.Player1Id!.Value;
 
-        // Traiter le throw
-        var result = _cricketService.ProcessThrow(
+        // Traiter toute la visite
+        var hitResults = _cricketService.ProcessTurn(
             cricketState,
             currentPlayerId,
             opponentId,
-            request.Target,
             request.Hits
         );
 
@@ -577,6 +579,12 @@ public class MatchSessionService
         var throwNumber = session.Throws
             .Count(t => t.LegNumber == session.CurrentLeg && t.PlayerId == currentPlayerId) + 1;
 
+        // Calculer total de points marqués
+        var totalPoints = hitResults.Sum(r => r.PointsScored);
+
+        // Formater les darts pour l'entité Throw
+        var dartStrings = FormatCricketTurn(request.Hits);
+
         // Créer le Throw entity
         var throwEntity = new Throw
         {
@@ -584,12 +592,14 @@ public class MatchSessionService
             PlayerId = currentPlayerId,
             LegNumber = session.CurrentLeg,
             ThrowNumber = throwNumber,
-            Score = result.PointsScored,  // Points marqués
-            Dart1 = FormatCricketDart(request.Target, request.Hits),
+            Score = totalPoints,  // Total points marqués dans la visite
+            Dart1 = dartStrings.Length > 0 ? dartStrings[0] : "MISS",
+            Dart2 = dartStrings.Length > 1 ? dartStrings[1] : null,
+            Dart3 = dartStrings.Length > 2 ? dartStrings[2] : null,
             RemainingScore = 0,  // Non utilisé en Cricket
             IsCheckout = false,  // Sera mis à true si leg gagné
             IsBust = false,
-            CricketDataJson = System.Text.Json.JsonSerializer.Serialize(new { target = request.Target, hits = request.Hits, pointsScored = result.PointsScored })
+            CricketDataJson = System.Text.Json.JsonSerializer.Serialize(new { hits = request.Hits, results = hitResults })
         };
 
         _context.Throws.Add(throwEntity);
@@ -614,19 +624,70 @@ public class MatchSessionService
 
         var currentPlayer = currentPlayerId == session.Match.Player1Id ? session.Match.Player1! : session.Match.Player2!;
 
-        var response = new CricketThrowResponse(
+        var response = new CricketTurnResponse(
             currentPlayerId,
             $"{currentPlayer.FirstName} {currentPlayer.LastName}",
-            request.Target,
-            request.Hits,
-            result.PointsScored,
-            result.ClosedTarget,
+            hitResults,
+            totalPoints,
             displayState
         );
 
         // TODO: Broadcaster via SignalR
 
         return response;
+    }
+
+    /// <summary>
+    /// Valide qu'une visite Cricket est correcte
+    /// </summary>
+    private void ValidateCricketTurn(List<CricketHit> hits)
+    {
+        // Vérifier le nombre de cibles différentes (max 3)
+        var distinctTargets = hits.Select(h => h.Target).Distinct().Count();
+        if (distinctTargets > 3)
+            throw new InvalidOperationException("Maximum 3 cibles différentes par visite");
+
+        // Vérifier le total de marques (max 9 = 3 fléchettes × triple)
+        var totalMarks = hits.Sum(h => h.Marks);
+        if (totalMarks > 9)
+            throw new InvalidOperationException("Maximum 9 marques par visite (3 fléchettes)");
+
+        // Vérifier que les cibles sont valides
+        var validTargets = new[] { 15, 16, 17, 18, 19, 20, 25 };
+        foreach (var hit in hits)
+        {
+            if (!validTargets.Contains(hit.Target))
+                throw new InvalidOperationException($"Cible invalide: {hit.Target}");
+        }
+    }
+
+    /// <summary>
+    /// Formate les hits d'une visite Cricket en tableau de strings pour Dart1/2/3
+    /// </summary>
+    private string[] FormatCricketTurn(List<CricketHit> hits)
+    {
+        if (hits.Count == 0)
+            return new[] { "MISS", "MISS", "MISS" };
+
+        var darts = new List<string>();
+
+        foreach (var hit in hits)
+        {
+            // Chaque "mark" représente une touche (simple/double/triple)
+            for (int i = 0; i < hit.Marks; i++)
+            {
+                var targetStr = hit.Target == 25 ? "BULL" : hit.Target.ToString();
+                darts.Add(targetStr);
+            }
+        }
+
+        // Compléter avec MISS si moins de 3 fléchettes
+        while (darts.Count < 3)
+        {
+            darts.Add("MISS");
+        }
+
+        return darts.Take(3).ToArray();
     }
 
     /// <summary>
