@@ -199,12 +199,14 @@ export interface MatchSessionSpectator {
   matchId: number;
   tournamentName: string;
   legsToWin: number;
+  gameMode: GameMode;
   status: MatchSessionStatus;
   player1: PlayerSpectatorInfo;
   player2: PlayerSpectatorInfo;
   currentPlayerId: number;
   currentLeg: number;
   legsHistory: LegSummary[];
+  cricketState?: CricketDisplayState;
 }
 
 export interface PlayerSpectatorInfo {
@@ -291,6 +293,14 @@ export interface MatchFinishedEvent {
 export interface SessionStartedEvent {
   matchId: number;
   session: MatchSession;
+}
+
+export interface CricketTurnRecordedEvent {
+  matchId: number;
+  turn: CricketTurnResponse;
+  player1CurrentScore: number;
+  player2CurrentScore: number;
+  currentPlayerId: number;
 }
 
 // Player Statistics

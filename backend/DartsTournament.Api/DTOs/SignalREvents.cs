@@ -45,3 +45,14 @@ public record SessionStartedEvent(
     int MatchId,
     MatchSessionResponse Session
 );
+
+/// <summary>
+/// Événement émis quand une visite Cricket est enregistrée
+/// </summary>
+public record CricketTurnRecordedEvent(
+    int MatchId,
+    CricketTurnResponse Turn,
+    int Player1CurrentScore,
+    int Player2CurrentScore,
+    int CurrentPlayerId
+);

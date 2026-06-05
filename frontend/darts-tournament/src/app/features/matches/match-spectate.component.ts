@@ -6,12 +6,13 @@ import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { SignalRService, ConnectionStatus } from '../../core/services/signalr.service';
-import { MatchSessionSpectator, MatchSessionStatus, MatchStats } from '../../core/models';
+import { MatchSessionSpectator, MatchSessionStatus, MatchStats, GameMode } from '../../core/models';
+import { CricketDisplayComponent } from './components/cricket-display.component';
 
 @Component({
   selector: 'app-match-spectate',
   standalone: true,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule, DecimalPipe, CricketDisplayComponent],
   template: `
     <div class="spectate-container">
       <!-- Connection Status -->
@@ -67,8 +68,19 @@ import { MatchSessionSpectator, MatchSessionStatus, MatchStats } from '../../cor
             </div>
           </div>
 
-          <!-- Live Statistics -->
-          @if (stats) {
+          <!-- Cricket Display -->
+          @if (session.gameMode === GameMode.Cricket && session.cricketState) {
+            <div class="cricket-section">
+              <app-cricket-display
+                [cricketState]="session.cricketState"
+                [player1Name]="session.player1.name"
+                [player2Name]="session.player2.name">
+              </app-cricket-display>
+            </div>
+          }
+
+          <!-- Live Statistics (501 only) -->
+          @if (stats && session.gameMode === GameMode.FiveOhOne) {
             <div class="stats-panel">
               <h3>Statistiques en direct</h3>
               <div class="stats-grid">
@@ -511,6 +523,7 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
   connectionStatus: ConnectionStatus = 'disconnected';
 
   MatchSessionStatus = MatchSessionStatus;
+  GameMode = GameMode;
 
   private pollingSubscription: Subscription | null = null;
   private usePollingFallback = false;
@@ -590,6 +603,17 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
           }
         });
 
+      this.signalRService.onCricketTurnRecorded
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId && this.session) {
+            this.session.player1.currentScore = event.player1CurrentScore;
+            this.session.player2.currentScore = event.player2CurrentScore;
+            this.session.currentPlayerId = event.currentPlayerId;
+            this.session.cricketState = event.turn.currentState;
+          }
+        });
+
       this.signalRService.onLegWon
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(event => {
@@ -597,8 +621,15 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
             this.session.player1.legsWon = event.player1LegsWon;
             this.session.player2.legsWon = event.player2LegsWon;
             this.session.currentLeg = event.newCurrentLeg;
-            this.session.player1.currentScore = 501;
-            this.session.player2.currentScore = 501;
+            // Reset scores based on game mode
+            if (this.session.gameMode === 501) {
+              this.session.player1.currentScore = 501;
+              this.session.player2.currentScore = 501;
+            } else {
+              // Cricket - scores reset to 0, state will be updated by next turn event
+              this.session.player1.currentScore = 0;
+              this.session.player2.currentScore = 0;
+            }
             this.session.legsHistory.push(event.legSummary);
           }
         });

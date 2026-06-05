@@ -512,10 +512,22 @@ public class MatchSessionService
             ));
         }
 
+        // Construire l'état Cricket si applicable
+        CricketDisplayState? cricketDisplayState = null;
+        if (session.GameMode == GameMode.Cricket && session.CricketState != null)
+        {
+            cricketDisplayState = _cricketService.BuildDisplayState(
+                session.CricketState,
+                match.Player1Id!.Value,
+                match.Player2Id!.Value
+            );
+        }
+
         return new MatchSessionSpectatorResponse(
             session.MatchId,
             match.Tournament?.Name ?? "Unknown",
             session.LegsToWin,
+            session.GameMode,
             session.Status,
             new PlayerSpectatorInfo(
                 match.Player1Id!.Value,
@@ -531,7 +543,8 @@ public class MatchSessionService
             ),
             session.CurrentPlayerId,
             session.CurrentLeg,
-            legsHistory
+            legsHistory,
+            cricketDisplayState
         );
     }
 
@@ -620,9 +633,18 @@ public class MatchSessionService
 
         await _context.SaveChangesAsync();
 
-        var displayState = _cricketService.BuildDisplayState(cricketState, session.Match.Player1Id!.Value, session.Match.Player2Id!.Value);
+        // Recharger la session avec toutes les relations
+        var reloadedSession = (await GetSessionByIdAsync(sessionId))!;
 
-        var currentPlayer = currentPlayerId == session.Match.Player1Id ? session.Match.Player1! : session.Match.Player2!;
+        var displayState = _cricketService.BuildDisplayState(
+            reloadedSession.CricketState!,
+            reloadedSession.Match.Player1Id!.Value,
+            reloadedSession.Match.Player2Id!.Value
+        );
+
+        var currentPlayer = currentPlayerId == reloadedSession.Match.Player1Id
+            ? reloadedSession.Match.Player1!
+            : reloadedSession.Match.Player2!;
 
         var response = new CricketTurnResponse(
             currentPlayerId,
@@ -632,7 +654,77 @@ public class MatchSessionService
             displayState
         );
 
-        // TODO: Broadcaster via SignalR
+        // Broadcaster l'événement de visite Cricket
+        await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+            .CricketTurnRecorded(new CricketTurnRecordedEvent(
+                reloadedSession.MatchId,
+                response,
+                reloadedSession.Player1CurrentScore,
+                reloadedSession.Player2CurrentScore,
+                reloadedSession.CurrentPlayerId
+            ));
+
+        // Si leg gagné, broadcaster l'événement
+        if (legWon)
+        {
+            var legThrows = reloadedSession.Throws
+                .Where(t => t.LegNumber == session.CurrentLeg && t.PlayerId == currentPlayerId)
+                .ToList();
+            var dartsThrown = legThrows.Count * 3; // Approximation pour Cricket
+            var totalScored = legThrows.Sum(t => t.Score);
+
+            var legSummary = new LegSummary(
+                session.CurrentLeg,
+                currentPlayerId,
+                $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                dartsThrown,
+                0 // Moyenne non calculée pour Cricket pour le moment
+            );
+
+            await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+                .LegWon(new LegWonEvent(
+                    reloadedSession.MatchId,
+                    session.CurrentLeg,
+                    currentPlayerId,
+                    $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                    reloadedSession.Player1LegsWon,
+                    reloadedSession.Player2LegsWon,
+                    reloadedSession.CurrentLeg,
+                    legSummary
+                ));
+
+            // Si match terminé, broadcaster l'événement
+            if (reloadedSession.Status == MatchSessionStatus.Finished)
+            {
+                // Pour Cricket, on n'a pas de stats détaillées pour le moment
+                var player1 = reloadedSession.Match.Player1!;
+                var player2 = reloadedSession.Match.Player2!;
+                var emptyStats = new MatchStatsResponse(
+                    new PlayerStatsInfo(
+                        player1.Id,
+                        $"{player1.FirstName} {player1.LastName}",
+                        0, null, null, null, 0, 0,
+                        reloadedSession.Player1LegsWon, 0, 0, null, 0, null
+                    ),
+                    new PlayerStatsInfo(
+                        player2.Id,
+                        $"{player2.FirstName} {player2.LastName}",
+                        0, null, null, null, 0, 0,
+                        reloadedSession.Player2LegsWon, 0, 0, null, 0, null
+                    )
+                );
+
+                await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+                    .MatchFinished(new MatchFinishedEvent(
+                        reloadedSession.MatchId,
+                        currentPlayerId,
+                        $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                        reloadedSession.Player1LegsWon,
+                        reloadedSession.Player2LegsWon,
+                        emptyStats
+                    ));
+            }
+        }
 
         return response;
     }

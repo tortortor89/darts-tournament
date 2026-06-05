@@ -1,5 +1,51 @@
 # TODO - Darts Tournament
 
+## 🚀 MVP - Points critiques à finaliser avant lancement
+
+### ✅ TERMINÉ (Session 2026-06-05)
+
+- [x] **SignalR broadcasting complet** : Broadcasting temps réel implémenté pour Cricket et 501
+  - ✓ Backend : Événements CricketTurnRecorded, LegWon, MatchFinished émis correctement
+  - ✓ Frontend : SignalRService écoute tous les événements
+  - ✓ Vue spectateur Cricket : Affichage en temps réel du tableau des cibles
+  - ✓ Backend compile sans erreur
+  - ✓ Frontend compile sans erreur
+
+- [x] **Mode Cricket fonctionnel** : Implémentation complète pour MVP
+  - ✓ Saisie des visites avec validation
+  - ✓ Calcul des règles de jeu (fermeture, scoring)
+  - ✓ Broadcasting temps réel vers spectateurs
+  - ✓ Vue spectateur avec tableau Cricket
+  - ✓ Détection fin de leg et match
+  - ⚠️ Stats Cricket détaillées reportées post-MVP (ligne 70)
+
+### 🔴 À FAIRE - Prochaine session
+
+- [ ] **Tester Cricket end-to-end manuellement** : Valider le mode Cricket complet
+  - Créer un tournoi
+  - Lancer un match en mode Cricket
+  - Jouer quelques legs
+  - Vérifier vue spectateur en temps réel
+  - Valider la fin du match
+
+- [ ] **Externaliser les credentials** : Priorité HAUTE - Sécurité
+  - Déplacer JWT Key vers variables d'environnement
+  - Déplacer connection string PostgreSQL vers variables d'environnement
+  - Mettre à jour appsettings.json et appsettings.Production.json
+
+- [ ] **Tester déploiement Docker** : Valider les fichiers Docker créés
+  - Build des images backend et frontend
+  - Test du démarrage complet avec PostgreSQL
+  - Vérifier les variables d'environnement
+  - Tester l'accès via nginx
+
+- [ ] **Tests manuels end-to-end complets** : Valider tous les formats de tournoi
+  - Single Elimination : création → brackets → matchs → résultats
+  - Double Elimination : brackets winners/losers → final
+  - Round Robin : tous contre tous → classement final
+  - Group Stage : phase de groupes → knockout → résultats
+  - Cricket : match complet avec vue spectateur
+
 ## Priorité Haute - Sécurité / Intégrité
 
 - [x] Ajouter validation des entrées sur les DTOs (password, username, noms)

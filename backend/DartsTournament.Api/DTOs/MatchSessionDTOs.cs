@@ -96,12 +96,14 @@ public record MatchSessionSpectatorResponse(
     int MatchId,
     string TournamentName,
     int LegsToWin,
+    GameMode GameMode,
     MatchSessionStatus Status,
     PlayerSpectatorInfo Player1,
     PlayerSpectatorInfo Player2,
     int CurrentPlayerId,
     int CurrentLeg,
-    List<LegSummary> LegsHistory
+    List<LegSummary> LegsHistory,
+    CricketDisplayState? CricketState
 );
 
 /// <summary>

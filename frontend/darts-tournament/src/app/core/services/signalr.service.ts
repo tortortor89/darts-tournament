@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import {
   MatchSession,
   ThrowRecordedEvent,
+  CricketTurnRecordedEvent,
   LegWonEvent,
   MatchFinishedEvent,
   SessionStartedEvent
@@ -23,6 +24,7 @@ export class SignalRService {
   // Event subjects
   private sessionStarted$ = new Subject<SessionStartedEvent>();
   private throwRecorded$ = new Subject<ThrowRecordedEvent>();
+  private cricketTurnRecorded$ = new Subject<CricketTurnRecordedEvent>();
   private legWon$ = new Subject<LegWonEvent>();
   private matchFinished$ = new Subject<MatchFinishedEvent>();
   private sessionCancelled$ = new Subject<number>();
@@ -37,6 +39,10 @@ export class SignalRService {
 
   get onThrowRecorded(): Observable<ThrowRecordedEvent> {
     return this.throwRecorded$.asObservable();
+  }
+
+  get onCricketTurnRecorded(): Observable<CricketTurnRecordedEvent> {
+    return this.cricketTurnRecorded$.asObservable();
   }
 
   get onLegWon(): Observable<LegWonEvent> {
@@ -112,6 +118,10 @@ export class SignalRService {
 
     this.hubConnection.on('ThrowRecorded', (event: ThrowRecordedEvent) => {
       this.throwRecorded$.next(event);
+    });
+
+    this.hubConnection.on('CricketTurnRecorded', (event: CricketTurnRecordedEvent) => {
+      this.cricketTurnRecorded$.next(event);
     });
 
     this.hubConnection.on('LegWon', (event: LegWonEvent) => {
