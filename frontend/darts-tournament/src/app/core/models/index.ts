@@ -142,8 +142,18 @@ export enum RegistrationStatus {
 
 // Match Session (Live Game)
 export enum GameMode {
-  FiveOhOne = 501,
-  Cricket = 301
+  // Pour les modes x01, la valeur correspond au score de départ
+  Cricket = 1,
+  ThreeOhOne = 301,
+  FiveOhOne = 501
+}
+
+export function isX01(mode: GameMode): boolean {
+  return mode === GameMode.FiveOhOne || mode === GameMode.ThreeOhOne;
+}
+
+export function startingScore(mode: GameMode): number {
+  return isX01(mode) ? mode : 0;
 }
 
 export enum MatchSessionStatus {
@@ -169,6 +179,7 @@ export interface MatchSession {
   finishedAt?: Date;
   trackDoubles: boolean;
   cricketState?: CricketDisplayState;
+  doubleOut: boolean;
 }
 
 export interface PlayerSessionInfo {
@@ -229,6 +240,7 @@ export interface StartMatchSessionRequest {
   startingPlayerId: number;
   trackDoubles?: boolean;
   gameMode?: GameMode;
+  doubleOut?: boolean;
 }
 
 export interface RecordThrowRequest {

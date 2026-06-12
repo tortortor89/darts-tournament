@@ -120,7 +120,7 @@
 **Évolutions futures :**
 - [ ] Authentification : restreindre l'écran de jeu aux joueurs du match (nécessite lien User -> Player)
 - [x] Formats de jeu supplémentaires : Cricket (saisie visite complète, scoring, victoire)
-- [ ] Format de jeu 301
+- [x] Format de jeu 301 (avec option Double Out / Straight Out)
 - [ ] Gestion des sets en plus des legs
 - [x] Statistiques en temps réel : moyenne, % doubles, checkout rate
 - [ ] Historique : voir le détail d'un match terminé (toutes les volées)
@@ -158,7 +158,7 @@
 
 ### Fonctionnalités avancées
 - [x] Support Cricket (visite complète avec validation, scoring, stats basiques)
-- [ ] Support format 301
+- [x] Support format 301 (option Double Out / Straight Out, score de départ généralisé)
 - [ ] Gestion des sets (en plus des legs)
 - [ ] Mode équipes / doubles
 - [ ] Export des résultats (PDF, CSV)

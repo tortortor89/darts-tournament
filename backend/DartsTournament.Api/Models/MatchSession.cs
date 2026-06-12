@@ -19,6 +19,7 @@ public class MatchSession
     public GameMode GameMode { get; set; } = GameMode.FiveOhOne;
     public int StartingPlayerId { get; set; }
     public bool TrackDoubles { get; set; } = false;  // Active le tracking avancé des doubles tentés
+    public bool DoubleOut { get; set; } = true;      // x01 : le leg doit se finir sur un double
 
     // État de la partie
     public MatchSessionStatus Status { get; set; } = MatchSessionStatus.Configuration;

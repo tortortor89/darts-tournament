@@ -6,7 +6,7 @@ import { interval, Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { SignalRService, ConnectionStatus } from '../../core/services/signalr.service';
-import { MatchSessionSpectator, MatchSessionStatus, MatchStats, GameMode } from '../../core/models';
+import { MatchSessionSpectator, MatchSessionStatus, MatchStats, GameMode, isX01, startingScore } from '../../core/models';
 import { CricketDisplayComponent } from './components/cricket-display.component';
 
 @Component({
@@ -103,8 +103,8 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
             </div>
           }
 
-          <!-- Live Statistics (501 only) -->
-          @if (stats && session.gameMode === GameMode.FiveOhOne) {
+          <!-- Live Statistics (x01) -->
+          @if (stats && isX01Session()) {
             <div class="stats-panel">
               <h3>Statistiques en direct</h3>
               <div class="stats-grid">
@@ -655,15 +655,10 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
             this.session.player1.legsWon = event.player1LegsWon;
             this.session.player2.legsWon = event.player2LegsWon;
             this.session.currentLeg = event.newCurrentLeg;
-            // Reset scores based on game mode
-            if (this.session.gameMode === 501) {
-              this.session.player1.currentScore = 501;
-              this.session.player2.currentScore = 501;
-            } else {
-              // Cricket - scores reset to 0, state will be updated by next turn event
-              this.session.player1.currentScore = 0;
-              this.session.player2.currentScore = 0;
-            }
+            // Remise au score de départ selon le mode (501/301, Cricket = 0)
+            const legStartScore = startingScore(this.session.gameMode);
+            this.session.player1.currentScore = legStartScore;
+            this.session.player2.currentScore = legStartScore;
             this.session.legsHistory.push(event.legSummary);
           }
         });
@@ -740,6 +735,10 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
       case 'reconnecting': return 'Reconnexion...';
       case 'disconnected': return this.usePollingFallback ? 'Actualisation auto' : 'Deconnecte';
     }
+  }
+
+  isX01Session(): boolean {
+    return !!this.session && isX01(this.session.gameMode);
   }
 
   isWinner(playerId: number): boolean {

@@ -15,7 +15,9 @@ public record StartMatchSessionRequest(
 
     bool TrackDoubles = false,  // Active le tracking avancé des doubles tentés
 
-    GameMode GameMode = GameMode.FiveOhOne  // Mode de jeu (501 par défaut)
+    GameMode GameMode = GameMode.FiveOhOne,  // Mode de jeu (501 par défaut)
+
+    bool DoubleOut = true  // x01 : finir sur un double (ignoré en Cricket)
 );
 
 /// <summary>
@@ -54,7 +56,8 @@ public record MatchSessionResponse(
     DateTime? StartedAt,
     DateTime? FinishedAt,
     bool TrackDoubles,
-    CricketDisplayState? CricketState  // État Cricket (null si mode 501)
+    CricketDisplayState? CricketState,  // État Cricket (null si mode x01)
+    bool DoubleOut
 );
 
 /// <summary>

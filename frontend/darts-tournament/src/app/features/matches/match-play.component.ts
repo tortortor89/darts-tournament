@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit } from '../../core/models';
+import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit, isX01 } from '../../core/models';
 import { ScoreInputComponent, ThrowData } from './components/score-input.component';
 import { CricketDisplayComponent } from './components/cricket-display.component';
 import { CricketInputComponent } from './components/cricket-input.component';
@@ -78,16 +78,41 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
                 </button>
                 <button
                   type="button"
+                  [class.selected]="config.gameMode === GameMode.ThreeOhOne"
+                  (click)="config.gameMode = GameMode.ThreeOhOne">
+                  301
+                </button>
+                <button
+                  type="button"
                   [class.selected]="config.gameMode === GameMode.Cricket"
                   (click)="config.gameMode = GameMode.Cricket">
                   Cricket
                 </button>
               </div>
-              <span class="hint" *ngIf="config.gameMode === GameMode.FiveOhOne">Straight In, Double Out</span>
+              <span class="hint" *ngIf="isX01Config()">Straight In, {{ config.doubleOut ? 'Double Out' : 'Straight Out' }}</span>
               <span class="hint" *ngIf="config.gameMode === GameMode.Cricket">Cibles 15-20 + Bull, 3 hits pour fermer</span>
             </div>
 
-            <div class="form-group" *ngIf="config.gameMode === GameMode.FiveOhOne">
+            <div class="form-group" *ngIf="isX01Config()">
+              <label>Fin de leg</label>
+              <div class="game-mode-selector">
+                <button
+                  type="button"
+                  [class.selected]="config.doubleOut"
+                  (click)="config.doubleOut = true">
+                  Double Out
+                </button>
+                <button
+                  type="button"
+                  [class.selected]="!config.doubleOut"
+                  (click)="config.doubleOut = false">
+                  Straight Out
+                </button>
+              </div>
+              <span class="hint">{{ config.doubleOut ? 'Le leg doit se finir sur un double' : 'Le leg se finit dès que le score atteint exactement 0' }}</span>
+            </div>
+
+            <div class="form-group" *ngIf="isX01Config() && config.doubleOut">
               <label class="checkbox-label">
                 <input type="checkbox" [(ngModel)]="config.trackDoubles">
                 <span>Tracking avancé des doubles tentés</span>
@@ -117,6 +142,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             </div>
 
             <div class="match-status">
+              <div class="game-mode-badge">{{ getModeLabel() }}</div>
               <div class="legs-to-win">Premier à {{ session.legsToWin }}</div>
               <div class="current-leg">Leg {{ session.currentLeg }}</div>
             </div>
@@ -131,8 +157,8 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             </div>
           </div>
 
-          <!-- Mode 501 -->
-          @if (session.gameMode === GameMode.FiveOhOne) {
+          <!-- Mode x01 (501 / 301) -->
+          @if (isX01Session()) {
             <!-- Throw History for current leg -->
             <div class="throw-history">
               <h4>Historique du leg</h4>
@@ -151,6 +177,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             <app-score-input
               [currentPlayerScore]="getCurrentPlayerScore()"
               [trackDoubles]="session.trackDoubles"
+              [doubleOut]="session.doubleOut"
               (throwSubmit)="onThrowSubmit($event)">
             </app-score-input>
 
@@ -521,6 +548,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       gap: 10px;
     }
 
+    .game-mode-badge {
+      background: rgba(255,255,255,0.15);
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+
     .legs-to-win {
       font-size: 0.9em;
       color: #aaa;
@@ -788,8 +823,23 @@ export class MatchPlayComponent implements OnInit {
     legsToWin: 3,
     startingPlayerId: 0,
     trackDoubles: false,
-    gameMode: GameMode.FiveOhOne
+    gameMode: GameMode.FiveOhOne,
+    doubleOut: true
   };
+
+  isX01Config(): boolean {
+    return isX01(this.config.gameMode);
+  }
+
+  isX01Session(): boolean {
+    return !!this.session && isX01(this.session.gameMode);
+  }
+
+  getModeLabel(): string {
+    if (!this.session) return '';
+    if (this.session.gameMode === GameMode.Cricket) return 'Cricket';
+    return `${this.session.gameMode} · ${this.session.doubleOut ? 'Double Out' : 'Straight Out'}`;
+  }
 
   ngOnInit() {
     this.matchId = Number(this.route.snapshot.paramMap.get('id'));
@@ -871,8 +921,9 @@ export class MatchPlayComponent implements OnInit {
     this.apiService.startMatchSession(this.matchId, {
       legsToWin: this.config.legsToWin,
       startingPlayerId: this.config.startingPlayerId,
-      trackDoubles: this.config.trackDoubles,
-      gameMode: this.config.gameMode
+      trackDoubles: this.config.trackDoubles && this.config.doubleOut,
+      gameMode: this.config.gameMode,
+      doubleOut: this.config.doubleOut
     }).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {

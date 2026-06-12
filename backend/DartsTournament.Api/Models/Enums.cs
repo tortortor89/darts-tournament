@@ -38,8 +38,24 @@ public enum UserRole
 
 public enum GameMode
 {
-    FiveOhOne = 501,
-    Cricket = 301
+    // Pour les modes x01, la valeur correspond au score de départ
+    Cricket = 1,
+    ThreeOhOne = 301,
+    FiveOhOne = 501
+}
+
+public static class GameModeExtensions
+{
+    /// <summary>
+    /// Vrai pour les modes de type x01 (501, 301)
+    /// </summary>
+    public static bool IsX01(this GameMode mode) =>
+        mode == GameMode.FiveOhOne || mode == GameMode.ThreeOhOne;
+
+    /// <summary>
+    /// Score de départ d'un leg pour les modes x01
+    /// </summary>
+    public static int StartingScore(this GameMode mode) => (int)mode;
 }
 
 public enum MatchSessionStatus

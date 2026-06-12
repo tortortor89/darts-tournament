@@ -86,15 +86,17 @@ public class MatchSessionService
             CurrentPlayerId = request.StartingPlayerId,
             CurrentLegStartingPlayerId = request.StartingPlayerId,
             Status = MatchSessionStatus.InProgress,
-            TrackDoubles = request.TrackDoubles,
+            // Le tracking des doubles n'a de sens qu'en double out
+            TrackDoubles = request.TrackDoubles && request.DoubleOut,
+            DoubleOut = request.DoubleOut,
             StartedAt = DateTime.UtcNow
         };
 
         // Initialisation selon le mode
-        if (request.GameMode == GameMode.FiveOhOne)
+        if (request.GameMode.IsX01())
         {
-            session.Player1CurrentScore = 501;
-            session.Player2CurrentScore = 501;
+            session.Player1CurrentScore = request.GameMode.StartingScore();
+            session.Player2CurrentScore = request.GameMode.StartingScore();
         }
         else if (request.GameMode == GameMode.Cricket)
         {
@@ -152,8 +154,8 @@ public class MatchSessionService
         if (session.Status != MatchSessionStatus.InProgress)
             throw new InvalidOperationException("Cette session n'est pas en cours");
 
-        if (session.GameMode != GameMode.FiveOhOne)
-            throw new InvalidOperationException("Cette session n'est pas en mode 501");
+        if (!session.GameMode.IsX01())
+            throw new InvalidOperationException("Cette session n'est pas en mode x01 (501/301)");
 
         var currentScore = session.CurrentPlayerId == session.Match.Player1Id
             ? session.Player1CurrentScore
@@ -168,7 +170,8 @@ public class MatchSessionService
         var isCheckout = false;
         var newScore = currentScore - request.Score;
 
-        if (newScore < 0 || newScore == 1)
+        // En double out, rester à 1 est un bust (impossible de finir sur un double)
+        if (newScore < 0 || (session.DoubleOut && newScore == 1))
         {
             // Bust : score reste inchangé
             isBust = true;
@@ -176,9 +179,9 @@ public class MatchSessionService
         }
         else if (newScore == 0)
         {
-            // Vérifier si c'est un double (simplifié pour l'instant)
-            // Dans une vraie implémentation, on vérifierait Dart3
-            isCheckout = IsValidCheckout(request);
+            // En straight out, atteindre 0 suffit ; en double out, la dernière
+            // fléchette doit être un double (vérifié si le détail est fourni)
+            isCheckout = !session.DoubleOut || IsValidCheckout(request);
             if (!isCheckout)
             {
                 isBust = true;
@@ -338,8 +341,8 @@ public class MatchSessionService
         {
             // Nouveau leg
             session.CurrentLeg++;
-            session.Player1CurrentScore = 501;
-            session.Player2CurrentScore = 501;
+            session.Player1CurrentScore = session.GameMode.StartingScore();
+            session.Player2CurrentScore = session.GameMode.StartingScore();
 
             // Alterner qui commence
             session.CurrentLegStartingPlayerId = session.CurrentLegStartingPlayerId == session.Match.Player1Id
@@ -462,13 +465,13 @@ public class MatchSessionService
             .OrderBy(t => t.Id)
             .ToList();
 
-        if (session.GameMode == GameMode.FiveOhOne)
+        if (session.GameMode.IsX01())
         {
             // Les volées bust sont stockées avec Score = 0, la somme reste donc correcte
-            session.Player1CurrentScore = 501 - legThrows
+            session.Player1CurrentScore = session.GameMode.StartingScore() - legThrows
                 .Where(t => t.PlayerId == session.Match.Player1Id)
                 .Sum(t => t.Score);
-            session.Player2CurrentScore = 501 - legThrows
+            session.Player2CurrentScore = session.GameMode.StartingScore() - legThrows
                 .Where(t => t.PlayerId == session.Match.Player2Id)
                 .Sum(t => t.Score);
         }
@@ -594,7 +597,8 @@ public class MatchSessionService
             session.StartedAt,
             session.FinishedAt,
             session.TrackDoubles,
-            cricketDisplayState
+            cricketDisplayState,
+            session.DoubleOut
         );
     }
 

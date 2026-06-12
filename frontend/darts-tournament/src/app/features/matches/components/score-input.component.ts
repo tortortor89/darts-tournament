@@ -674,6 +674,7 @@ export class ScoreInputComponent {
   @Input() quickScores: number[] = [0, 26, 41, 45, 60, 85, 100, 120, 140, 180];
   @Input() currentPlayerScore: number = 501;
   @Input() trackDoubles: boolean = false;  // Active le tracking des doubles tentés
+  @Input() doubleOut: boolean = true;      // Le leg doit se finir sur un double
 
   @Output() throwSubmit = new EventEmitter<ThrowData>();
 
@@ -693,18 +694,12 @@ export class ScoreInputComponent {
   doublesAttemptedModalVisible = signal(false);
   pendingThrowData?: Omit<ThrowData, 'doublesAttempted'>;
 
-  // Show checkout button when score is finishable in 3 darts
-  // Finishable: 170, 167, 164, 161, 160, and all scores <= 158 (except 1)
-  // Non-finishable in 3 darts: 169, 168, 166, 165, 163, 162, 159
+  // Affiche le bouton checkout quand le score est finissable en 3 fléchettes
+  // (selon le mode : double out ou straight out)
   get showCheckoutButton(): boolean {
     const score = this.currentPlayerScore;
-    if (score <= 1) return false;
-
-    // Scores finishable in 3 darts
-    if (score <= 158) return true;
-    if (score === 160 || score === 161 || score === 164 || score === 167 || score === 170) return true;
-
-    return false;
+    if (score < (this.doubleOut ? 2 : 1)) return false;
+    return this.canFinishWithin(score, 3);
   }
 
   setInputMode(mode: InputMode) {
@@ -1039,12 +1034,32 @@ export class ScoreInputComponent {
   })();
 
   /**
+   * Vrai si le score peut être terminé par une seule fléchette
+   * (double out : un double ; straight out : toute valeur atteignable)
+   */
+  private isFinishingDart(score: number): boolean {
+    return this.doubleOut
+      ? this.isInDoublePosition(score)
+      : ScoreInputComponent.SINGLE_DART_SCORES.includes(score);
+  }
+
+  /**
+   * Vrai si le score est finissable avec au plus `darts` fléchettes
+   */
+  private canFinishWithin(score: number, darts: number): boolean {
+    if (darts <= 0) return false;
+    if (this.isFinishingDart(score)) return true;
+    return ScoreInputComponent.SINGLE_DART_SCORES.some(v =>
+      v < score && this.canFinishWithin(score - v, darts - 1));
+  }
+
+  /**
    * Nombre minimum de fléchettes pour finir un score
-   * (le maximum est toujours 3 : on peut rater avant de toucher le double)
+   * (le maximum est toujours 3 : on peut rater avant de toucher)
    */
   private minDartsToCheckout(score: number): number {
-    if (this.isInDoublePosition(score)) return 1;
-    if (ScoreInputComponent.SINGLE_DART_SCORES.some(v => this.isInDoublePosition(score - v))) return 2;
+    if (this.isFinishingDart(score)) return 1;
+    if (ScoreInputComponent.SINGLE_DART_SCORES.some(v => v < score && this.isFinishingDart(score - v))) return 2;
     return 3;
   }
 

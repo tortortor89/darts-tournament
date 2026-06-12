@@ -33,12 +33,14 @@ public class PlayerStatsService
         int matchesLost = totalMatches - matchesWon;
         double winPct = totalMatches > 0 ? (double)matchesWon / totalMatches * 100 : 0;
 
-        // 3. MatchSessions avec Throws (stats détaillées)
+        // 3. MatchSessions avec Throws (stats détaillées, x01 uniquement :
+        // les visites Cricket fausseraient moyennes et checkouts)
         var sessionsWithThrows = await _context.MatchSessions
             .Include(ms => ms.Throws)
             .Include(ms => ms.Match)
             .Where(ms => (ms.Match.Player1Id == playerId || ms.Match.Player2Id == playerId)
                          && ms.Status == MatchSessionStatus.Finished
+                         && ms.GameMode != GameMode.Cricket
                          && ms.Throws.Any())
             .ToListAsync();
 
