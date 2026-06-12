@@ -10,6 +10,7 @@ public interface IMatchHubClient
 {
     Task SessionStarted(SessionStartedEvent sessionEvent);
     Task ThrowRecorded(ThrowRecordedEvent throwEvent);
+    Task ThrowUndone(ThrowUndoneEvent undoneEvent);
     Task CricketTurnRecorded(CricketTurnRecordedEvent turnEvent);
     Task LegWon(LegWonEvent legEvent);
     Task MatchFinished(MatchFinishedEvent finishedEvent);

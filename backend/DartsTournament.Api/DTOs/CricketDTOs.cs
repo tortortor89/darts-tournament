@@ -60,3 +60,12 @@ public record CricketHitResult(
     int PointsScored,
     bool ClosedTarget
 );
+
+/// <summary>
+/// Forme stockée dans Throw.CricketDataJson ({ "hits": [...], "results": [...] })
+/// </summary>
+public class CricketThrowData
+{
+    [System.Text.Json.Serialization.JsonPropertyName("hits")]
+    public List<CricketHit>? Hits { get; set; }
+}

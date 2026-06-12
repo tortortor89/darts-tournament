@@ -32,7 +32,7 @@ public record RecordThrowRequest(
     [Range(1, 3, ErrorMessage = "Le nombre de fléchettes utilisées doit être entre 1 et 3")]
     int? DartsUsed,
 
-    [Range(1, 3, ErrorMessage = "Le nombre de doubles tentés doit être entre 1 et 3")]
+    [Range(0, 3, ErrorMessage = "Le nombre de doubles tentés doit être entre 0 et 3")]
     int? DoublesAttempted
 );
 

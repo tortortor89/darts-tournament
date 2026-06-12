@@ -195,10 +195,35 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             <app-cricket-input
               (turnSubmit)="onCricketThrowSubmit($event)">
             </app-cricket-input>
+
+            <!-- Live Statistics Cricket -->
+            @if (stats) {
+              <div class="stats-panel">
+                <h4>Statistiques</h4>
+                <div class="stats-compact">
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.marksPerRound | number:'1.1-2' }}</span>
+                    <span class="label">MPR</span>
+                    <span class="p2">{{ stats.player2Stats.marksPerRound | number:'1.1-2' }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.totalScore }}</span>
+                    <span class="label">Points</span>
+                    <span class="p2">{{ stats.player2Stats.totalScore }}</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="p1">{{ stats.player1Stats.highestScore || '-' }}</span>
+                    <span class="label">Best</span>
+                    <span class="p2">{{ stats.player2Stats.highestScore || '-' }}</span>
+                  </div>
+                </div>
+              </div>
+            }
           }
 
           <!-- Actions -->
           <div class="match-actions">
+            <button class="undo-btn" (click)="undoLastThrow()">&#8630; Annuler la dernière volée</button>
             <button class="cancel-btn" (click)="cancelMatch()">Annuler le match</button>
           </div>
         </div>
@@ -237,6 +262,25 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
                     <th>{{ session.player2.name }}</th>
                   </tr>
                 </thead>
+                @if (session.gameMode === GameMode.Cricket) {
+                  <tbody>
+                    <tr class="highlight-row">
+                      <td>{{ stats.player1Stats.marksPerRound | number:'1.1-2' }}</td>
+                      <td>MPR</td>
+                      <td>{{ stats.player2Stats.marksPerRound | number:'1.1-2' }}</td>
+                    </tr>
+                    <tr>
+                      <td>{{ stats.player1Stats.totalScore }}</td>
+                      <td>Points marqués</td>
+                      <td>{{ stats.player2Stats.totalScore }}</td>
+                    </tr>
+                    <tr>
+                      <td>{{ stats.player1Stats.highestScore || '-' }}</td>
+                      <td>Meilleure visite</td>
+                      <td>{{ stats.player2Stats.highestScore || '-' }}</td>
+                    </tr>
+                  </tbody>
+                } @else {
                 <tbody>
                   <tr>
                     <td>{{ stats.player1Stats.threeDartAverage | number:'1.1-1' }}</td>
@@ -269,6 +313,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
                     <td>{{ stats.player2Stats.highestScore || '-' }}</td>
                   </tr>
                 </tbody>
+                }
               </table>
             </div>
           }
@@ -276,6 +321,9 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
           <div class="validation-actions">
             <button class="validate-btn" (click)="validateMatch()">
               Valider et enregistrer le résultat
+            </button>
+            <button class="undo-btn" (click)="undoLastThrow()">
+              &#8630; Annuler la dernière volée
             </button>
             <button class="cancel-btn" (click)="cancelMatch()">
               Annuler (ne pas enregistrer)
@@ -541,7 +589,18 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .match-actions {
-      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .undo-btn {
+      padding: 10px 20px;
+      background: transparent;
+      color: #ffc107;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      cursor: pointer;
     }
 
     .cancel-btn {
@@ -832,7 +891,9 @@ export class MatchPlayComponent implements OnInit {
       score: throwData.score,
       dart1: throwData.dart1,
       dart2: throwData.dart2,
-      dart3: throwData.dart3
+      dart3: throwData.dart3,
+      dartsUsed: throwData.dartsUsed,
+      doublesAttempted: throwData.doublesAttempted
     };
 
     this.apiService.recordThrow(this.matchId, request)
@@ -845,6 +906,22 @@ export class MatchPlayComponent implements OnInit {
         },
         error: (err) => {
           this.notificationService.showError(err.error || 'Erreur lors de l\'enregistrement');
+        }
+      });
+  }
+
+  undoLastThrow() {
+    this.apiService.undoLastThrow(this.matchId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (session) => {
+          this.session = session;
+          this.updatePhase();
+          this.loadStats();
+          this.notificationService.showSuccess('Dernière volée annulée');
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error || 'Erreur lors de l\'annulation de la volée');
         }
       });
   }

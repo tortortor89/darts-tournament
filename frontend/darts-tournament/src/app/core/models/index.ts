@@ -236,6 +236,8 @@ export interface RecordThrowRequest {
   dart1?: string;
   dart2?: string;
   dart3?: string;
+  dartsUsed?: number;
+  doublesAttempted?: number;
 }
 
 // Statistics
@@ -258,6 +260,7 @@ export interface PlayerStats {
   checkoutSuccesses: number;
   highestScore?: number;
   oneEighties: number;
+  marksPerRound?: number;  // Cricket uniquement
 }
 
 // SignalR Events
@@ -268,6 +271,10 @@ export interface ThrowRecordedEvent {
   player2CurrentScore: number;
   currentPlayerId: number;
   stats: MatchStats;
+}
+
+export interface ThrowUndoneEvent {
+  matchId: number;
 }
 
 export interface LegWonEvent {

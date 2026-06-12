@@ -223,6 +223,38 @@ public class MatchesController : ControllerBase
     }
 
     /// <summary>
+    /// Annuler la dernière volée enregistrée (correction d'une erreur de saisie)
+    /// </summary>
+    /// <param name="id">Identifiant du match</param>
+    /// <returns>État mis à jour de la session</returns>
+    /// <response code="200">Volée annulée</response>
+    /// <response code="400">Aucune volée à annuler ou match déjà validé</response>
+    /// <response code="404">Session non trouvée</response>
+    [HttpDelete("{id}/session/throws/last")]
+    [ProducesResponseType(typeof(MatchSessionResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MatchSessionResponse>> UndoLastThrow(int id)
+    {
+        var session = await _matchSessionService.GetOrCreateSessionAsync(id);
+
+        if (session == null)
+        {
+            return NotFound("Aucune session active pour ce match");
+        }
+
+        try
+        {
+            var updatedSession = await _matchSessionService.UndoLastThrowAsync(session.Id);
+            return Ok(_matchSessionService.BuildSessionResponse(updatedSession));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Valider et clôturer le match (met à jour le score du tournoi)
     /// </summary>
     /// <param name="id">Identifiant du match</param>

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Models;
 
@@ -23,6 +24,9 @@ public class MatchStatsService
     {
         var playerThrows = session.Throws.Where(t => t.PlayerId == playerId).ToList();
 
+        if (session.GameMode == GameMode.Cricket)
+            return CalculateCricketStats(playerThrows, playerId, player, legsWon);
+
         // Moyenne 3 fléchettes
         var totalScore = playerThrows.Sum(t => t.Score);
 
@@ -34,13 +38,29 @@ public class MatchStatsService
         var average = dartsThrown > 0 ? (double)totalScore / dartsThrown * 3 : 0;
 
         // Checkout %
-        // Une tentative de checkout = quand le score restant avant la volée <= 170
-        var checkoutAttempts = playerThrows.Count(t =>
-            (t.RemainingScore + t.Score) <= 170 && !t.IsBust);
         var checkoutSuccesses = playerThrows.Count(t => t.IsCheckout);
-        double? checkoutPercentage = checkoutAttempts > 0
-            ? (double)checkoutSuccesses / checkoutAttempts * 100
-            : null;
+        int checkoutAttempts;
+        double? checkoutPercentage;
+        double? doublesHitRate = null;
+
+        if (session.TrackDoubles)
+        {
+            // Tracking précis : une tentative = une fléchette lancée sur un double
+            checkoutAttempts = playerThrows.Sum(t => t.DoublesAttempted ?? 0);
+            checkoutPercentage = checkoutAttempts > 0
+                ? (double)checkoutSuccesses / checkoutAttempts * 100
+                : null;
+            doublesHitRate = checkoutPercentage;
+        }
+        else
+        {
+            // Heuristique grossière : toute volée commencée à 170 ou moins compte comme une tentative
+            checkoutAttempts = playerThrows.Count(t =>
+                (t.RemainingScore + t.Score) <= 170 && !t.IsBust);
+            checkoutPercentage = checkoutAttempts > 0
+                ? (double)checkoutSuccesses / checkoutAttempts * 100
+                : null;
+        }
 
         // Moyenne 9 premières fléchettes (3 premiers throws de chaque leg)
         var first9Throws = playerThrows
@@ -68,11 +88,6 @@ public class MatchStatsService
         // Nombre de 180
         var oneEighties = playerThrows.Count(t => t.Score == 180);
 
-        // DÉSACTIVÉ : % Réussite sur doubles
-        // Cette stat est désormais optionnelle et n'est plus calculée par défaut
-        // car elle nécessite le tracking avancé des doubles tentés
-        double? doublesHitRate = null;
-
         return new PlayerStatsInfo(
             playerId,
             $"{player.FirstName} {player.LastName}",
@@ -89,5 +104,49 @@ public class MatchStatsService
             oneEighties,
             doublesHitRate.HasValue ? Math.Round(doublesHitRate.Value, 1) : null
         );
+    }
+
+    /// <summary>
+    /// Statistiques Cricket : MPR (marks per round), points marqués
+    /// </summary>
+    private PlayerStatsInfo CalculateCricketStats(List<Throw> playerThrows, int playerId, Player player, int legsWon)
+    {
+        var rounds = playerThrows.Count;
+        var totalMarks = playerThrows.Sum(CountMarks);
+        var marksPerRound = rounds > 0 ? (double)totalMarks / rounds : 0;
+
+        // En Cricket, Throw.Score contient les points marqués dans la visite
+        var totalPoints = playerThrows.Sum(t => t.Score);
+        var highestScore = playerThrows
+            .Select(t => t.Score)
+            .DefaultIfEmpty(0)
+            .Max();
+
+        return new PlayerStatsInfo(
+            playerId,
+            $"{player.FirstName} {player.LastName}",
+            0,      // ThreeDartAverage : sans objet en Cricket
+            null,   // CheckoutPercentage
+            null,   // First9Average
+            null,   // HighestCheckout
+            rounds * 3,  // Approximation : 3 fléchettes par visite
+            totalPoints,
+            legsWon,
+            0,
+            0,
+            highestScore > 0 ? highestScore : null,
+            0,      // OneEighties
+            null,   // DoublesHitRate
+            Math.Round(marksPerRound, 2)
+        );
+    }
+
+    private static int CountMarks(Throw cricketThrow)
+    {
+        if (string.IsNullOrEmpty(cricketThrow.CricketDataJson))
+            return 0;
+
+        var data = JsonSerializer.Deserialize<CricketThrowData>(cricketThrow.CricketDataJson);
+        return data?.Hits?.Sum(h => h.Marks) ?? 0;
     }
 }

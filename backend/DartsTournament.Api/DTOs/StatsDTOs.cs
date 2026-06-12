@@ -25,5 +25,6 @@ public record PlayerStatsInfo(
     int CheckoutSuccesses,
     int? HighestScore,
     int OneEighties,
-    double? DoublesHitRate
+    double? DoublesHitRate,
+    double? MarksPerRound = null  // Cricket uniquement (null en 501)
 );

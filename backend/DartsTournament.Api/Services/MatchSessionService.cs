@@ -152,6 +152,9 @@ public class MatchSessionService
         if (session.Status != MatchSessionStatus.InProgress)
             throw new InvalidOperationException("Cette session n'est pas en cours");
 
+        if (session.GameMode != GameMode.FiveOhOne)
+            throw new InvalidOperationException("Cette session n'est pas en mode 501");
+
         var currentScore = session.CurrentPlayerId == session.Match.Player1Id
             ? session.Player1CurrentScore
             : session.Player2CurrentScore;
@@ -410,6 +413,122 @@ public class MatchSessionService
     }
 
     /// <summary>
+    /// Annule la dernière volée enregistrée et restaure l'état de la partie
+    /// </summary>
+    public async Task<MatchSession> UndoLastThrowAsync(int sessionId)
+    {
+        var session = await GetSessionByIdAsync(sessionId);
+
+        if (session == null)
+            throw new InvalidOperationException("Session non trouvée");
+
+        if (session.Status != MatchSessionStatus.InProgress && session.Status != MatchSessionStatus.Finished)
+            throw new InvalidOperationException("Cette session n'est pas en cours");
+
+        if (session.Match.Status == MatchStatus.Completed)
+            throw new InvalidOperationException("Impossible d'annuler une volée : le match a déjà été validé");
+
+        var lastThrow = session.Throws.OrderByDescending(t => t.Id).FirstOrDefault();
+
+        if (lastThrow == null)
+            throw new InvalidOperationException("Aucune volée à annuler");
+
+        // Si la volée annulée avait gagné un leg, le rendre
+        if (lastThrow.IsCheckout)
+        {
+            if (lastThrow.PlayerId == session.Match.Player1Id)
+                session.Player1LegsWon--;
+            else
+                session.Player2LegsWon--;
+
+            if (session.Status == MatchSessionStatus.Finished)
+            {
+                session.Status = MatchSessionStatus.InProgress;
+                session.FinishedAt = null;
+            }
+        }
+
+        // Revenir au leg de la volée annulée, c'est à ce joueur de rejouer
+        session.CurrentLeg = lastThrow.LegNumber;
+        session.CurrentLegStartingPlayerId = GetLegStartingPlayerId(session, lastThrow.LegNumber);
+        session.CurrentPlayerId = lastThrow.PlayerId;
+
+        _context.Throws.Remove(lastThrow);
+        session.Throws.Remove(lastThrow);
+
+        // Recalculer l'état du leg à partir des volées restantes
+        var legThrows = session.Throws
+            .Where(t => t.LegNumber == lastThrow.LegNumber)
+            .OrderBy(t => t.Id)
+            .ToList();
+
+        if (session.GameMode == GameMode.FiveOhOne)
+        {
+            // Les volées bust sont stockées avec Score = 0, la somme reste donc correcte
+            session.Player1CurrentScore = 501 - legThrows
+                .Where(t => t.PlayerId == session.Match.Player1Id)
+                .Sum(t => t.Score);
+            session.Player2CurrentScore = 501 - legThrows
+                .Where(t => t.PlayerId == session.Match.Player2Id)
+                .Sum(t => t.Score);
+        }
+        else if (session.GameMode == GameMode.Cricket)
+        {
+            var state = ReplayCricketLeg(session, legThrows);
+            session.CricketState = state;
+            session.Player1CurrentScore = state.PlayerStates[session.Match.Player1Id!.Value].Score;
+            session.Player2CurrentScore = state.PlayerStates[session.Match.Player2Id!.Value].Score;
+        }
+
+        await _context.SaveChangesAsync();
+
+        var reloadedSession = (await GetSessionByIdAsync(sessionId))!;
+
+        await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
+            .ThrowUndone(new ThrowUndoneEvent(reloadedSession.MatchId));
+
+        return reloadedSession;
+    }
+
+    /// <summary>
+    /// Détermine quel joueur commence un leg donné (alternance à partir de StartingPlayerId au leg 1)
+    /// </summary>
+    private int GetLegStartingPlayerId(MatchSession session, int legNumber)
+    {
+        if (legNumber % 2 == 1)
+            return session.StartingPlayerId;
+
+        return session.StartingPlayerId == session.Match.Player1Id
+            ? session.Match.Player2Id!.Value
+            : session.Match.Player1Id!.Value;
+    }
+
+    /// <summary>
+    /// Reconstruit l'état Cricket d'un leg en rejouant les visites depuis CricketDataJson
+    /// </summary>
+    private CricketGameState ReplayCricketLeg(MatchSession session, List<Throw> legThrows)
+    {
+        var player1Id = session.Match.Player1Id!.Value;
+        var player2Id = session.Match.Player2Id!.Value;
+        var state = _cricketService.InitializeState(player1Id, player2Id);
+
+        foreach (var legThrow in legThrows)
+        {
+            if (string.IsNullOrEmpty(legThrow.CricketDataJson))
+                continue;
+
+            var data = System.Text.Json.JsonSerializer.Deserialize<CricketThrowData>(legThrow.CricketDataJson);
+            if (data?.Hits == null)
+                continue;
+
+            var opponentId = legThrow.PlayerId == player1Id ? player2Id : player1Id;
+            _cricketService.ProcessTurn(state, legThrow.PlayerId, opponentId, data.Hits);
+        }
+
+        return state;
+    }
+
+    /// <summary>
     /// Construit la réponse DTO pour une session
     /// </summary>
     public MatchSessionResponse BuildSessionResponse(MatchSession session)
@@ -565,7 +684,7 @@ public class MatchSessionService
             throw new InvalidOperationException("Cette session n'est pas en mode Cricket");
 
         // Validation de la visite
-        ValidateCricketTurn(request.Hits);
+        _cricketService.ValidateTurn(request.Hits);
 
         var cricketState = session.CricketState!;
         var currentPlayerId = session.CurrentPlayerId;
@@ -620,6 +739,9 @@ public class MatchSessionService
         // Vérifier si le joueur a gagné le leg
         bool legWon = _cricketService.HasPlayerWonLeg(cricketState, currentPlayerId, opponentId);
 
+        // Capturer le numéro du leg avant que HandleCricketLegWon ne l'incrémente
+        var legNumberBeforeWin = session.CurrentLeg;
+
         if (legWon)
         {
             throwEntity.IsCheckout = true;
@@ -668,13 +790,13 @@ public class MatchSessionService
         if (legWon)
         {
             var legThrows = reloadedSession.Throws
-                .Where(t => t.LegNumber == session.CurrentLeg && t.PlayerId == currentPlayerId)
+                .Where(t => t.LegNumber == legNumberBeforeWin && t.PlayerId == currentPlayerId)
                 .ToList();
             var dartsThrown = legThrows.Count * 3; // Approximation pour Cricket
             var totalScored = legThrows.Sum(t => t.Score);
 
             var legSummary = new LegSummary(
-                session.CurrentLeg,
+                legNumberBeforeWin,
                 currentPlayerId,
                 $"{currentPlayer.FirstName} {currentPlayer.LastName}",
                 dartsThrown,
@@ -684,7 +806,7 @@ public class MatchSessionService
             await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
                 .LegWon(new LegWonEvent(
                     reloadedSession.MatchId,
-                    session.CurrentLeg,
+                    legNumberBeforeWin,
                     currentPlayerId,
                     $"{currentPlayer.FirstName} {currentPlayer.LastName}",
                     reloadedSession.Player1LegsWon,
@@ -696,23 +818,7 @@ public class MatchSessionService
             // Si match terminé, broadcaster l'événement
             if (reloadedSession.Status == MatchSessionStatus.Finished)
             {
-                // Pour Cricket, on n'a pas de stats détaillées pour le moment
-                var player1 = reloadedSession.Match.Player1!;
-                var player2 = reloadedSession.Match.Player2!;
-                var emptyStats = new MatchStatsResponse(
-                    new PlayerStatsInfo(
-                        player1.Id,
-                        $"{player1.FirstName} {player1.LastName}",
-                        0, null, null, null, 0, 0,
-                        reloadedSession.Player1LegsWon, 0, 0, null, 0, null
-                    ),
-                    new PlayerStatsInfo(
-                        player2.Id,
-                        $"{player2.FirstName} {player2.LastName}",
-                        0, null, null, null, 0, 0,
-                        reloadedSession.Player2LegsWon, 0, 0, null, 0, null
-                    )
-                );
+                var finalStats = _statsService.CalculateStats(reloadedSession);
 
                 await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
                     .MatchFinished(new MatchFinishedEvent(
@@ -721,36 +827,12 @@ public class MatchSessionService
                         $"{currentPlayer.FirstName} {currentPlayer.LastName}",
                         reloadedSession.Player1LegsWon,
                         reloadedSession.Player2LegsWon,
-                        emptyStats
+                        finalStats
                     ));
             }
         }
 
         return response;
-    }
-
-    /// <summary>
-    /// Valide qu'une visite Cricket est correcte
-    /// </summary>
-    private void ValidateCricketTurn(List<CricketHit> hits)
-    {
-        // Vérifier le nombre de cibles différentes (max 3)
-        var distinctTargets = hits.Select(h => h.Target).Distinct().Count();
-        if (distinctTargets > 3)
-            throw new InvalidOperationException("Maximum 3 cibles différentes par visite");
-
-        // Vérifier le total de marques (max 9 = 3 fléchettes × triple)
-        var totalMarks = hits.Sum(h => h.Marks);
-        if (totalMarks > 9)
-            throw new InvalidOperationException("Maximum 9 marques par visite (3 fléchettes)");
-
-        // Vérifier que les cibles sont valides
-        var validTargets = new[] { 15, 16, 17, 18, 19, 20, 25 };
-        foreach (var hit in hits)
-        {
-            if (!validTargets.Contains(hit.Target))
-                throw new InvalidOperationException($"Cible invalide: {hit.Target}");
-        }
     }
 
     /// <summary>
@@ -819,22 +901,4 @@ public class MatchSessionService
         }
     }
 
-    private string FormatCricketDart(int target, int hits)
-    {
-        if (target == 25)
-        {
-            // Bull: 1 hit = SB (25), 2+ hits = inclut DB
-            return hits == 1 ? "BULL" : (hits == 2 ? "BULL,DB" : "BULL,DB,DB");
-        }
-
-        var prefix = hits switch
-        {
-            1 => "S",
-            2 => "D",
-            3 => "T",
-            _ => "S"
-        };
-
-        return $"{prefix}{target}";
-    }
 }

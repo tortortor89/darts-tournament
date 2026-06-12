@@ -47,6 +47,13 @@ public record SessionStartedEvent(
 );
 
 /// <summary>
+/// Événement émis quand la dernière volée est annulée (les clients doivent recharger la session)
+/// </summary>
+public record ThrowUndoneEvent(
+    int MatchId
+);
+
+/// <summary>
 /// Événement émis quand une visite Cricket est enregistrée
 /// </summary>
 public record CricketTurnRecordedEvent(

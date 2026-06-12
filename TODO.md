@@ -19,6 +19,18 @@
   - ✓ Détection fin de leg et match
   - ⚠️ Stats Cricket détaillées reportées post-MVP (ligne 70)
 
+### ✅ TERMINÉ (Session 2026-06-12)
+
+- [x] **Revue critique des modes de jeu (501 + Cricket)** : corrections de bugs
+  - ✓ dartsUsed/doublesAttempted enfin transmis au backend (stats checkout réparées)
+  - ✓ Victoire Cricket à égalité de points (règle standard : fermé + score >= adversaire)
+  - ✓ Événement LegWon Cricket : bon numéro de leg diffusé aux spectateurs
+  - ✓ Garde-fou : volée 501 refusée sur une session Cricket
+- [x] **Annuler la dernière volée (undo)** : endpoint DELETE + bouton UI (501 et Cricket, y compris depuis l'écran de fin avant validation), rollback complet (scores, legs, état Cricket rejoué), événement SignalR ThrowUndone
+- [x] **Validation Cricket réaliste** : faisabilité en 3 fléchettes (max 3 marques/fléchette, 2 sur le Bull), backend + UI
+- [x] **Checkout % précis** : basé sur les doubles réellement tentés quand le tracking est actif
+- [x] **Projet de tests backend** : DartsTournament.Tests (xUnit, 23 tests sur la logique de jeu et les stats)
+
 ### 🔴 À FAIRE - Prochaine session
 
 - [ ] **Tester Cricket end-to-end manuellement** : Valider le mode Cricket complet
@@ -70,7 +82,7 @@
 
 ## Priorité Basse - Polish / Documentation
 
-- [ ] Écrire des tests unitaires (Backend - Services)
+- [x] Écrire des tests unitaires (Backend - Services) (projet DartsTournament.Tests : CricketService + MatchStatsService, 23 tests)
 - [ ] Écrire des tests unitaires (Frontend - Services/Components)
 - [x] Ajouter documentation Swagger avec commentaires XML
 - [ ] Améliorer l'accessibilité (labels, ARIA)
@@ -112,9 +124,10 @@
 - [ ] Gestion des sets en plus des legs
 - [x] Statistiques en temps réel : moyenne, % doubles, checkout rate
 - [ ] Historique : voir le détail d'un match terminé (toutes les volées)
+- [ ] Vue joueur (match-play) branchée sur SignalR : synchronisation multi-écrans (deux appareils ouverts sur le même match divergent aujourd'hui)
 - [x] Temps réel : SignalR pour refresh instantané du spectateur
-- [ ] Statistiques Cricket : calcul des stats spécifiques au Cricket
-- [ ] Vue spectateur Cricket : affichage temps réel pour spectateurs
+- [x] Statistiques Cricket : calcul des stats spécifiques au Cricket (MPR, points marqués, meilleure visite)
+- [x] Vue spectateur Cricket : affichage temps réel pour spectateurs (tableau des cibles + stats en direct)
 
 **Amélioration interface de saisie :**
 - [x] Pavé numérique visuel en mode score total (0-9, effacer, valider)

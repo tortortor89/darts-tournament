@@ -163,6 +163,10 @@ export class ApiService {
     return this.http.post<MatchSession>(`${this.API_URL}/matches/${matchId}/session/throw`, request);
   }
 
+  undoLastThrow(matchId: number): Observable<MatchSession> {
+    return this.http.delete<MatchSession>(`${this.API_URL}/matches/${matchId}/session/throws/last`);
+  }
+
   recordCricketTurn(matchId: number, hits: CricketHit[]): Observable<CricketTurnResponse> {
     return this.http.post<CricketTurnResponse>(`${this.API_URL}/matches/${matchId}/session/cricket-turn`, { hits });
   }

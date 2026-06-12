@@ -79,6 +79,30 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
             </div>
           }
 
+          <!-- Live Statistics (Cricket) -->
+          @if (stats && session.gameMode === GameMode.Cricket) {
+            <div class="stats-panel">
+              <h3>Statistiques en direct</h3>
+              <div class="stats-grid">
+                <div class="stat-row">
+                  <div class="stat-value left highlight">{{ stats.player1Stats.marksPerRound | number:'1.1-2' }}</div>
+                  <div class="stat-label">MPR</div>
+                  <div class="stat-value right highlight">{{ stats.player2Stats.marksPerRound | number:'1.1-2' }}</div>
+                </div>
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.totalScore }}</div>
+                  <div class="stat-label">Points marques</div>
+                  <div class="stat-value right">{{ stats.player2Stats.totalScore }}</div>
+                </div>
+                <div class="stat-row">
+                  <div class="stat-value left">{{ stats.player1Stats.highestScore || '-' }}</div>
+                  <div class="stat-label">Meilleure visite</div>
+                  <div class="stat-value right">{{ stats.player2Stats.highestScore || '-' }}</div>
+                </div>
+              </div>
+            </div>
+          }
+
           <!-- Live Statistics (501 only) -->
           @if (stats && session.gameMode === GameMode.FiveOhOne) {
             <div class="stats-panel">
@@ -603,6 +627,15 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
           }
         });
 
+      this.signalRService.onThrowUndone
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(event => {
+          if (event.matchId === this.matchId) {
+            // Une annulation peut toucher scores, legs et statut : on recharge tout
+            this.loadSession();
+          }
+        });
+
       this.signalRService.onCricketTurnRecorded
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(event => {
@@ -611,6 +644,7 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
             this.session.player2.currentScore = event.player2CurrentScore;
             this.session.currentPlayerId = event.currentPlayerId;
             this.session.cricketState = event.turn.currentState;
+            this.loadStats();
           }
         });
 

@@ -20,6 +20,7 @@ npm test               # Run Karma tests
 ### Backend (`backend/`)
 ```bash
 dotnet build
+dotnet test                                 # Unit tests (DartsTournament.Tests)
 dotnet run --project DartsTournament.Api    # API at https://localhost:7228
 
 # Database migrations

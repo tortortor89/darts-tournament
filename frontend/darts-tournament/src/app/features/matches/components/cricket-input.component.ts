@@ -15,12 +15,10 @@ interface CricketInputState {
       <h4>Saisie Cricket - Visite complète</h4>
 
       <div class="instructions">
-        <p>Cliquez sur les cibles pour ajouter des marques (max {{ maxMarks }})</p>
+        <p>Cliquez sur les cibles pour ajouter des marques</p>
         <p class="info">
-          <strong>Marques: {{ totalMarks }}/{{ maxMarks }}</strong>
-          @if (distinctTargets > 0) {
-            <span class="targets-count"> • Cibles touchées: {{ distinctTargets }}/3</span>
-          }
+          <strong>Marques: {{ totalMarks }}</strong>
+          <span class="targets-count"> • Fléchettes: {{ usedDarts }}/3</span>
         </p>
       </div>
 
@@ -242,41 +240,33 @@ export class CricketInputComponent {
     15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0
   };
 
-  maxMarks = 9;  // 3 fléchettes × triple
-  maxTargets = 3;
   errorMessage = '';
 
   get totalMarks(): number {
     return Object.values(this.targetMarks).reduce((sum, marks) => sum + marks, 0);
   }
 
-  get distinctTargets(): number {
-    return Object.values(this.targetMarks).filter(marks => marks > 0).length;
+  // Nombre minimum de fléchettes pour réaliser les marques saisies
+  // (1 fléchette = 1 cible, max 3 marques par fléchette, 2 sur le Bull)
+  get usedDarts(): number {
+    return this.minDartsNeeded(this.targetMarks);
+  }
+
+  private minDartsNeeded(marks: CricketInputState): number {
+    return Object.entries(marks).reduce((sum, [target, m]) =>
+      sum + Math.ceil(m / (Number(target) === 25 ? 2 : 3)), 0);
   }
 
   canAddMark(target: number): boolean {
-    // Vérifier si on a atteint le max de marques
-    if (this.totalMarks >= this.maxMarks) {
-      return false;
-    }
-
-    // Si cette cible n'a pas encore de marques et qu'on a déjà 3 cibles différentes
-    if (this.targetMarks[target] === 0 && this.distinctTargets >= this.maxTargets) {
-      return false;
-    }
-
-    return true;
+    const simulated = { ...this.targetMarks, [target]: this.targetMarks[target] + 1 };
+    return this.minDartsNeeded(simulated) <= 3;
   }
 
   addMark(target: number): void {
     this.errorMessage = '';
 
     if (!this.canAddMark(target)) {
-      if (this.totalMarks >= this.maxMarks) {
-        this.errorMessage = 'Maximum 9 marques atteint (3 fléchettes)';
-      } else if (this.targetMarks[target] === 0 && this.distinctTargets >= this.maxTargets) {
-        this.errorMessage = 'Maximum 3 cibles différentes';
-      }
+      this.errorMessage = 'Impossible avec 3 fléchettes (max 3 marques par fléchette, 2 sur le Bull)';
       return;
     }
 

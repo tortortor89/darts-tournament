@@ -14,6 +14,31 @@ public class CricketService
     }
 
     /// <summary>
+    /// Valide qu'une visite Cricket est réalisable avec 3 fléchettes
+    /// </summary>
+    public void ValidateTurn(List<CricketHit> hits)
+    {
+        var validTargets = new[] { 15, 16, 17, 18, 19, 20, 25 };
+        foreach (var hit in hits)
+        {
+            if (!validTargets.Contains(hit.Target))
+                throw new InvalidOperationException($"Cible invalide: {hit.Target}");
+        }
+
+        // Faisabilité : chaque fléchette touche une seule cible et rapporte
+        // au plus 3 marques (triple), ou 2 sur le Bull (pas de triple Bull)
+        var minDartsNeeded = hits
+            .GroupBy(h => h.Target)
+            .Sum(g => (int)Math.Ceiling(g.Sum(h => h.Marks) / (double)MaxMarksPerDart(g.Key)));
+
+        if (minDartsNeeded > 3)
+            throw new InvalidOperationException(
+                "Visite impossible avec 3 fléchettes (max 3 marques par fléchette, 2 sur le Bull)");
+    }
+
+    private static int MaxMarksPerDart(int target) => target == 25 ? 2 : 3;
+
+    /// <summary>
     /// Traite une visite complète au Cricket (plusieurs hits possibles)
     /// </summary>
     public List<CricketHitResult> ProcessTurn(
@@ -90,11 +115,11 @@ public class CricketService
         var playerState = state.PlayerStates[playerId];
         var opponentState = state.PlayerStates[opponentId];
 
-        // Gagner : toutes les cibles fermées ET score supérieur à l'adversaire
+        // Gagner : toutes les cibles fermées ET score supérieur ou égal à l'adversaire
         if (!playerState.AllTargetsClosed())
             return false;
 
-        return playerState.Score > opponentState.Score;
+        return playerState.Score >= opponentState.Score;
     }
 
     /// <summary>
