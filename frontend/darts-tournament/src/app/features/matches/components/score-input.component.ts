@@ -133,13 +133,15 @@ export interface ThrowData {
             <h3>Checkout en {{currentPlayerScore}} points</h3>
 
             @if (!selectedDartsForCheckout) {
-              <!-- Étape 1 : Demander le nombre de fléchettes -->
+              <!-- Étape 1 : Demander le nombre de fléchettes (seuls les cas possibles) -->
               <div class="modal-section">
                 <label>Avec combien de fléchettes as-tu réussi ce checkout ?</label>
                 <div class="dart-count-buttons">
-                  <button (click)="selectDartsForCheckout(1)">1 fléchette</button>
-                  <button (click)="selectDartsForCheckout(2)">2 fléchettes</button>
-                  <button (click)="selectDartsForCheckout(3)">3 fléchettes</button>
+                  @for (n of checkoutDartsOptions; track n) {
+                    <button (click)="selectDartsForCheckout(n)">
+                      {{ n }} {{ n === 1 ? 'fléchette' : 'fléchettes' }}
+                    </button>
+                  }
                 </div>
               </div>
 
@@ -177,10 +179,11 @@ export interface ThrowData {
             <div class="modal-section">
               <label>Combien de fléchettes as-tu tentées sur un double durant cette volée ?</label>
               <div class="dart-count-buttons doubles-grid">
-                <button (click)="submitThrowWithDoublesAttempted(0)">Aucune</button>
-                <button (click)="submitThrowWithDoublesAttempted(1)">1 fléchette</button>
-                <button (click)="submitThrowWithDoublesAttempted(2)">2 fléchettes</button>
-                <button (click)="submitThrowWithDoublesAttempted(3)">3 fléchettes</button>
+                @for (count of normalPlayDoublesOptions; track count) {
+                  <button (click)="submitThrowWithDoublesAttempted(count)">
+                    {{ count === 0 ? 'Aucune' : count + (count === 1 ? ' fléchette' : ' fléchettes') }}
+                  </button>
+                }
               </div>
             </div>
 
@@ -852,7 +855,7 @@ export class ScoreInputComponent {
     // CAS 1 — Checkout réussi
     if (estCheckout) {
       this.pendingThrowData = throwData;
-      this.checkoutModalVisible.set(true);
+      this.openCheckoutFlow();
       return;
     }
 
@@ -1022,24 +1025,103 @@ export class ScoreInputComponent {
     return null;
   }
 
+  // Toutes les valeurs atteignables avec une seule fléchette (simples, doubles, triples, 25, 50)
+  private static readonly SINGLE_DART_SCORES: number[] = (() => {
+    const scores = new Set<number>();
+    for (let n = 1; n <= 20; n++) {
+      scores.add(n);
+      scores.add(n * 2);
+      scores.add(n * 3);
+    }
+    scores.add(25);
+    scores.add(50);
+    return [...scores];
+  })();
+
+  /**
+   * Nombre minimum de fléchettes pour finir un score
+   * (le maximum est toujours 3 : on peut rater avant de toucher le double)
+   */
+  private minDartsToCheckout(score: number): number {
+    if (this.isInDoublePosition(score)) return 1;
+    if (ScoreInputComponent.SINGLE_DART_SCORES.some(v => this.isInDoublePosition(score - v))) return 2;
+    return 3;
+  }
+
+  /**
+   * Options de fléchettes utilisées pour le checkout en cours (cas possibles uniquement)
+   */
+  get checkoutDartsOptions(): number[] {
+    const options: number[] = [];
+    for (let i = this.minDartsToCheckout(this.currentPlayerScore); i <= 3; i++) {
+      options.push(i);
+    }
+    return options;
+  }
+
+  /**
+   * Options de doubles tentés hors checkout (3 fléchettes jouées) :
+   * les fléchettes lancées avant d'atteindre une position de double
+   * ne peuvent pas être des tentatives
+   */
+  get normalPlayDoublesOptions(): number[] {
+    const max = this.isInDoublePosition(this.currentPlayerScore) ? 3 : 2;
+    const options: number[] = [];
+    for (let i = 0; i <= max; i++) {
+      options.push(i);
+    }
+    return options;
+  }
+
   // Checkout button functionality
   initiateCheckout() {
+    this.openCheckoutFlow();
+  }
+
+  /**
+   * Ouvre le flux checkout en sautant les étapes qui n'ont qu'une seule réponse possible
+   */
+  private openCheckoutFlow() {
     this.selectedDartsForCheckout = undefined;
+
+    const dartsOptions = this.checkoutDartsOptions;
+    if (dartsOptions.length === 1) {
+      const darts = dartsOptions[0];
+
+      if (!this.trackDoubles) {
+        this.submitCheckout(darts);
+        return;
+      }
+
+      const doublesOptions = this.getDoublesAttemptedOptions(darts);
+      if (doublesOptions.length === 1) {
+        this.submitCheckout(darts, doublesOptions[0]);
+        return;
+      }
+
+      // Étape 1 inutile : passer directement à la question des doubles
+      this.selectedDartsForCheckout = darts;
+    }
+
     this.checkoutModalVisible.set(true);
   }
 
   selectDartsForCheckout(darts: number) {
-    // CAS 1 - Checkout réussi
-    // Si 1 fléchette : doublesAttempted = 1 automatiquement
-    if (darts === 1) {
-      this.submitCheckout(1, 1);
+    // Sans tracking des doubles, le nombre de fléchettes suffit (utile pour la moyenne)
+    if (!this.trackDoubles) {
+      this.submitCheckout(darts);
+      return;
+    }
+
+    const doublesOptions = this.getDoublesAttemptedOptions(darts);
+    if (doublesOptions.length === 1) {
+      this.submitCheckout(darts, doublesOptions[0]);
     } else {
-      // Si >= 2 fléchettes : afficher popup pour demander nombre de doubles tentés
       this.selectedDartsForCheckout = darts;
     }
   }
 
-  submitCheckout(dartsUsed: number, doublesAttempted: number) {
+  submitCheckout(dartsUsed: number, doublesAttempted?: number) {
     const checkoutScore = this.currentPlayerScore;
 
     if (!this.pendingThrowData) {
@@ -1072,12 +1154,15 @@ export class ScoreInputComponent {
 
   /**
    * Retourne les options de doubles tentés pour un checkout
-   * Minimum = nombre de fléchettes utilisées (la dernière était forcément un double)
-   * Maximum = 3
+   * Minimum = 1 (la fléchette de checkout est forcément sur un double)
+   * Maximum = nombre de fléchettes si on était en position de double au début
+   * de la volée, sinon une fléchette au moins a servi à préparer le double
    */
   getDoublesAttemptedOptions(dartsUsed: number): number[] {
+    const wasOnDouble = this.isInDoublePosition(this.currentPlayerScore);
+    const max = wasOnDouble ? dartsUsed : Math.max(dartsUsed - 1, 1);
     const options: number[] = [];
-    for (let i = dartsUsed; i <= 3; i++) {
+    for (let i = 1; i <= max; i++) {
       options.push(i);
     }
     return options;
