@@ -87,10 +87,15 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       padding: 20px;
     }
     .add-form {
-      margin-bottom: 20px;
-      padding: 15px;
-      background: #f5f5f5;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border: 2px solid var(--hd-border);
+      border-top: 4px solid var(--hd-green);
       border-radius: 8px;
+    }
+    .add-form h3 {
+      margin-bottom: 12px;
     }
     .add-form form {
       display: flex;
@@ -104,9 +109,10 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       align-items: center;
     }
     .group-config {
-      background: #e9ecef;
+      background: var(--hd-cream);
       padding: 10px;
       border-radius: 4px;
+      border: 1px solid var(--hd-border);
       margin-top: 5px;
     }
     .group-config label {
@@ -114,6 +120,7 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       flex-direction: column;
       gap: 4px;
       font-size: 0.9em;
+      color: var(--hd-text-muted);
     }
     .group-config label input[type="number"] {
       width: 80px;
@@ -127,18 +134,28 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       margin-right: 6px;
     }
     .add-form input, .add-form select {
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 8px 10px;
+      border: 1.5px solid var(--hd-border);
       border-radius: 4px;
+      background: var(--hd-cream);
+      color: var(--hd-text);
+    }
+    .add-form input:focus, .add-form select:focus {
+      outline: none;
+      border-color: var(--hd-amber);
     }
     .add-form button {
-      padding: 8px 16px;
-      background: #007bff;
+      padding: 9px 20px;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
       align-self: flex-start;
+    }
+    .add-form button:hover {
+      background: var(--hd-amber-light);
     }
     .tournament-list {
       display: grid;
@@ -146,35 +163,52 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
       gap: 20px;
     }
     .tournament-card {
-      padding: 15px;
-      border: 1px solid #ddd;
+      padding: 18px;
+      border: 2px solid var(--hd-border);
+      border-top: 4px solid var(--hd-amber);
       border-radius: 8px;
+      background: white;
+      transition: box-shadow 0.2s;
+    }
+    .tournament-card:hover {
+      box-shadow: 0 4px 12px rgba(26,60,42,0.12);
     }
     .tournament-card h3 {
       margin-top: 0;
+      margin-bottom: 8px;
     }
     .tournament-card h3 a {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
     }
     .tournament-card h3 a:hover {
-      text-decoration: underline;
+      color: var(--hd-amber);
     }
-    .status-0 { color: #6c757d; }
-    .status-1 { color: #28a745; }
-    .status-2 { color: #007bff; }
+    .tournament-card p {
+      margin: 4px 0;
+      color: var(--hd-text-muted);
+      font-size: 0.9em;
+    }
+    .status-0 { color: var(--hd-text-muted); font-weight: 500; }
+    .status-1 { color: var(--hd-amber); font-weight: 600; }
+    .status-2 { color: var(--hd-success); font-weight: 600; }
     button.delete {
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       padding: 5px 10px;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 0.85em;
+      margin-top: 8px;
+    }
+    button.delete:hover {
+      background: var(--hd-danger-dark);
     }
     .loading {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--hd-text-muted);
     }
   `]
 })

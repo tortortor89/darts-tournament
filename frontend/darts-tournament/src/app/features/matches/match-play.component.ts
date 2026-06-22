@@ -370,12 +370,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .loading {
       text-align: center;
       padding: 40px;
-      color: #666;
+      color: var(--hd-text-muted);
     }
 
     /* Config Screen */
     .config-screen {
-      background: #f8f9fa;
+      background: white;
+      border: 2px solid var(--hd-border);
+      border-top: 4px solid var(--hd-amber);
       border-radius: 12px;
       padding: 30px;
     }
@@ -392,14 +394,22 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       gap: 20px;
       margin-bottom: 30px;
       font-size: 1.5em;
+      padding: 16px;
+      background: var(--hd-cream);
+      border-radius: 8px;
     }
 
     .match-info .player {
-      font-weight: bold;
+      font-weight: 700;
+      color: var(--hd-green);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.03em;
     }
 
     .match-info .vs {
-      color: #666;
+      color: var(--hd-text-muted);
+      font-size: 0.7em;
+      font-weight: 800;
     }
 
     .config-form {
@@ -415,6 +425,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       display: block;
       margin-bottom: 10px;
       font-weight: 600;
+      color: var(--hd-text-muted);
     }
 
     .legs-selector, .starter-selector, .game-mode-selector {
@@ -425,24 +436,27 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .legs-selector button, .starter-selector button, .game-mode-selector button {
       flex: 1;
       padding: 12px;
-      border: 2px solid #ddd;
+      border: 2px solid var(--hd-border);
       border-radius: 8px;
-      background: white;
+      background: var(--hd-cream);
       cursor: pointer;
-      font-size: 1.1em;
+      font-size: 1.05em;
+      font-weight: 500;
       transition: all 0.2s;
+      color: var(--hd-text);
     }
 
     .legs-selector button.selected, .starter-selector button.selected, .game-mode-selector button.selected {
-      border-color: #007bff;
-      background: #007bff;
+      border-color: var(--hd-amber);
+      background: var(--hd-amber);
       color: white;
+      font-weight: 700;
     }
 
     .hint {
       display: block;
       margin-top: 8px;
-      color: #666;
+      color: var(--hd-text-muted);
       font-size: 0.9em;
     }
 
@@ -458,40 +472,36 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       width: 20px;
       height: 20px;
       cursor: pointer;
+      accent-color: var(--hd-amber);
     }
 
-    .checkbox-label span {
-      flex: 1;
-    }
-
-    .game-mode {
-      padding: 12px;
-      background: #e9ecef;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 500;
-    }
+    .checkbox-label span { flex: 1; }
 
     .start-btn {
       width: 100%;
       padding: 15px;
-      background: #28a745;
+      background: var(--hd-green);
       color: white;
       border: none;
       border-radius: 8px;
       font-size: 1.2em;
+      font-weight: 700;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.04em;
       cursor: pointer;
       margin-top: 20px;
     }
 
+    .start-btn:hover { background: var(--hd-green-mid); }
+
     .start-btn:disabled {
-      background: #ccc;
+      background: var(--hd-border);
       cursor: not-allowed;
     }
 
     /* Play Screen */
     .play-screen {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: linear-gradient(160deg, #0D2018 0%, var(--hd-green) 100%);
       border-radius: 12px;
       padding: 20px;
       color: white;
@@ -505,7 +515,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .player-score {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
       border-radius: 12px;
       padding: 20px;
       text-align: center;
@@ -513,31 +523,38 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .player-score.active {
-      background: rgba(40, 167, 69, 0.3);
-      box-shadow: 0 0 20px rgba(40, 167, 69, 0.5);
+      background: rgba(232,149,10,0.25);
+      box-shadow: 0 0 20px rgba(232,149,10,0.3);
     }
 
     .player-name {
       font-size: 1.2em;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.03em;
       margin-bottom: 5px;
     }
 
     .legs {
       font-size: 0.9em;
-      color: #aaa;
+      color: rgba(255,255,255,0.55);
     }
 
     .remaining {
       font-size: 3em;
-      font-weight: bold;
+      font-weight: 800;
+      font-family: 'Barlow Condensed', sans-serif;
       margin: 10px 0;
     }
 
     .turn-indicator {
-      background: #28a745;
+      background: var(--hd-amber);
+      color: white;
       padding: 5px 15px;
       border-radius: 20px;
       font-size: 0.9em;
+      font-weight: 600;
+      display: inline-block;
     }
 
     .match-status {
@@ -549,24 +566,25 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .game-mode-badge {
-      background: rgba(255,255,255,0.15);
+      background: rgba(232,149,10,0.25);
+      color: var(--hd-amber);
       padding: 4px 12px;
       border-radius: 12px;
       font-size: 0.85em;
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .legs-to-win {
       font-size: 0.9em;
-      color: #aaa;
+      color: rgba(255,255,255,0.5);
     }
 
     .current-leg {
       font-size: 1.2em;
-      font-weight: bold;
+      font-weight: 700;
+      font-family: 'Barlow Condensed', sans-serif;
     }
 
-    /* Throw History */
     .throw-history {
       background: rgba(255,255,255,0.05);
       border-radius: 8px;
@@ -578,8 +596,11 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .throw-history h4 {
       margin: 0 0 10px 0;
-      font-size: 0.9em;
-      color: #aaa;
+      font-size: 0.85em;
+      color: rgba(255,255,255,0.45);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .throws-list {
@@ -589,35 +610,27 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .throw-item {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
       padding: 5px 10px;
       border-radius: 4px;
       font-size: 0.85em;
     }
 
-    .throw-item.bust {
-      background: rgba(220, 53, 69, 0.3);
-    }
-
-    .throw-item.checkout {
-      background: rgba(40, 167, 69, 0.3);
-    }
+    .throw-item.bust { background: rgba(192,57,43,0.35); }
+    .throw-item.checkout { background: rgba(39,100,58,0.4); }
 
     .throw-player {
-      color: #aaa;
+      color: rgba(255,255,255,0.45);
       margin-right: 5px;
     }
 
     .throw-score {
-      font-weight: bold;
+      font-weight: 700;
       margin-right: 5px;
     }
 
-    .throw-remaining {
-      color: #888;
-    }
+    .throw-remaining { color: rgba(255,255,255,0.5); }
 
-    /* Score Input Component */
     app-score-input {
       display: block;
       margin-bottom: 20px;
@@ -632,24 +645,27 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .undo-btn {
       padding: 10px 20px;
       background: transparent;
-      color: #ffc107;
-      border: 1px solid #ffc107;
+      color: var(--hd-amber);
+      border: 1.5px solid var(--hd-amber);
       border-radius: 8px;
       cursor: pointer;
+      font-weight: 500;
     }
+
+    .undo-btn:hover { background: rgba(232,149,10,0.15); }
 
     .cancel-btn {
       padding: 10px 20px;
       background: transparent;
-      color: #dc3545;
-      border: 1px solid #dc3545;
+      color: rgba(192,57,43,0.9);
+      border: 1.5px solid rgba(192,57,43,0.7);
       border-radius: 8px;
       cursor: pointer;
     }
 
     /* Finished Screen */
     .finished-screen {
-      background: linear-gradient(135deg, #155724 0%, #1e7e34 100%);
+      background: linear-gradient(135deg, #0D2018 0%, var(--hd-green) 100%);
       border-radius: 12px;
       padding: 40px;
       color: white;
@@ -657,6 +673,8 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .finished-screen h2 {
+      color: var(--hd-amber);
+      font-size: 2.2em;
       margin-bottom: 30px;
     }
 
@@ -668,32 +686,36 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       margin-bottom: 20px;
     }
 
-    .player-final {
-      text-align: center;
-    }
+    .player-final { text-align: center; }
 
     .player-final .name {
-      font-size: 1.2em;
+      font-size: 1.3em;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
       margin-bottom: 10px;
     }
 
     .player-final .legs-final {
       font-size: 4em;
-      font-weight: bold;
+      font-weight: 800;
+      font-family: 'Barlow Condensed', sans-serif;
     }
 
-    .player-final.winner {
-      color: #ffc107;
-    }
+    .player-final.winner { color: var(--hd-amber); }
 
     .separator {
       font-size: 3em;
-      color: rgba(255,255,255,0.5);
+      font-family: 'Barlow Condensed', sans-serif;
+      color: rgba(255,255,255,0.3);
     }
 
     .winner-announcement {
       font-size: 1.5em;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       margin-bottom: 30px;
+      color: var(--hd-amber);
     }
 
     .validation-actions {
@@ -706,21 +728,24 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .validate-btn {
       padding: 15px;
-      background: #ffc107;
-      color: #000;
+      background: var(--hd-amber);
+      color: white;
       border: none;
       border-radius: 8px;
       font-size: 1.1em;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 700;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.04em;
     }
+
+    .validate-btn:hover { background: var(--hd-amber-light); }
 
     .finished-screen .cancel-btn {
-      color: rgba(255,255,255,0.7);
-      border-color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.6);
+      border-color: rgba(255,255,255,0.25);
     }
 
-    /* Stats Panel (Playing) */
     .stats-panel {
       background: rgba(255,255,255,0.05);
       border-radius: 8px;
@@ -730,9 +755,12 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .stats-panel h4 {
       margin: 0 0 10px 0;
-      font-size: 0.9em;
-      color: #aaa;
+      font-size: 0.85em;
+      color: var(--hd-amber);
       text-align: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
     .stats-compact {
@@ -750,15 +778,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .stat-item .label {
       font-size: 0.75em;
-      color: #888;
+      color: rgba(255,255,255,0.45);
     }
 
     .stat-item .p1, .stat-item .p2 {
-      font-weight: bold;
+      font-weight: 700;
       font-size: 1.1em;
     }
 
-    /* Final Stats Table */
     .final-stats {
       background: rgba(0,0,0,0.2);
       border-radius: 8px;
@@ -768,9 +795,12 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .final-stats h3 {
       margin: 0 0 15px 0;
-      font-size: 1em;
+      font-size: 0.9em;
       text-align: center;
-      color: rgba(255,255,255,0.7);
+      color: var(--hd-amber);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      border-bottom: none;
     }
 
     .stats-table {
@@ -785,23 +815,21 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .stats-table th {
       font-size: 0.9em;
-      color: rgba(255,255,255,0.8);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.75);
+      border-bottom: 1px solid rgba(255,255,255,0.15);
     }
 
     .stats-table td:first-child, .stats-table td:last-child {
-      font-weight: bold;
+      font-weight: 700;
       font-size: 1.1em;
     }
 
     .stats-table td:nth-child(2) {
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.45);
       font-size: 0.85em;
     }
 
-    .stats-table tr.highlight-row td {
-      color: #ffc107;
-    }
+    .stats-table tr.highlight-row td { color: var(--hd-amber); }
   `]
 })
 export class MatchPlayComponent implements OnInit {

@@ -10,7 +10,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   template: `
     <nav>
-      <div class="nav-brand">Darts Tournament</div>
+      <div class="nav-brand">Hacien'Darts Cup</div>
       <div class="nav-links">
         <a routerLink="/tournaments" routerLinkActive="active">Tournois</a>
         <a routerLink="/players" routerLinkActive="active">Joueurs</a>
@@ -37,29 +37,36 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       justify-content: space-between;
       align-items: center;
       padding: 15px 30px;
-      background: #343a40;
+      background: var(--hd-green);
       color: white;
+      border-bottom: 3px solid var(--hd-amber);
     }
     .nav-brand {
-      font-size: 1.5em;
-      font-weight: bold;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 1.6em;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--hd-amber);
+      text-transform: uppercase;
     }
     .nav-links {
       display: flex;
       gap: 20px;
     }
     .nav-links a, .nav-auth a {
-      color: #adb5bd;
+      color: rgba(255,255,255,0.8);
       text-decoration: none;
       padding: 5px 10px;
+      font-weight: 500;
     }
     .nav-links a:hover, .nav-auth a:hover {
       color: white;
     }
     .nav-links a.active, .nav-auth a.active {
-      color: white;
-      background: #495057;
+      color: var(--hd-green);
+      background: var(--hd-amber);
       border-radius: 4px;
+      font-weight: 600;
     }
     .nav-auth {
       display: flex;
@@ -67,19 +74,24 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       gap: 15px;
     }
     .nav-auth span {
-      color: #adb5bd;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.9em;
     }
     .nav-auth button {
       padding: 5px 15px;
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 500;
+    }
+    .nav-auth button:hover {
+      background: var(--hd-danger-dark);
     }
     main {
-      min-height: calc(100vh - 60px);
-      background: #f8f9fa;
+      min-height: calc(100vh - 63px);
+      background: var(--hd-cream);
     }
   `]
 })

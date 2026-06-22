@@ -218,10 +218,9 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
       text-align: center;
       padding: 60px 20px;
       font-size: 1.2em;
-      color: #666;
+      color: var(--hd-text-muted);
     }
 
-    /* Header */
     .header {
       display: flex;
       justify-content: space-between;
@@ -233,45 +232,42 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
 
     .header h2 {
       margin: 0;
-      color: #333;
       font-size: 2em;
     }
 
     .btn-back {
       padding: 10px 20px;
-      background: #6c757d;
+      background: var(--hd-text-muted);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 1em;
+      font-weight: 500;
       transition: all 0.2s;
     }
 
     .btn-back:hover {
-      background: #5a6268;
-      transform: translateY(-2px);
+      background: var(--hd-green);
+      transform: translateY(-1px);
     }
 
-    /* Sections */
     section {
       background: white;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 8px;
       padding: 25px;
       margin-bottom: 25px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(26,60,42,0.08);
     }
 
     section h3 {
       margin: 0 0 20px 0;
-      color: #007bff;
-      font-size: 1.5em;
-      border-bottom: 2px solid #007bff;
+      font-size: 1.4em;
+      border-bottom: 2px solid var(--hd-amber);
       padding-bottom: 10px;
     }
 
-    /* Stats Grid */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -279,105 +275,94 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
     }
 
     .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--hd-green);
       padding: 25px;
       border-radius: 8px;
       text-align: center;
       color: white;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(26,60,42,0.2);
       transition: transform 0.2s;
     }
 
     .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(26,60,42,0.25);
     }
 
     .stat-card.success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      background: var(--hd-success);
     }
 
     .stat-card.danger {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      background: var(--hd-danger);
     }
 
     .stat-card.highlight {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      background: var(--hd-amber);
     }
 
-    .stat-value {
+    .stat-card .stat-value {
       font-size: 3em;
-      font-weight: bold;
+      font-weight: 800;
+      font-family: 'Barlow Condensed', sans-serif;
       margin-bottom: 8px;
+      color: white;
     }
 
     .stat-label {
-      font-size: 0.95em;
-      opacity: 0.95;
+      font-size: 0.9em;
+      opacity: 0.9;
     }
 
-    /* Tables */
     table {
       width: 100%;
       border-collapse: collapse;
     }
 
     th {
-      background: #f8f9fa;
+      background: var(--hd-cream-dark);
       padding: 12px;
       text-align: left;
       font-weight: 600;
-      color: #495057;
-      border-bottom: 2px solid #dee2e6;
+      color: var(--hd-green);
+      border-bottom: 2px solid var(--hd-border);
+      font-size: 0.9em;
     }
 
     td {
       padding: 12px;
-      border-bottom: 1px solid #dee2e6;
+      border-bottom: 1px solid var(--hd-border);
+      color: var(--hd-text);
     }
 
-    tbody tr:hover {
-      background: #f8f9fa;
-    }
+    tbody tr:hover { background: var(--hd-cream); }
 
     .stat-value {
       font-weight: 600;
-      color: #007bff;
+      color: var(--hd-amber);
     }
 
     .note {
       margin-top: 15px;
       font-size: 0.9em;
-      color: #6c757d;
+      color: var(--hd-text-muted);
       font-style: italic;
     }
 
-    /* No data */
     .no-data {
       text-align: center;
       padding: 40px 20px;
-      color: #6c757d;
+      color: var(--hd-text-muted);
     }
+    .no-data p { margin: 0 0 8px 0; font-size: 1.1em; }
+    .no-data small { font-size: 0.9em; }
 
-    .no-data p {
-      margin: 0 0 8px 0;
-      font-size: 1.1em;
-    }
-
-    .no-data small {
-      font-size: 0.9em;
-    }
-
-    /* Tournament history */
     .tournament-history a {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
       font-weight: 500;
     }
-
-    .tournament-history a:hover {
-      text-decoration: underline;
-    }
+    .tournament-history a:hover { color: var(--hd-amber); }
 
     .status-badge {
       padding: 4px 12px;
@@ -385,80 +370,29 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
       font-size: 0.85em;
       font-weight: 600;
     }
+    .status-badge.draft { background: rgba(232,149,10,0.2); color: var(--hd-amber); }
+    .status-badge.inprogress { background: var(--hd-green); color: white; }
+    .status-badge.completed { background: var(--hd-success); color: white; }
 
-    .status-badge.draft {
-      background: #ffc107;
-      color: #000;
-    }
-
-    .status-badge.inprogress {
-      background: #17a2b8;
-      color: white;
-    }
-
-    .status-badge.completed {
-      background: #28a745;
-      color: white;
-    }
-
-    /* Head-to-head */
-    .opponent-name {
-      font-weight: 500;
-    }
-
-    .win {
-      color: #28a745;
-      font-weight: 600;
-    }
-
-    .loss {
-      color: #dc3545;
-      font-weight: 600;
-    }
+    .opponent-name { font-weight: 500; }
+    .win { color: var(--hd-success); font-weight: 600; }
+    .loss { color: var(--hd-danger); font-weight: 600; }
 
     .win-pct {
       padding: 4px 8px;
       border-radius: 4px;
       font-weight: 600;
     }
+    .win-pct.high { background: rgba(39,100,58,0.12); color: var(--hd-success); }
+    .win-pct.medium { background: rgba(232,149,10,0.12); color: var(--hd-amber); }
+    .win-pct.low { background: rgba(192,57,43,0.12); color: var(--hd-danger); }
 
-    .win-pct.high {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .win-pct.medium {
-      background: #fff3cd;
-      color: #856404;
-    }
-
-    .win-pct.low {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    /* Responsive */
     @media (max-width: 768px) {
-      .header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .btn-back {
-        width: 100%;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      table {
-        font-size: 0.9em;
-      }
-
-      th, td {
-        padding: 8px;
-      }
+      .header { flex-direction: column; align-items: stretch; }
+      .btn-back { width: 100%; }
+      .stats-grid { grid-template-columns: 1fr; }
+      table { font-size: 0.9em; }
+      th, td { padding: 8px; }
     }
   `]
 })

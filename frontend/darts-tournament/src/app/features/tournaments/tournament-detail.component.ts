@@ -486,10 +486,14 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     }
     .info {
       margin-bottom: 20px;
-      padding: 10px;
-      background: #f5f5f5;
-      border-radius: 8px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid var(--hd-border);
+      border-left: 4px solid var(--hd-amber);
+      border-radius: 6px;
+      color: var(--hd-text-muted);
     }
+    .info p { margin: 4px 0; }
     .players-section, .matches-section, .standings-section, .knockout-section {
       margin-bottom: 30px;
     }
@@ -499,105 +503,118 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       margin-bottom: 15px;
     }
     .add-player select, .add-player input {
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 8px 10px;
+      border: 1.5px solid var(--hd-border);
       border-radius: 4px;
+      background: var(--hd-cream);
+      color: var(--hd-text);
     }
     .add-player button {
       padding: 8px 16px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
+    }
+    .add-player button:hover {
+      background: var(--hd-amber-light);
     }
     .player-list {
       list-style: none;
       padding: 0;
+      background: white;
+      border: 1px solid var(--hd-border);
+      border-radius: 6px;
+      overflow: hidden;
     }
     .player-list li {
-      padding: 8px;
-      border-bottom: 1px solid #eee;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--hd-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+    .player-list li:last-child { border-bottom: none; }
     .remove {
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
-      padding: 2px 8px;
+      padding: 3px 10px;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 0.85em;
     }
+    .remove:hover { background: var(--hd-danger-dark); }
     .generate {
-      padding: 10px 20px;
-      background: #28a745;
+      padding: 10px 24px;
+      background: var(--hd-green);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 1em;
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
+    .generate:hover { background: var(--hd-green-mid); }
 
     /* Self-registration section */
     .self-registration-section {
       margin-bottom: 20px;
-      padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 24px;
+      background: var(--hd-green);
       border-radius: 8px;
       text-align: center;
       color: white;
     }
     .btn-register {
       padding: 12px 30px;
-      background: #28a745;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       font-size: 1.1em;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
     }
     .btn-register:hover {
-      background: #218838;
+      background: var(--hd-amber-light);
       transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .btn-unregister {
       padding: 10px 20px;
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       border-radius: 4px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.2s;
     }
     .btn-unregister:hover {
-      background: #c82333;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: var(--hd-danger-dark);
+      transform: translateY(-1px);
     }
     .self-registration-section .info-text {
       margin-top: 10px;
       font-size: 0.9em;
-      opacity: 0.9;
+      opacity: 0.85;
     }
     .self-registration-section .warning {
       background: rgba(255,255,255,0.1);
       padding: 15px;
       border-radius: 4px;
-      border-left: 4px solid #ffc107;
+      border-left: 4px solid var(--hd-amber);
     }
-    .self-registration-section .warning p {
-      margin: 0 0 10px 0;
-    }
+    .self-registration-section .warning p { margin: 0 0 10px 0; }
     .self-registration-section .warning a {
-      color: white;
+      color: var(--hd-amber);
       font-weight: 600;
-      text-decoration: underline;
     }
 
     /* Standings */
@@ -607,96 +624,91 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       gap: 20px;
     }
     .group-standings {
-      border: 1px solid #ddd;
+      border: 2px solid var(--hd-border);
       border-radius: 8px;
       overflow: hidden;
     }
     .group-standings h4 {
       margin: 0;
-      padding: 10px;
-      background: #007bff;
-      color: white;
+      padding: 10px 14px;
+      background: var(--hd-green);
+      color: var(--hd-amber);
+      font-family: 'Barlow Condensed', sans-serif;
+      letter-spacing: 0.04em;
     }
     .group-standings table {
       width: 100%;
       border-collapse: collapse;
+      background: white;
     }
     .group-standings th, .group-standings td {
       padding: 8px;
       text-align: center;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--hd-border);
     }
     .group-standings th {
-      background: #f5f5f5;
+      background: var(--hd-cream-dark);
       font-weight: 600;
+      color: var(--hd-green);
+      font-size: 0.85em;
     }
-    .group-standings td:nth-child(2) {
-      text-align: left;
-    }
-    .group-standings tr.qualified {
-      background: #e8f5e9;
-    }
+    .group-standings td:nth-child(2) { text-align: left; }
+    .group-standings tr.qualified { background: rgba(39,100,58,0.08); }
 
     /* Group Matches */
-    .group-matches {
-      margin-bottom: 20px;
-    }
+    .group-matches { margin-bottom: 20px; }
     .group-matches h4 {
-      color: #007bff;
-      border-bottom: 2px solid #007bff;
+      color: var(--hd-green);
+      border-bottom: 2px solid var(--hd-amber);
       padding-bottom: 5px;
     }
 
     /* Knockout Section */
     .knockout-section {
-      background: #f8f9fa;
+      background: white;
       padding: 20px;
+      border: 2px solid var(--hd-border);
+      border-top: 4px solid var(--hd-danger);
       border-radius: 8px;
     }
-    .knockout-section h3 {
-      color: #dc3545;
-    }
-    .knockout-matches {
-      margin-top: 20px;
-    }
+    .knockout-section h3 { color: var(--hd-danger); }
+    .knockout-matches { margin-top: 20px; }
 
     /* Single Elimination Bracket Section */
     .bracket-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, var(--hd-green) 0%, var(--hd-green-mid) 100%);
       padding: 20px;
       border-radius: 8px;
       color: white;
     }
     .bracket-section h3 {
-      color: white;
+      color: var(--hd-amber);
       margin-bottom: 15px;
     }
     .bracket-section h4 {
       color: white;
-      border-bottom: 2px solid rgba(255,255,255,0.3);
+      border-bottom: 2px solid rgba(232,149,10,0.5);
       padding-bottom: 8px;
       margin-bottom: 15px;
     }
-    .bracket-matches {
-      margin-top: 20px;
-    }
+    .bracket-matches { margin-top: 20px; }
     .bracket-section .match {
-      background: rgba(255,255,255,0.95);
-      color: #333;
+      background: rgba(255,255,255,0.96);
+      color: var(--hd-text);
     }
     .bracket-section .match.completed {
-      background: rgba(255,255,255,1);
-      border-left: 4px solid #28a745;
+      background: white;
+      border-left: 4px solid var(--hd-success);
     }
 
     /* Round Robin Section */
     .roundrobin-section {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      background: linear-gradient(135deg, var(--hd-green) 0%, #3D7050 100%);
       padding: 20px;
       border-radius: 8px;
     }
     .roundrobin-section h3 {
-      color: white;
+      color: var(--hd-amber);
       margin-bottom: 15px;
     }
     .roundrobin-standings {
@@ -712,22 +724,17 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .roundrobin-standings th, .roundrobin-standings td {
       padding: 12px 8px;
       text-align: center;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--hd-border);
     }
     .roundrobin-standings th {
-      background: #f8f9fa;
+      background: var(--hd-cream-dark);
       font-weight: 600;
-      color: #333;
+      color: var(--hd-green);
+      font-size: 0.85em;
     }
-    .roundrobin-standings td:nth-child(2) {
-      text-align: left;
-    }
-    .roundrobin-standings tr.top-3 {
-      background: #e8f5e9;
-    }
-    .roundrobin-standings .rank {
-      font-size: 1.1em;
-    }
+    .roundrobin-standings td:nth-child(2) { text-align: left; }
+    .roundrobin-standings tr.top-3 { background: rgba(232,149,10,0.08); }
+    .roundrobin-standings .rank { font-size: 1.1em; }
     .de-standings {
       margin-top: 20px;
       margin-bottom: 20px;
@@ -744,23 +751,18 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .de-standings-table th, .de-standings-table td {
       padding: 12px 8px;
       text-align: center;
-      border-bottom: 1px solid #eee;
-      color: #333;
+      border-bottom: 1px solid var(--hd-border);
+      color: var(--hd-text);
     }
     .de-standings-table th {
-      background: #f8f9fa;
+      background: var(--hd-cream-dark);
       font-weight: 600;
-      color: #333;
+      color: var(--hd-green);
+      font-size: 0.85em;
     }
-    .de-standings-table td:nth-child(2) {
-      text-align: left;
-    }
-    .de-standings-table tr.top-3 {
-      background: #e8f5e9;
-    }
-    .de-standings-table .rank {
-      font-size: 1.1em;
-    }
+    .de-standings-table td:nth-child(2) { text-align: left; }
+    .de-standings-table tr.top-3 { background: rgba(232,149,10,0.08); }
+    .de-standings-table .rank { font-size: 1.1em; }
     .roundrobin-section .matches-section {
       background: rgba(255,255,255,0.1);
       padding: 15px;
@@ -773,15 +775,13 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     }
     .roundrobin-section .match {
       background: white;
-      color: #333;
+      color: var(--hd-text);
     }
     .roundrobin-section .match.completed {
-      border-left: 4px solid #28a745;
+      border-left: 4px solid var(--hd-success);
     }
 
-    .round {
-      margin-bottom: 20px;
-    }
+    .round { margin-bottom: 20px; }
     .matches {
       display: flex;
       flex-wrap: wrap;
@@ -789,14 +789,12 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     }
     .match {
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 1.5px solid var(--hd-border);
       border-radius: 8px;
       min-width: 250px;
       background: white;
     }
-    .match.completed {
-      background: #f0fff0;
-    }
+    .match.completed { background: rgba(39,100,58,0.06); }
     .players {
       display: flex;
       flex-direction: column;
@@ -804,12 +802,13 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     }
     .vs {
       text-align: center;
-      color: #666;
+      color: var(--hd-text-muted);
       font-size: 12px;
+      font-weight: 600;
     }
     .winner {
-      font-weight: bold;
-      color: #28a745;
+      font-weight: 700;
+      color: var(--hd-success);
     }
     .score-input {
       display: flex;
@@ -819,17 +818,20 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .score-input input {
       width: 60px;
       padding: 5px;
-      border: 1px solid #ddd;
+      border: 1.5px solid var(--hd-border);
       border-radius: 4px;
+      background: var(--hd-cream);
     }
     .score-input button {
       padding: 5px 10px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
     }
+    .score-input button:hover { background: var(--hd-amber-light); }
     .match-actions {
       display: flex;
       flex-direction: column;
@@ -839,22 +841,22 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .play-btn {
       display: inline-block;
       padding: 8px 16px;
-      background: #28a745;
+      background: var(--hd-green);
       color: white;
       text-decoration: none;
       border-radius: 4px;
       text-align: center;
-      font-weight: 500;
+      font-weight: 600;
       transition: background 0.2s;
     }
     .play-btn:hover {
-      background: #218838;
+      background: var(--hd-green-mid);
       color: white;
     }
     .spectate-btn {
       display: inline-block;
       padding: 6px 12px;
-      background: #6c757d;
+      background: var(--hd-text-muted);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -862,25 +864,25 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       margin-top: 8px;
     }
     .spectate-btn:hover {
-      background: #5a6268;
+      background: var(--hd-text);
       color: white;
     }
     .loading {
       text-align: center;
       padding: 40px;
-      color: #666;
+      color: var(--hd-text-muted);
       font-size: 1.1em;
     }
 
     /* Double Elimination Section */
     .double-elim-section {
-      background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+      background: linear-gradient(135deg, var(--hd-green) 0%, #0E2718 100%);
       padding: 20px;
       border-radius: 8px;
       color: white;
     }
     .double-elim-section h3 {
-      color: white;
+      color: var(--hd-amber);
       margin-bottom: 20px;
     }
     .double-elim-matches {
@@ -891,56 +893,42 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     }
     .match-input-card {
       background: white;
-      color: #333;
+      color: var(--hd-text);
       padding: 15px;
       border-radius: 8px;
       min-width: 280px;
-      border-left: 4px solid #ccc;
+      border-left: 4px solid var(--hd-border);
     }
-    .match-input-card.winners {
-      border-left-color: #0d6efd;
-    }
-    .match-input-card.losers {
-      border-left-color: #fd7e14;
-    }
+    .match-input-card.winners { border-left-color: var(--hd-green-mid); }
+    .match-input-card.losers { border-left-color: var(--hd-amber); }
     .match-input-card.grand-final {
-      border-left-color: #ffc107;
-      background: #fffbeb;
+      border-left-color: var(--hd-amber);
+      background: rgba(242,232,213,0.6);
     }
     .match-input-card .bracket-label {
-      font-size: 0.8em;
-      font-weight: 600;
+      font-size: 0.78em;
+      font-weight: 700;
       text-transform: uppercase;
-      color: #666;
+      color: var(--hd-text-muted);
       margin-bottom: 5px;
       display: block;
+      letter-spacing: 0.05em;
     }
-    .match-input-card .match-info {
-      margin-bottom: 10px;
-    }
+    .match-input-card .match-info { margin-bottom: 10px; }
 
     /* Registration Management */
-    .pending-section, .approved-section {
-      margin-bottom: 20px;
-    }
-    .pending-section h4, .approved-section h4 {
+    .pending-section, .approved-section { margin-bottom: 20px; }
+    .pending-section h4, .approved-section h4, .add-player h4 {
       margin-bottom: 10px;
-      color: #333;
-    }
-    .add-player h4 {
-      margin-bottom: 10px;
-      color: #333;
+      color: var(--hd-green);
     }
     .player-list.pending li {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
+      background: rgba(232,149,10,0.1);
+      border-left: 4px solid var(--hd-amber);
     }
-    .registration-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .registration-actions { display: flex; gap: 8px; }
     .registration-actions .approve {
-      background: #28a745;
+      background: var(--hd-success);
       color: white;
       border: none;
       padding: 6px 12px;
@@ -948,11 +936,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       cursor: pointer;
       font-weight: 600;
     }
-    .registration-actions .approve:hover {
-      background: #218838;
-    }
+    .registration-actions .approve:hover { background: var(--hd-green); }
     .registration-actions .reject {
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       padding: 6px 12px;
@@ -960,30 +946,26 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       cursor: pointer;
       font-weight: 600;
     }
-    .registration-actions .reject:hover {
-      background: #c82333;
-    }
+    .registration-actions .reject:hover { background: var(--hd-danger-dark); }
     .status-pending {
       padding: 15px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255,255,255,0.15);
       border-radius: 4px;
       margin-bottom: 15px;
     }
-    .status-pending p {
-      margin: 0;
-      font-size: 1.1em;
-    }
+    .status-pending p { margin: 0; font-size: 1.05em; }
     .status-approved {
       padding: 15px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255,255,255,0.15);
       border-radius: 4px;
       margin-bottom: 15px;
     }
     .status-approved p {
       margin: 0;
-      font-size: 1.1em;
+      font-size: 1.05em;
       font-weight: 600;
     }
+    .info-text { color: var(--hd-text-muted); font-size: 0.9em; }
   `]
 })
 export class TournamentDetailComponent implements OnInit {
