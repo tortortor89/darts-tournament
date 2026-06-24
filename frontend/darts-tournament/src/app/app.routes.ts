@@ -8,6 +8,7 @@ import { TournamentDetailComponent } from './features/tournaments/tournament-det
 import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
 import { ProfileComponent } from './features/profile/profile.component';
+import { TvLobbyComponent } from './features/tv/tv-lobby.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/tournaments', pathMatch: 'full' },
@@ -19,5 +20,6 @@ export const routes: Routes = [
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },
   { path: 'matches/:id/play', component: MatchPlayComponent },
-  { path: 'matches/:id/spectate', component: MatchSpectateComponent }
+  { path: 'matches/:id/spectate', component: MatchSpectateComponent },
+  { path: 'tv', component: TvLobbyComponent }
 ];

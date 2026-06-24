@@ -603,6 +603,36 @@ public class MatchSessionService
     }
 
     /// <summary>
+    /// Récupère toutes les sessions de match en cours pour l'écran TV
+    /// </summary>
+    public async Task<List<ActiveSessionSummaryResponse>> GetActiveSessionsAsync()
+    {
+        var sessions = await _context.MatchSessions
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Tournament)
+            .Where(ms => ms.Status == MatchSessionStatus.InProgress)
+            .OrderBy(ms => ms.StartedAt)
+            .ToListAsync();
+
+        return sessions.Select(s => new ActiveSessionSummaryResponse(
+            s.MatchId,
+            s.Match.Tournament?.Name ?? "Tournoi",
+            $"{s.Match.Player1!.FirstName} {s.Match.Player1.LastName}",
+            $"{s.Match.Player2!.FirstName} {s.Match.Player2.LastName}",
+            s.Player1LegsWon,
+            s.Player2LegsWon,
+            s.LegsToWin,
+            s.GameMode,
+            s.CurrentLeg,
+            s.StartedAt
+        )).ToList();
+    }
+
+    /// <summary>
     /// Construit la réponse spectateur pour une session
     /// </summary>
     public MatchSessionSpectatorResponse BuildSpectatorResponse(MatchSession session)

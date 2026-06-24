@@ -120,6 +120,22 @@ public record PlayerSpectatorInfo(
 );
 
 /// <summary>
+/// Résumé d'une session active pour l'écran TV
+/// </summary>
+public record ActiveSessionSummaryResponse(
+    int MatchId,
+    string TournamentName,
+    string Player1Name,
+    string Player2Name,
+    int Player1LegsWon,
+    int Player2LegsWon,
+    int LegsToWin,
+    GameMode GameMode,
+    int CurrentLeg,
+    DateTime? StartedAt
+);
+
+/// <summary>
 /// Résumé d'un leg terminé
 /// </summary>
 public record LegSummary(

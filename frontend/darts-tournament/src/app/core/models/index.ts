@@ -380,6 +380,20 @@ export interface HeadToHeadRecord {
   lastMatchTournament?: string;
 }
 
+// TV Lobby
+export interface ActiveSessionSummary {
+  matchId: number;
+  tournamentName: string;
+  player1Name: string;
+  player2Name: string;
+  player1LegsWon: number;
+  player2LegsWon: number;
+  legsToWin: number;
+  gameMode: GameMode;
+  currentLeg: number;
+  startedAt?: Date;
+}
+
 // Cricket interfaces
 export interface CricketTargetState {
   target: number;
