@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit } from '../models';
+import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -181,6 +181,10 @@ export class ApiService {
 
   getMatchSpectator(matchId: number): Observable<MatchSessionSpectator> {
     return this.http.get<MatchSessionSpectator>(`${this.API_URL}/matches/${matchId}/spectate`);
+  }
+
+  getActiveSessions(): Observable<ActiveSessionSummary[]> {
+    return this.http.get<ActiveSessionSummary[]>(`${this.API_URL}/matches/active-sessions`);
   }
 
   getMatchStats(matchId: number): Observable<MatchStats> {

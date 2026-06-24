@@ -113,6 +113,18 @@ public class MatchesController : ControllerBase
     #region Match Session (Live Game)
 
     /// <summary>
+    /// Récupère toutes les sessions en cours (usage : écran TV de bar)
+    /// </summary>
+    /// <returns>Liste des matchs actifs avec scores et noms</returns>
+    [HttpGet("active-sessions")]
+    [ProducesResponseType(typeof(List<ActiveSessionSummaryResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ActiveSessionSummaryResponse>>> GetActiveSessions()
+    {
+        var sessions = await _matchSessionService.GetActiveSessionsAsync();
+        return Ok(sessions);
+    }
+
+    /// <summary>
     /// Récupérer la session en cours d'un match
     /// </summary>
     /// <param name="id">Identifiant du match</param>
