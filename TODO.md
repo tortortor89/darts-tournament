@@ -152,8 +152,8 @@
 - [ ] Graphiques d'évolution des performances
 
 ### Circuit & Classement
-- [ ] Système de circuit (regrouper plusieurs tournois)
-- [ ] Classement global sur un circuit (points cumulés)
+- [x] Système de circuit (regrouper plusieurs tournois, barème de points configurable par circuit)
+- [x] Classement global sur un circuit (points cumulés selon la place finale, calcul à la demande)
 - [ ] Seeding automatique basé sur le classement circuit
 
 ### Fonctionnalités avancées
