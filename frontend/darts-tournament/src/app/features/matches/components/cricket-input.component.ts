@@ -12,14 +12,9 @@ interface CricketInputState {
   imports: [CommonModule],
   template: `
     <div class="cricket-input">
-      <h4>Saisie Cricket - Visite complète</h4>
-
-      <div class="instructions">
-        <p>Cliquez sur les cibles pour ajouter des marques</p>
-        <p class="info">
-          <strong>Marques: {{ totalMarks }}</strong>
-          <span class="targets-count"> • Fléchettes: {{ usedDarts }}/3</span>
-        </p>
+      <div class="info-bar">
+        <strong>Marques: {{ totalMarks }}</strong>
+        <span class="targets-count"> • Fléchettes: {{ usedDarts }}/3</span>
       </div>
 
       <!-- Grille de cibles -->
@@ -61,37 +56,22 @@ interface CricketInputState {
   `,
   styles: [`
     .cricket-input {
-      padding: 20px;
+      padding: 12px;
       background: #f8f9fa;
       border-radius: 8px;
       max-width: 600px;
       margin: 0 auto;
     }
 
-    h4 {
+    .info-bar {
       text-align: center;
-      margin-bottom: 15px;
-      color: #333;
-    }
-
-    .instructions {
-      text-align: center;
-      margin-bottom: 20px;
-      padding: 10px;
+      margin-bottom: 10px;
+      padding: 6px;
       background: white;
       border-radius: 6px;
       border: 1px solid #dee2e6;
-    }
-
-    .instructions p {
-      margin: 5px 0;
-      font-size: 0.95em;
+      font-size: 1em;
       color: #555;
-    }
-
-    .info {
-      font-size: 1.1em !important;
-      margin-top: 10px !important;
     }
 
     .targets-count {
@@ -100,27 +80,27 @@ interface CricketInputState {
 
     .target-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
     }
 
     .target-btn {
-      padding: 15px;
-      font-size: 1.3em;
+      padding: 6px 4px;
+      font-size: 1em;
       font-weight: bold;
-      border: 3px solid #007bff;
+      border: 2px solid #007bff;
       background: white;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
       position: relative;
-      min-height: 80px;
+      min-height: 56px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 2px;
     }
 
     .target-btn:hover:not(:disabled) {
@@ -146,24 +126,25 @@ interface CricketInputState {
     }
 
     .target-label {
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
 
     .marks-display {
-      font-size: 1.5em;
+      font-size: 1.2em;
       font-weight: bold;
       color: white;
+      line-height: 1;
     }
 
     .action-buttons {
       display: flex;
-      gap: 15px;
+      gap: 10px;
       justify-content: center;
-      margin-top: 20px;
+      margin-top: 10px;
     }
 
     .action-buttons button {
-      padding: 15px 30px;
+      padding: 10px 24px;
       font-size: 1.1em;
       font-weight: 600;
       border: none;
@@ -202,8 +183,8 @@ interface CricketInputState {
     }
 
     .error-message {
-      margin-top: 15px;
-      padding: 10px;
+      margin-top: 10px;
+      padding: 8px;
       background: #f8d7da;
       color: #721c24;
       border: 1px solid #f5c6cb;
@@ -213,17 +194,11 @@ interface CricketInputState {
 
     @media (max-width: 768px) {
       .target-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr);
       }
 
       .target-btn {
-        padding: 12px;
-        font-size: 1.1em;
-        min-height: 70px;
-      }
-
-      .action-buttons {
-        flex-direction: column;
+        min-height: 52px;
       }
 
       .action-buttons button {

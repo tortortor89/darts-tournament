@@ -7,7 +7,7 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="cricket-display">
+    <div class="cricket-display" [class.compact]="compact">
       <div class="cricket-grid">
         <!-- Header -->
         <div class="header player1">{{ player1Name }}</div>
@@ -26,18 +26,6 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
             {{ getMarks(cricketState.player2Targets[target]) }}
           </div>
         }
-      </div>
-
-      <!-- Scores -->
-      <div class="scores">
-        <div class="score-box">
-          <span class="label">{{ player1Name }}</span>
-          <span class="value">{{ cricketState.player1Score }}</span>
-        </div>
-        <div class="score-box">
-          <span class="label">{{ player2Name }}</span>
-          <span class="value">{{ cricketState.player2Score }}</span>
-        </div>
       </div>
     </div>
   `,
@@ -83,27 +71,27 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
       text-align: center;
     }
 
-    .scores {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 20px;
+    /* Mode compact : réduit hauteurs et espacements pour l'écran de saisie */
+    .compact {
+      margin-bottom: 12px;
     }
 
-    .score-box {
-      text-align: center;
+    .compact .cell {
+      padding: 3px 10px;
+      font-size: 1em;
     }
 
-    .score-box .label {
-      display: block;
-      font-size: 0.9em;
-      color: #666;
+    .compact .cell.target {
+      font-size: 1.1em;
     }
 
-    .score-box .value {
-      display: block;
-      font-size: 3em;
-      font-weight: bold;
-      color: #007bff;
+    .compact .cell.marks {
+      font-size: 1.3em;
+      line-height: 1.2;
+    }
+
+    .compact .header {
+      padding: 5px;
     }
 
     @media (max-width: 768px) {
@@ -114,10 +102,6 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
       .cell {
         padding: 8px;
       }
-
-      .score-box .value {
-        font-size: 2em;
-      }
     }
   `]
 })
@@ -125,6 +109,7 @@ export class CricketDisplayComponent {
   @Input() cricketState!: CricketDisplayState;
   @Input() player1Name!: string;
   @Input() player2Name!: string;
+  @Input() compact = false;
 
   targets = [20, 19, 18, 17, 16, 15, 25];
 
