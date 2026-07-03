@@ -485,8 +485,49 @@ public class TournamentService
         {
             return GetDoubleEliminationStandings(tournament);
         }
+        else if (tournament.Format == TournamentFormat.SingleElimination)
+        {
+            return GetSingleEliminationStandings(tournament);
+        }
 
         return new List<GroupStandingResponse>();
+    }
+
+    private static List<GroupStandingResponse> GetSingleEliminationStandings(Tournament tournament)
+    {
+        var completedMatches = tournament.Matches
+            .Where(m => m.Status == MatchStatus.Completed && m.Player1Id != null && m.Player2Id != null)
+            .ToList();
+
+        var placements = FinalPlacementCalculator.Compute(tournament);
+
+        var standings = placements
+            .Select(p =>
+            {
+                var playerMatches = completedMatches
+                    .Where(m => m.Player1Id == p.PlayerId || m.Player2Id == p.PlayerId)
+                    .ToList();
+                int won = playerMatches.Count(m => m.WinnerId == p.PlayerId);
+
+                return new PlayerStandingResponse(
+                    p.PlayerId,
+                    p.PlayerName,
+                    playerMatches.Count,
+                    won,
+                    playerMatches.Count - won,
+                    0, // PointsFor non applicable
+                    0,
+                    0,
+                    0,
+                    p.Rank
+                );
+            })
+            .ToList();
+
+        return new List<GroupStandingResponse>
+        {
+            new GroupStandingResponse(0, "Classement", standings)
+        };
     }
 
     private List<GroupStandingResponse> GetRoundRobinStandings(Tournament tournament)

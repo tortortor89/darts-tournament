@@ -40,6 +40,8 @@ export interface Tournament {
   qualifiersPerGroup?: number;
   hasKnockoutPhase: boolean;
   allowBracketReset: boolean;
+  circuitId?: number;
+  circuitName?: string;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -106,6 +108,50 @@ export interface PlayerStanding {
   pointsDiff: number;
   points: number;
   rank: number;
+}
+
+// Circuits
+export interface CircuitPointsRule {
+  minRank: number;
+  maxRank: number;
+  points: number;
+}
+
+export interface Circuit {
+  id: number;
+  name: string;
+  description?: string;
+  participationPoints: number;
+  createdAt: Date;
+  tournamentCount: number;
+  completedTournamentCount: number;
+  pointsRules: CircuitPointsRule[];
+}
+
+export interface CircuitDetail {
+  id: number;
+  name: string;
+  description?: string;
+  participationPoints: number;
+  createdAt: Date;
+  pointsRules: CircuitPointsRule[];
+  tournaments: Tournament[];
+}
+
+export interface CircuitTournamentPoints {
+  tournamentId: number;
+  tournamentName: string;
+  finalRank: number;
+  points: number;
+}
+
+export interface CircuitStanding {
+  playerId: number;
+  playerName: string;
+  tournamentsPlayed: number;
+  totalPoints: number;
+  rank: number;
+  details: CircuitTournamentPoints[];
 }
 
 export enum TournamentFormat {

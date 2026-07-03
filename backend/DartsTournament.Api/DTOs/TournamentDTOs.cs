@@ -23,7 +23,9 @@ public record CreateTournamentRequest(
     int? QualifiersPerGroup = null,
 
     bool HasKnockoutPhase = true,
-    bool AllowBracketReset = true
+    bool AllowBracketReset = true,
+
+    int? CircuitId = null
 );
 
 public record UpdateTournamentRequest(
@@ -54,7 +56,9 @@ public record TournamentResponse(
     int? PlayersPerGroup,
     int? QualifiersPerGroup,
     bool HasKnockoutPhase,
-    bool AllowBracketReset
+    bool AllowBracketReset,
+    int? CircuitId = null,
+    string? CircuitName = null
 );
 
 public record TournamentDetailResponse(
@@ -71,7 +75,9 @@ public record TournamentDetailResponse(
     bool AllowBracketReset,
     List<TournamentPlayerResponse> Players,
     List<GroupResponse> Groups,
-    List<MatchResponse> Matches
+    List<MatchResponse> Matches,
+    int? CircuitId = null,
+    string? CircuitName = null
 );
 
 public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);

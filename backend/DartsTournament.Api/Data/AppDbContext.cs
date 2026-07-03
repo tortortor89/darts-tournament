@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Throw> Throws => Set<Throw>();
+    public DbSet<Circuit> Circuits => Set<Circuit>();
+    public DbSet<CircuitPointsRule> CircuitPointsRules => Set<CircuitPointsRule>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -104,6 +106,21 @@ public class AppDbContext : DbContext
             entity.HasOne(ms => ms.Match)
                 .WithMany()
                 .HasForeignKey(ms => ms.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Circuit
+        modelBuilder.Entity<Circuit>(entity =>
+        {
+            // Supprimer un circuit détache les tournois, ne les supprime pas
+            entity.HasMany(c => c.Tournaments)
+                .WithOne(t => t.Circuit)
+                .HasForeignKey(t => t.CircuitId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(c => c.PointsRules)
+                .WithOne(r => r.Circuit)
+                .HasForeignKey(r => r.CircuitId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

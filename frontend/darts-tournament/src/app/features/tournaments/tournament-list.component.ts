@@ -6,7 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Tournament, TournamentFormat, TournamentStatus } from '../../core/models';
+import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../core/models';
 
 @Component({
   selector: 'app-tournament-list',
@@ -33,6 +33,14 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
                 <option [value]="TournamentFormat.GroupStage">Phase de groupes</option>
               </select>
               <input type="date" [(ngModel)]="form.startDate" name="startDate">
+              @if (circuits.length > 0) {
+                <select [(ngModel)]="form.circuitId" name="circuitId">
+                  <option [ngValue]="null">Aucun circuit</option>
+                  @for (circuit of circuits; track circuit.id) {
+                    <option [ngValue]="circuit.id">{{ circuit.name }}</option>
+                  }
+                </select>
+              }
             </div>
 
             @if (form.format == TournamentFormat.GroupStage) {
@@ -66,6 +74,9 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
             <p>Format: {{ getFormatLabel(tournament.format) }}</p>
             <p>Status: <span [class]="'status-' + tournament.status">{{ getStatusLabel(tournament.status) }}</span></p>
             <p>Joueurs: {{ tournament.playerCount }}</p>
+            @if (tournament.circuitName) {
+              <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
+            }
             @if (tournament.format === TournamentFormat.GroupStage && tournament.numberOfGroups) {
               <p>{{ tournament.numberOfGroups }} groupes, {{ tournament.qualifiersPerGroup || 2 }} qualifiés/groupe</p>
             }
@@ -180,13 +191,15 @@ import { Tournament, TournamentFormat, TournamentStatus } from '../../core/model
 })
 export class TournamentListComponent implements OnInit {
   tournaments: Tournament[] = [];
+  circuits: Circuit[] = [];
   form = {
     name: '',
     format: TournamentFormat.SingleElimination,
     startDate: '',
     numberOfGroups: null as number | null,
     qualifiersPerGroup: 2,
-    hasKnockoutPhase: true
+    hasKnockoutPhase: true,
+    circuitId: null as number | null
   };
   loading = false;
 
@@ -201,6 +214,15 @@ export class TournamentListComponent implements OnInit {
 
   ngOnInit() {
     this.loadTournaments();
+    if (this.authService.isAdmin()) {
+      this.loadCircuits();
+    }
+  }
+
+  loadCircuits() {
+    this.apiService.getCircuits().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(circuits => {
+      this.circuits = circuits;
+    });
   }
 
   loadTournaments() {
@@ -226,6 +248,10 @@ export class TournamentListComponent implements OnInit {
       startDate: this.form.startDate ? new Date(this.form.startDate) : undefined
     };
 
+    if (this.form.circuitId !== null) {
+      data.circuitId = this.form.circuitId;
+    }
+
     if (Number(this.form.format) === TournamentFormat.GroupStage) {
       if (this.form.numberOfGroups) {
         data.numberOfGroups = this.form.numberOfGroups;
@@ -243,7 +269,8 @@ export class TournamentListComponent implements OnInit {
         startDate: '',
         numberOfGroups: null,
         qualifiersPerGroup: 2,
-        hasKnockoutPhase: true
+        hasKnockoutPhase: true,
+        circuitId: null
       };
     });
   }

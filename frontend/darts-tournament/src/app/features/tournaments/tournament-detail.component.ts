@@ -25,6 +25,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       <div class="info">
         <p>Format: {{ getFormatLabel(tournament.format) }}</p>
         <p>Status: {{ getStatusLabel(tournament.status) }}</p>
+        @if (tournament.circuitName) {
+          <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
+        }
         @if (tournament.format === TournamentFormat.GroupStage) {
           <p>
             {{ tournament.numberOfGroups || 'Auto' }} groupes,

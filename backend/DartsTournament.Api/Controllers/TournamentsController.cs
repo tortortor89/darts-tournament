@@ -51,7 +51,9 @@ public class TournamentsController : ControllerBase
                 t.PlayersPerGroup,
                 t.QualifiersPerGroup,
                 t.HasKnockoutPhase,
-                t.AllowBracketReset
+                t.AllowBracketReset,
+                t.CircuitId,
+                t.Circuit != null ? t.Circuit.Name : null
             ))
             .ToListAsync();
 
@@ -80,6 +82,7 @@ public class TournamentsController : ControllerBase
             .ThenInclude(m => m.Player1)
             .Include(t => t.Matches)
             .ThenInclude(m => m.Player2)
+            .Include(t => t.Circuit)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (tournament == null)
@@ -139,7 +142,9 @@ public class TournamentsController : ControllerBase
                 m.IsKnockoutMatch,
                 m.BracketType,
                 m.IsBracketReset
-            )).ToList()
+            )).ToList(),
+            tournament.CircuitId,
+            tournament.Circuit?.Name
         );
 
         return Ok(response);
@@ -162,6 +167,17 @@ public class TournamentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<TournamentResponse>> CreateTournament(CreateTournamentRequest request)
     {
+        string? circuitName = null;
+        if (request.CircuitId != null)
+        {
+            var circuit = await _context.Circuits.FindAsync(request.CircuitId.Value);
+            if (circuit == null)
+            {
+                return BadRequest(new { message = "Circuit introuvable" });
+            }
+            circuitName = circuit.Name;
+        }
+
         var tournament = new Tournament
         {
             Name = request.Name,
@@ -171,7 +187,8 @@ public class TournamentsController : ControllerBase
             PlayersPerGroup = request.PlayersPerGroup,
             QualifiersPerGroup = request.QualifiersPerGroup,
             HasKnockoutPhase = request.HasKnockoutPhase,
-            AllowBracketReset = request.AllowBracketReset
+            AllowBracketReset = request.AllowBracketReset,
+            CircuitId = request.CircuitId
         };
 
         _context.Tournaments.Add(tournament);
@@ -189,7 +206,9 @@ public class TournamentsController : ControllerBase
             tournament.PlayersPerGroup,
             tournament.QualifiersPerGroup,
             tournament.HasKnockoutPhase,
-            tournament.AllowBracketReset
+            tournament.AllowBracketReset,
+            tournament.CircuitId,
+            circuitName
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);

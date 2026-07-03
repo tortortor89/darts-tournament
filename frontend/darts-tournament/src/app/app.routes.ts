@@ -5,6 +5,8 @@ import { PlayerListComponent } from './features/players/player-list.component';
 import { PlayerStatsComponent } from './features/players/player-stats.component';
 import { TournamentListComponent } from './features/tournaments/tournament-list.component';
 import { TournamentDetailComponent } from './features/tournaments/tournament-detail.component';
+import { CircuitListComponent } from './features/circuits/circuit-list.component';
+import { CircuitDetailComponent } from './features/circuits/circuit-detail.component';
 import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
 import { ProfileComponent } from './features/profile/profile.component';
@@ -19,6 +21,8 @@ export const routes: Routes = [
   { path: 'players/:id/stats', component: PlayerStatsComponent },
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },
+  { path: 'circuits', component: CircuitListComponent },
+  { path: 'circuits/:id', component: CircuitDetailComponent },
   { path: 'matches/:id/play', component: MatchPlayComponent },
   { path: 'matches/:id/spectate', component: MatchSpectateComponent },
   { path: 'tv', component: TvLobbyComponent }
