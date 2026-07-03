@@ -216,7 +216,8 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             <app-cricket-display
               [cricketState]="session.cricketState"
               [player1Name]="session.player1.name"
-              [player2Name]="session.player2.name">
+              [player2Name]="session.player2.name"
+              [compact]="true">
             </app-cricket-display>
 
             <app-cricket-input
@@ -225,7 +226,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
             <!-- Live Statistics Cricket -->
             @if (stats) {
-              <div class="stats-panel">
+              <div class="stats-panel cricket-stats">
                 <h4>Statistiques</h4>
                 <div class="stats-compact">
                   <div class="stat-item">
@@ -751,6 +752,15 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       border-radius: 8px;
       padding: 15px;
       margin-bottom: 20px;
+    }
+
+    .stats-panel.cricket-stats {
+      padding: 8px 15px;
+      margin: 12px 0;
+    }
+
+    .stats-panel.cricket-stats h4 {
+      display: none;
     }
 
     .stats-panel h4 {

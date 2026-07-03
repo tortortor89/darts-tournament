@@ -137,7 +137,7 @@
 - [x] Demander le nombre de fléchettes utilisées lors d'un checkout (1, 2 ou 3)
 - [x] Demander le nombre de fléchettes tentées sur un double (pour stats précises)
 - [x] Combiner les deux questions ci-dessus quand nécessaire (ex: "Checkout en 2 fléchettes, 1 tentée sur double")
-- [ ] Interface Cricket : optimiser l'affichage pour tenir sans scroll (réduire hauteurs, espacements)
+- [x] Interface Cricket : optimiser l'affichage pour tenir sans scroll (mode compact du tableau, saisie sur une rangée, suppression du score en doublon)
 
 ### Comptes Joueurs & Inscription
 - [x] Lier un compte utilisateur à un profil joueur (User -> Player)
