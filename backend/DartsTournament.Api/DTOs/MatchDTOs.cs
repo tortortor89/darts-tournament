@@ -11,6 +11,11 @@ public record UpdateMatchScoreRequest(
     int Player2Score
 );
 
+public record TeamMemberInfo(int PlayerId, string Name);
+
+// En double, Player1Id/Player2Id/WinnerId portent des ids de TournamentTeam et les
+// noms le label de la paire (« Alice D. / Bob M. »). Ne pas utiliser ces ids pour
+// naviguer vers un profil joueur quand IsDoubles est vrai.
 public record MatchResponse(
     int Id,
     int TournamentId,
@@ -28,5 +33,8 @@ public record MatchResponse(
     DateTime? ScheduledAt,
     bool IsKnockoutMatch,
     BracketType BracketType,
-    bool IsBracketReset
+    bool IsBracketReset,
+    bool IsDoubles = false,
+    List<TeamMemberInfo>? Team1Members = null,
+    List<TeamMemberInfo>? Team2Members = null
 );

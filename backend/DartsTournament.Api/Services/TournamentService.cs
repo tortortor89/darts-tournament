@@ -19,6 +19,10 @@ public class TournamentService
         var tournament = await _context.Tournaments
             .Include(t => t.TournamentPlayers)
             .ThenInclude(tp => tp.Player)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player1)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player2)
             .FirstOrDefaultAsync(t => t.Id == tournamentId);
 
         if (tournament == null)
@@ -27,15 +31,13 @@ public class TournamentService
         if (tournament.Status != TournamentStatus.Draft)
             throw new InvalidOperationException("Tournament has already started");
 
-        // Only include approved players in bracket generation
-        var players = tournament.TournamentPlayers
-            .Where(tp => tp.Status == RegistrationStatus.Approved)
-            .OrderBy(tp => tp.Seed ?? int.MaxValue)
-            .Select(tp => tp.Player)
-            .ToList();
+        // Côtés inscrits : joueurs approuvés en simple, paires en double
+        var sides = MatchSideAccessor.GetSides(tournament);
 
-        if (players.Count < 2)
-            throw new InvalidOperationException("At least 2 approved players required to generate bracket");
+        if (sides.Count < 2)
+            throw new InvalidOperationException(MatchSideAccessor.IsDoubles(tournament)
+                ? "At least 2 teams required to generate bracket"
+                : "At least 2 approved players required to generate bracket");
 
         // Clear existing matches
         var existingMatches = await _context.Matches
@@ -46,16 +48,16 @@ public class TournamentService
         switch (tournament.Format)
         {
             case TournamentFormat.SingleElimination:
-                GenerateSingleEliminationBracket(tournament, players);
+                GenerateSingleEliminationBracket(tournament, sides);
                 break;
             case TournamentFormat.RoundRobin:
-                GenerateRoundRobinBracket(tournament, players);
+                GenerateRoundRobinBracket(tournament, sides);
                 break;
             case TournamentFormat.GroupStage:
-                await GenerateGroupStageBracketAsync(tournament, players);
+                await GenerateGroupStageBracketAsync(tournament, sides);
                 break;
             case TournamentFormat.DoubleElimination:
-                GenerateDoubleEliminationBracket(tournament, players);
+                GenerateDoubleEliminationBracket(tournament, sides);
                 break;
         }
 
@@ -63,10 +65,11 @@ public class TournamentService
         await _context.SaveChangesAsync();
     }
 
-    private void GenerateSingleEliminationBracket(Tournament tournament, List<Player> players, bool isKnockout = false, int roundOffset = 0)
+    private void GenerateSingleEliminationBracket(Tournament tournament, List<Side> sides, bool isKnockout = false, int roundOffset = 0)
     {
-        int playerCount = players.Count;
-        int rounds = (int)Math.Ceiling(Math.Log2(playerCount));
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
+        int sideCount = sides.Count;
+        int rounds = (int)Math.Ceiling(Math.Log2(sideCount));
         int bracketSize = (int)Math.Pow(2, rounds);
 
         var matches = new List<Match>();
@@ -78,13 +81,13 @@ public class TournamentService
         // Get bracket positions for proper seeding
         var bracketPositions = GenerateBracketPositions(bracketSize);
 
-        // Create position-to-player mapping
-        // Seeds 1 to playerCount have players, rest are byes
-        var positionToPlayer = new int?[bracketSize];
-        for (int seed = 1; seed <= playerCount; seed++)
+        // Create position-to-side mapping
+        // Seeds 1 to sideCount have sides, rest are byes
+        var positionToSide = new int?[bracketSize];
+        for (int seed = 1; seed <= sideCount; seed++)
         {
             int pos = bracketPositions[seed - 1];
-            positionToPlayer[pos] = players[seed - 1].Id;
+            positionToSide[pos] = sides[seed - 1].Id;
         }
 
         // First round - create matches based on bracket positions
@@ -100,20 +103,22 @@ public class TournamentService
                 TournamentId = tournament.Id,
                 Round = 1 + roundOffset,
                 Position = matchPosition++,
-                IsKnockoutMatch = isKnockout,
-                Player1Id = positionToPlayer[pos1],
-                Player2Id = positionToPlayer[pos2]
+                IsKnockoutMatch = isKnockout
             };
+            MatchSideAccessor.SetSide1Id(match, positionToSide[pos1], isDoubles);
+            MatchSideAccessor.SetSide2Id(match, positionToSide[pos2], isDoubles);
 
-            // Handle byes - if one player is null, the other wins automatically
-            if (match.Player1Id != null && match.Player2Id == null)
+            // Handle byes - if one side is null, the other wins automatically
+            var side1 = MatchSideAccessor.GetSide1Id(match, isDoubles);
+            var side2 = MatchSideAccessor.GetSide2Id(match, isDoubles);
+            if (side1 != null && side2 == null)
             {
-                match.WinnerId = match.Player1Id;
+                MatchSideAccessor.SetWinnerSideId(match, side1, isDoubles);
                 match.Status = MatchStatus.Completed;
             }
-            else if (match.Player2Id != null && match.Player1Id == null)
+            else if (side2 != null && side1 == null)
             {
-                match.WinnerId = match.Player2Id;
+                MatchSideAccessor.SetWinnerSideId(match, side2, isDoubles);
                 match.Status = MatchStatus.Completed;
             }
 
@@ -143,7 +148,8 @@ public class TournamentService
         for (int i = 0; i < firstRoundMatches.Count; i++)
         {
             var match = firstRoundMatches[i];
-            if (match.WinnerId != null && match.Status == MatchStatus.Completed)
+            var byeWinner = MatchSideAccessor.GetWinnerSideId(match, isDoubles);
+            if (byeWinner != null && match.Status == MatchStatus.Completed)
             {
                 // This is a bye match, advance winner to next round
                 int nextMatchIndex = i / 2;
@@ -151,9 +157,9 @@ public class TournamentService
                 {
                     var nextMatch = secondRoundMatches[nextMatchIndex];
                     if (i % 2 == 0)
-                        nextMatch.Player1Id = match.WinnerId;
+                        MatchSideAccessor.SetSide1Id(nextMatch, byeWinner, isDoubles);
                     else
-                        nextMatch.Player2Id = match.WinnerId;
+                        MatchSideAccessor.SetSide2Id(nextMatch, byeWinner, isDoubles);
                 }
             }
         }
@@ -161,34 +167,37 @@ public class TournamentService
         _context.Matches.AddRange(matches);
     }
 
-    private void GenerateRoundRobinBracket(Tournament tournament, List<Player> players)
+    private void GenerateRoundRobinBracket(Tournament tournament, List<Side> sides)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         var matches = new List<Match>();
         int round = 1;
         int position = 0;
 
-        for (int i = 0; i < players.Count; i++)
+        for (int i = 0; i < sides.Count; i++)
         {
-            for (int j = i + 1; j < players.Count; j++)
+            for (int j = i + 1; j < sides.Count; j++)
             {
-                matches.Add(new Match
+                var match = new Match
                 {
                     TournamentId = tournament.Id,
                     Round = round,
-                    Position = position++,
-                    Player1Id = players[i].Id,
-                    Player2Id = players[j].Id
-                });
+                    Position = position++
+                };
+                MatchSideAccessor.SetSide1Id(match, sides[i].Id, isDoubles);
+                MatchSideAccessor.SetSide2Id(match, sides[j].Id, isDoubles);
+                matches.Add(match);
             }
         }
 
         _context.Matches.AddRange(matches);
     }
 
-    private void GenerateDoubleEliminationBracket(Tournament tournament, List<Player> players)
+    private void GenerateDoubleEliminationBracket(Tournament tournament, List<Side> sides)
     {
-        int playerCount = players.Count;
-        int winnersRounds = (int)Math.Ceiling(Math.Log2(playerCount));
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
+        int sideCount = sides.Count;
+        int winnersRounds = (int)Math.Ceiling(Math.Log2(sideCount));
         int bracketSize = (int)Math.Pow(2, winnersRounds);
 
         var allMatches = new List<Match>();
@@ -197,12 +206,12 @@ public class TournamentService
         // Get bracket positions for proper seeding
         var bracketPositions = GenerateBracketPositions(bracketSize);
 
-        // Create position-to-player mapping
-        var positionToPlayer = new int?[bracketSize];
-        for (int seed = 1; seed <= playerCount; seed++)
+        // Create position-to-side mapping
+        var positionToSide = new int?[bracketSize];
+        for (int seed = 1; seed <= sideCount; seed++)
         {
             int pos = bracketPositions[seed - 1];
-            positionToPlayer[pos] = players[seed - 1].Id;
+            positionToSide[pos] = sides[seed - 1].Id;
         }
 
         // ========== WINNER'S BRACKET ==========
@@ -220,20 +229,22 @@ public class TournamentService
                 TournamentId = tournament.Id,
                 Round = 1,
                 Position = matchPosition++,
-                BracketType = BracketType.Winners,
-                Player1Id = positionToPlayer[pos1],
-                Player2Id = positionToPlayer[pos2]
+                BracketType = BracketType.Winners
             };
+            MatchSideAccessor.SetSide1Id(match, positionToSide[pos1], isDoubles);
+            MatchSideAccessor.SetSide2Id(match, positionToSide[pos2], isDoubles);
 
             // Handle byes
-            if (match.Player1Id != null && match.Player2Id == null)
+            var side1 = MatchSideAccessor.GetSide1Id(match, isDoubles);
+            var side2 = MatchSideAccessor.GetSide2Id(match, isDoubles);
+            if (side1 != null && side2 == null)
             {
-                match.WinnerId = match.Player1Id;
+                MatchSideAccessor.SetWinnerSideId(match, side1, isDoubles);
                 match.Status = MatchStatus.Completed;
             }
-            else if (match.Player2Id != null && match.Player1Id == null)
+            else if (side2 != null && side1 == null)
             {
-                match.WinnerId = match.Player2Id;
+                MatchSideAccessor.SetWinnerSideId(match, side2, isDoubles);
                 match.Status = MatchStatus.Completed;
             }
 
@@ -263,16 +274,17 @@ public class TournamentService
         for (int i = 0; i < winnersFirstRound.Count; i++)
         {
             var match = winnersFirstRound[i];
-            if (match.WinnerId != null && match.Status == MatchStatus.Completed)
+            var byeWinner = MatchSideAccessor.GetWinnerSideId(match, isDoubles);
+            if (byeWinner != null && match.Status == MatchStatus.Completed)
             {
                 int nextMatchIndex = i / 2;
                 if (nextMatchIndex < winnersSecondRound.Count)
                 {
                     var nextMatch = winnersSecondRound[nextMatchIndex];
                     if (i % 2 == 0)
-                        nextMatch.Player1Id = match.WinnerId;
+                        MatchSideAccessor.SetSide1Id(nextMatch, byeWinner, isDoubles);
                     else
-                        nextMatch.Player2Id = match.WinnerId;
+                        MatchSideAccessor.SetSide2Id(nextMatch, byeWinner, isDoubles);
                 }
             }
         }
@@ -337,8 +349,8 @@ public class TournamentService
             var wr1Match1 = winnersFirstRound[i * 2];
             var wr1Match2 = winnersFirstRound[i * 2 + 1];
 
-            bool match1IsBye = (wr1Match1.Player1Id == null || wr1Match1.Player2Id == null);
-            bool match2IsBye = (wr1Match2.Player1Id == null || wr1Match2.Player2Id == null);
+            bool match1IsBye = (MatchSideAccessor.GetSide1Id(wr1Match1, isDoubles) == null || MatchSideAccessor.GetSide2Id(wr1Match1, isDoubles) == null);
+            bool match2IsBye = (MatchSideAccessor.GetSide1Id(wr1Match2, isDoubles) == null || MatchSideAccessor.GetSide2Id(wr1Match2, isDoubles) == null);
 
             if (match1IsBye && match2IsBye)
             {
@@ -375,8 +387,10 @@ public class TournamentService
         _context.Matches.AddRange(allMatches);
     }
 
-    private async Task GenerateGroupStageBracketAsync(Tournament tournament, List<Player> players)
+    private async Task GenerateGroupStageBracketAsync(Tournament tournament, List<Side> sides)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
+
         // Clear existing groups
         var existingGroups = await _context.Groups
             .Where(g => g.TournamentId == tournament.Id)
@@ -391,16 +405,16 @@ public class TournamentService
         }
         else if (tournament.PlayersPerGroup.HasValue)
         {
-            groupCount = (int)Math.Ceiling((double)players.Count / tournament.PlayersPerGroup.Value);
+            groupCount = (int)Math.Ceiling((double)sides.Count / tournament.PlayersPerGroup.Value);
         }
         else
         {
             // Default: aim for groups of 4
-            groupCount = Math.Max(2, players.Count / 4);
+            groupCount = Math.Max(2, sides.Count / 4);
         }
 
-        // Don't create more groups than players
-        groupCount = Math.Min(groupCount, players.Count);
+        // Don't create more groups than sides
+        groupCount = Math.Min(groupCount, sides.Count);
 
         var groups = new List<Group>();
         for (int i = 0; i < groupCount; i++)
@@ -415,17 +429,25 @@ public class TournamentService
         _context.Groups.AddRange(groups);
         await _context.SaveChangesAsync();
 
-        // Assign players to groups using snake draft (respects seeding)
+        // Assign sides to groups using snake draft (respects seeding)
         // Snake: Group A, B, C, D, D, C, B, A, A, B, C, D...
-        for (int i = 0; i < players.Count; i++)
+        var sideGroupIds = new Dictionary<int, int>(); // sideId -> groupId
+        for (int i = 0; i < sides.Count; i++)
         {
             int row = i / groupCount;
             int col = i % groupCount;
             int groupIndex = row % 2 == 0 ? col : groupCount - 1 - col;
+            int groupId = groups[groupIndex].Id;
 
-            var tournamentPlayer = tournament.TournamentPlayers
-                .First(tp => tp.PlayerId == players[i].Id);
-            tournamentPlayer.GroupId = groups[groupIndex].Id;
+            sideGroupIds[sides[i].Id] = groupId;
+            if (isDoubles)
+            {
+                tournament.Teams.First(tt => tt.Id == sides[i].Id).GroupId = groupId;
+            }
+            else
+            {
+                tournament.TournamentPlayers.First(tp => tp.PlayerId == sides[i].Id).GroupId = groupId;
+            }
         }
 
         // Generate matches for each group (round robin within groups)
@@ -434,25 +456,25 @@ public class TournamentService
 
         foreach (var group in groups)
         {
-            var groupPlayers = tournament.TournamentPlayers
-                .Where(tp => tp.GroupId == group.Id)
-                .Select(tp => tp.Player)
+            var groupSides = sides
+                .Where(s => sideGroupIds[s.Id] == group.Id)
                 .ToList();
 
-            for (int i = 0; i < groupPlayers.Count; i++)
+            for (int i = 0; i < groupSides.Count; i++)
             {
-                for (int j = i + 1; j < groupPlayers.Count; j++)
+                for (int j = i + 1; j < groupSides.Count; j++)
                 {
-                    matches.Add(new Match
+                    var match = new Match
                     {
                         TournamentId = tournament.Id,
                         GroupId = group.Id,
                         Round = 1,
                         Position = position++,
-                        Player1Id = groupPlayers[i].Id,
-                        Player2Id = groupPlayers[j].Id,
                         IsKnockoutMatch = false
-                    });
+                    };
+                    MatchSideAccessor.SetSide1Id(match, groupSides[i].Id, isDoubles);
+                    MatchSideAccessor.SetSide2Id(match, groupSides[j].Id, isDoubles);
+                    matches.Add(match);
                 }
             }
         }
@@ -467,6 +489,10 @@ public class TournamentService
             .Include(t => t.Matches)
             .Include(t => t.TournamentPlayers)
             .ThenInclude(tp => tp.Player)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player1)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player2)
             .FirstOrDefaultAsync(t => t.Id == tournamentId);
 
         if (tournament == null)
@@ -495,26 +521,30 @@ public class TournamentService
 
     private static List<GroupStandingResponse> GetSingleEliminationStandings(Tournament tournament)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         var completedMatches = tournament.Matches
-            .Where(m => m.Status == MatchStatus.Completed && m.Player1Id != null && m.Player2Id != null)
+            .Where(m => m.Status == MatchStatus.Completed
+                && MatchSideAccessor.GetSide1Id(m, isDoubles) != null
+                && MatchSideAccessor.GetSide2Id(m, isDoubles) != null)
             .ToList();
 
-        var placements = FinalPlacementCalculator.Compute(tournament);
+        var placements = FinalPlacementCalculator.ComputeSides(tournament);
 
         var standings = placements
             .Select(p =>
             {
-                var playerMatches = completedMatches
-                    .Where(m => m.Player1Id == p.PlayerId || m.Player2Id == p.PlayerId)
+                var sideMatches = completedMatches
+                    .Where(m => MatchSideAccessor.GetSide1Id(m, isDoubles) == p.SideId
+                        || MatchSideAccessor.GetSide2Id(m, isDoubles) == p.SideId)
                     .ToList();
-                int won = playerMatches.Count(m => m.WinnerId == p.PlayerId);
+                int won = sideMatches.Count(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) == p.SideId);
 
                 return new PlayerStandingResponse(
-                    p.PlayerId,
-                    p.PlayerName,
-                    playerMatches.Count,
+                    p.SideId,
+                    p.SideName,
+                    sideMatches.Count,
                     won,
-                    playerMatches.Count - won,
+                    sideMatches.Count - won,
                     0, // PointsFor non applicable
                     0,
                     0,
@@ -532,32 +562,34 @@ public class TournamentService
 
     private List<GroupStandingResponse> GetRoundRobinStandings(Tournament tournament)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         var completedMatches = tournament.Matches
             .Where(m => m.Status == MatchStatus.Completed)
             .ToList();
 
         var standings = new List<PlayerStandingResponse>();
 
-        foreach (var tp in tournament.TournamentPlayers)
+        foreach (var side in MatchSideAccessor.GetSides(tournament))
         {
-            var playerMatches = completedMatches
-                .Where(m => m.Player1Id == tp.PlayerId || m.Player2Id == tp.PlayerId)
+            var sideMatches = completedMatches
+                .Where(m => MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id
+                    || MatchSideAccessor.GetSide2Id(m, isDoubles) == side.Id)
                 .ToList();
 
-            int played = playerMatches.Count;
-            int won = playerMatches.Count(m => m.WinnerId == tp.PlayerId);
+            int played = sideMatches.Count;
+            int won = sideMatches.Count(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) == side.Id);
             int lost = played - won;
 
-            int pointsFor = playerMatches.Sum(m =>
-                m.Player1Id == tp.PlayerId ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
-            int pointsAgainst = playerMatches.Sum(m =>
-                m.Player1Id == tp.PlayerId ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
+            int pointsFor = sideMatches.Sum(m =>
+                MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
+            int pointsAgainst = sideMatches.Sum(m =>
+                MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
 
             int points = won * 3; // 3 points per win
 
             standings.Add(new PlayerStandingResponse(
-                tp.PlayerId,
-                $"{tp.Player.FirstName} {tp.Player.LastName}",
+                side.Id,
+                side.Name,
                 played,
                 won,
                 lost,
@@ -597,12 +629,14 @@ public class TournamentService
 
     private List<GroupStandingResponse> GetGroupStageStandings(Tournament tournament)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
+        var allSides = MatchSideAccessor.GetSides(tournament);
         var result = new List<GroupStandingResponse>();
 
         foreach (var group in tournament.Groups.OrderBy(g => g.Name))
         {
-            var groupPlayers = tournament.TournamentPlayers
-                .Where(tp => tp.GroupId == group.Id)
+            var groupSides = allSides
+                .Where(s => s.GroupId == group.Id)
                 .ToList();
 
             var groupMatches = tournament.Matches
@@ -611,26 +645,27 @@ public class TournamentService
 
             var standings = new List<PlayerStandingResponse>();
 
-            foreach (var tp in groupPlayers)
+            foreach (var side in groupSides)
             {
-                var playerMatches = groupMatches
-                    .Where(m => m.Player1Id == tp.PlayerId || m.Player2Id == tp.PlayerId)
+                var sideMatches = groupMatches
+                    .Where(m => MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id
+                        || MatchSideAccessor.GetSide2Id(m, isDoubles) == side.Id)
                     .ToList();
 
-                int played = playerMatches.Count;
-                int won = playerMatches.Count(m => m.WinnerId == tp.PlayerId);
+                int played = sideMatches.Count;
+                int won = sideMatches.Count(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) == side.Id);
                 int lost = played - won;
 
-                int pointsFor = playerMatches.Sum(m =>
-                    m.Player1Id == tp.PlayerId ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
-                int pointsAgainst = playerMatches.Sum(m =>
-                    m.Player1Id == tp.PlayerId ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
+                int pointsFor = sideMatches.Sum(m =>
+                    MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
+                int pointsAgainst = sideMatches.Sum(m =>
+                    MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
 
                 int points = won * 3; // 3 points per win
 
                 standings.Add(new PlayerStandingResponse(
-                    tp.PlayerId,
-                    $"{tp.Player.FirstName} {tp.Player.LastName}",
+                    side.Id,
+                    side.Name,
                     played,
                     won,
                     lost,
@@ -669,6 +704,7 @@ public class TournamentService
 
     private List<GroupStandingResponse> GetDoubleEliminationStandings(Tournament tournament)
     {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         var completedMatches = tournament.Matches
             .Where(m => m.Status == MatchStatus.Completed)
             .ToList();
@@ -681,7 +717,7 @@ public class TournamentService
             };
         }
 
-        var standings = new List<(int PlayerId, string PlayerName, int Won, int Lost, int EliminationRound, BracketType EliminationBracket, bool IsChampion)>();
+        var standings = new List<(int SideId, string SideName, int Won, int Lost, int EliminationRound, BracketType EliminationBracket, bool IsChampion)>();
 
         // Find Grand Final matches
         var grandFinalMatches = completedMatches
@@ -690,42 +726,39 @@ public class TournamentService
             .ToList();
 
         int? championId = null;
-        int? runnerUpId = null;
 
-        // Determine champion and runner-up from Grand Final
+        // Determine champion from Grand Final
         if (grandFinalMatches.Any())
         {
             var finalMatch = grandFinalMatches.First(); // Last GF match (could be bracket reset)
-            championId = finalMatch.WinnerId;
-
-            // Runner-up is the loser of the final match
-            runnerUpId = finalMatch.Player1Id == championId ? finalMatch.Player2Id : finalMatch.Player1Id;
+            championId = MatchSideAccessor.GetWinnerSideId(finalMatch, isDoubles);
         }
 
-        // For each player, find their elimination point
-        foreach (var tp in tournament.TournamentPlayers)
+        // For each side, find their elimination point
+        foreach (var side in MatchSideAccessor.GetSides(tournament))
         {
-            var playerId = tp.PlayerId;
-            var playerName = $"{tp.Player.FirstName} {tp.Player.LastName}";
-
             // Count wins and losses
-            var playerMatches = completedMatches
-                .Where(m => m.Player1Id == playerId || m.Player2Id == playerId)
+            var sideMatches = completedMatches
+                .Where(m => MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id
+                    || MatchSideAccessor.GetSide2Id(m, isDoubles) == side.Id)
                 .ToList();
 
-            int won = playerMatches.Count(m => m.WinnerId == playerId);
-            int lost = playerMatches.Count(m => m.WinnerId != playerId && m.WinnerId != null);
+            int won = sideMatches.Count(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) == side.Id);
+            int lost = sideMatches.Count(m =>
+                MatchSideAccessor.GetWinnerSideId(m, isDoubles) != side.Id
+                && MatchSideAccessor.GetWinnerSideId(m, isDoubles) != null);
 
             // Find elimination match (where they lost and were eliminated)
             // In Double Elim: eliminated when losing in Losers bracket or Grand Final
-            var eliminationMatch = playerMatches
-                .Where(m => m.WinnerId != playerId && m.WinnerId != null)
+            var eliminationMatch = sideMatches
+                .Where(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) != side.Id
+                    && MatchSideAccessor.GetWinnerSideId(m, isDoubles) != null)
                 .Where(m => m.BracketType == BracketType.Losers || m.BracketType == BracketType.GrandFinal)
                 .OrderByDescending(m => m.BracketType == BracketType.GrandFinal ? 1000 : 0)
                 .ThenByDescending(m => m.Round)
                 .FirstOrDefault();
 
-            bool isChampion = playerId == championId;
+            bool isChampion = side.Id == championId;
             int eliminationRound = 0;
             BracketType eliminationBracket = BracketType.None;
 
@@ -740,13 +773,13 @@ public class TournamentService
                 eliminationRound = int.MaxValue;
                 eliminationBracket = BracketType.GrandFinal;
             }
-            else if (playerMatches.Count == 0)
+            else if (sideMatches.Count == 0)
             {
-                // Player hasn't played yet
+                // Side hasn't played yet
                 eliminationRound = -1;
             }
 
-            standings.Add((playerId, playerName, won, lost, eliminationRound, eliminationBracket, isChampion));
+            standings.Add((side.Id, side.Name, won, lost, eliminationRound, eliminationBracket, isChampion));
         }
 
         // Sort: Champion first, then by elimination point (later = better)
@@ -757,8 +790,8 @@ public class TournamentService
             .ThenByDescending(s => s.EliminationRound)
             .ThenByDescending(s => s.Won)
             .Select((s, index) => new PlayerStandingResponse(
-                s.PlayerId,
-                s.PlayerName,
+                s.SideId,
+                s.SideName,
                 s.Won + s.Lost, // Played
                 s.Won,
                 s.Lost,
@@ -782,6 +815,10 @@ public class TournamentService
             .Include(t => t.Groups)
             .Include(t => t.TournamentPlayers)
             .ThenInclude(tp => tp.Player)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player1)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player2)
             .FirstOrDefaultAsync(t => t.Id == tournamentId);
 
         if (tournament == null)
@@ -795,8 +832,9 @@ public class TournamentService
         // Get standings to determine qualifiers
         var standings = await GetStandingsAsync(tournamentId);
 
-        // Collect qualified players from each group
-        var qualifiedPlayers = new List<(Player Player, int GroupIndex, int Rank)>();
+        // Collect qualified sides from each group (PlayerId = id de côté dans les standings)
+        var allSides = MatchSideAccessor.GetSides(tournament);
+        var qualifiedSides = new List<(Side Side, int GroupIndex, int Rank)>();
         int groupIndex = 0;
 
         foreach (var groupStanding in standings.OrderBy(g => g.GroupName))
@@ -807,68 +845,65 @@ public class TournamentService
 
             foreach (var qualifier in qualifiers)
             {
-                var player = tournament.TournamentPlayers
-                    .First(tp => tp.PlayerId == qualifier.PlayerId)
-                    .Player;
-                qualifiedPlayers.Add((player, groupIndex, qualifier.Rank));
+                var side = allSides.First(s => s.Id == qualifier.PlayerId);
+                qualifiedSides.Add((side, groupIndex, qualifier.Rank));
             }
             groupIndex++;
         }
 
-        if (qualifiedPlayers.Count < 2)
+        if (qualifiedSides.Count < 2)
             throw new InvalidOperationException("Not enough qualified players for knockout phase");
 
-        // Arrange players for knockout bracket with proper seeding
+        // Arrange sides for knockout bracket with proper seeding
         // - Top seeds get byes (if any)
         // - Top seeds meet as late as possible (protection)
         // - Cross-group matchups: 1A vs last qualifier from other group
-        var arrangedPlayers = ArrangePlayersForKnockout(qualifiedPlayers, standings.Count, standings);
+        var arrangedSides = ArrangeSidesForKnockout(qualifiedSides, standings);
 
         // Calculate round offset (group stage uses round 1)
         int roundOffset = 1;
 
         // Generate knockout bracket
-        GenerateSingleEliminationBracket(tournament, arrangedPlayers, isKnockout: true, roundOffset: roundOffset);
+        GenerateSingleEliminationBracket(tournament, arrangedSides, isKnockout: true, roundOffset: roundOffset);
 
         await _context.SaveChangesAsync();
     }
 
-    private List<Player> ArrangePlayersForKnockout(
-        List<(Player Player, int GroupIndex, int Rank)> qualifiedPlayers,
-        int groupCount,
+    private List<Side> ArrangeSidesForKnockout(
+        List<(Side Side, int GroupIndex, int Rank)> qualifiedSides,
         List<GroupStandingResponse> standings)
     {
         // Create global seeding based on rank in group, then stats (points, diff, for)
         // This ensures:
         // - All 1st place finishers are seeded before 2nd place, etc.
-        // - Within each rank, players are sorted by performance
+        // - Within each rank, sides are sorted by performance
         // - Top seeds get byes and are protected (meet late)
         // - Cross-group matchups happen naturally (1A vs 2B, 2A vs 3B, etc.)
-        var seededPlayers = qualifiedPlayers
+        var seededSides = qualifiedSides
             .Select(p => {
                 var groupStanding = standings.FirstOrDefault(g =>
-                    g.Standings.Any(s => s.PlayerId == p.Player.Id));
-                var playerStats = groupStanding?.Standings
-                    .FirstOrDefault(s => s.PlayerId == p.Player.Id);
+                    g.Standings.Any(s => s.PlayerId == p.Side.Id));
+                var sideStats = groupStanding?.Standings
+                    .FirstOrDefault(s => s.PlayerId == p.Side.Id);
                 return new {
-                    p.Player,
+                    p.Side,
                     p.GroupIndex,
                     p.Rank,
-                    Points = playerStats?.Points ?? 0,
-                    PointsDiff = playerStats?.PointsDiff ?? 0,
-                    PointsFor = playerStats?.PointsFor ?? 0
+                    Points = sideStats?.Points ?? 0,
+                    PointsDiff = sideStats?.PointsDiff ?? 0,
+                    PointsFor = sideStats?.PointsFor ?? 0
                 };
             })
             .OrderBy(p => p.Rank)            // Primary: rank in group (1st > 2nd > 3rd)
             .ThenByDescending(p => p.Points) // Then by points
             .ThenByDescending(p => p.PointsDiff) // Then by point difference
             .ThenByDescending(p => p.PointsFor)  // Then by points scored
-            .Select(p => p.Player)
+            .Select(p => p.Side)
             .ToList();
 
-        // Return players in seed order (seed 1 first, seed 2 second, etc.)
+        // Return sides in seed order (seed 1 first, seed 2 second, etc.)
         // GenerateSingleEliminationBracket will place them at correct bracket positions
-        return seededPlayers;
+        return seededSides;
     }
 
     /// <summary>
@@ -927,28 +962,31 @@ public class TournamentService
         if (match == null)
             throw new InvalidOperationException("Match not found");
 
+        bool isDoubles = MatchSideAccessor.IsDoubles(match.Tournament);
+
         match.Player1Score = player1Score;
         match.Player2Score = player2Score;
         match.Status = MatchStatus.Completed;
 
         if (player1Score > player2Score)
-            match.WinnerId = match.Player1Id;
+            MatchSideAccessor.SetWinnerSideId(match, MatchSideAccessor.GetSide1Id(match, isDoubles), isDoubles);
         else if (player2Score > player1Score)
-            match.WinnerId = match.Player2Id;
+            MatchSideAccessor.SetWinnerSideId(match, MatchSideAccessor.GetSide2Id(match, isDoubles), isDoubles);
 
         var tournament = match.Tournament;
+        var winnerSideId = MatchSideAccessor.GetWinnerSideId(match, isDoubles);
 
         // For single elimination or knockout matches, advance winner to next match
         if ((tournament.Format == TournamentFormat.SingleElimination || match.IsKnockoutMatch)
-            && match.WinnerId != null)
+            && winnerSideId != null)
         {
-            await AdvanceWinnerAsync(match);
+            await AdvanceWinnerAsync(match, isDoubles);
         }
 
         // For double elimination, handle both winner and loser advancement
-        if (tournament.Format == TournamentFormat.DoubleElimination && match.WinnerId != null)
+        if (tournament.Format == TournamentFormat.DoubleElimination && winnerSideId != null)
         {
-            await AdvanceDoubleEliminationAsync(match);
+            await AdvanceDoubleEliminationAsync(match, isDoubles);
         }
 
         await _context.SaveChangesAsync();
@@ -1029,7 +1067,7 @@ public class TournamentService
         }
     }
 
-    private async Task AdvanceWinnerAsync(Match completedMatch)
+    private async Task AdvanceWinnerAsync(Match completedMatch, bool isDoubles)
     {
         // Get all matches in the next round for the same phase (knockout or group)
         var nextRoundMatches = await _context.Matches
@@ -1056,41 +1094,43 @@ public class TournamentService
         if (nextMatchIndex < nextRoundMatches.Count)
         {
             var nextMatch = nextRoundMatches[nextMatchIndex];
+            var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
             if (matchIndexInRound % 2 == 0)
-                nextMatch.Player1Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
             else
-                nextMatch.Player2Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
         }
     }
 
-    private async Task AdvanceDoubleEliminationAsync(Match completedMatch)
+    private async Task AdvanceDoubleEliminationAsync(Match completedMatch, bool isDoubles)
     {
-        var loserId = completedMatch.Player1Id == completedMatch.WinnerId
-            ? completedMatch.Player2Id
-            : completedMatch.Player1Id;
+        var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
+        var loserSideId = MatchSideAccessor.GetSide1Id(completedMatch, isDoubles) == winnerSideId
+            ? MatchSideAccessor.GetSide2Id(completedMatch, isDoubles)
+            : MatchSideAccessor.GetSide1Id(completedMatch, isDoubles);
 
         switch (completedMatch.BracketType)
         {
             case BracketType.Winners:
-                await AdvanceWinnerInWinnersBracketAsync(completedMatch);
-                if (loserId != null)
+                await AdvanceWinnerInWinnersBracketAsync(completedMatch, isDoubles);
+                if (loserSideId != null)
                 {
-                    await DropLoserToLosersBracketAsync(completedMatch, loserId.Value);
+                    await DropLoserToLosersBracketAsync(completedMatch, loserSideId.Value, isDoubles);
                 }
                 break;
 
             case BracketType.Losers:
-                await AdvanceWinnerInLosersBracketAsync(completedMatch);
+                await AdvanceWinnerInLosersBracketAsync(completedMatch, isDoubles);
                 // Loser is eliminated (second loss)
                 break;
 
             case BracketType.GrandFinal:
-                await HandleGrandFinalCompletionAsync(completedMatch);
+                await HandleGrandFinalCompletionAsync(completedMatch, isDoubles);
                 break;
         }
     }
 
-    private async Task AdvanceWinnerInWinnersBracketAsync(Match completedMatch)
+    private async Task AdvanceWinnerInWinnersBracketAsync(Match completedMatch, bool isDoubles)
     {
         // Get next round in winner's bracket
         var nextRoundMatches = await _context.Matches
@@ -1110,7 +1150,7 @@ public class TournamentService
 
             if (grandFinal != null)
             {
-                grandFinal.Player1Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide1Id(grandFinal, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
             return;
         }
@@ -1129,14 +1169,15 @@ public class TournamentService
         if (nextMatchIndex < nextRoundMatches.Count)
         {
             var nextMatch = nextRoundMatches[nextMatchIndex];
+            var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
             if (matchIndexInRound % 2 == 0)
-                nextMatch.Player1Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
             else
-                nextMatch.Player2Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
         }
     }
 
-    private async Task DropLoserToLosersBracketAsync(Match winnersMatch, int loserId)
+    private async Task DropLoserToLosersBracketAsync(Match winnersMatch, int loserSideId, bool isDoubles)
     {
         // Determine which loser's bracket round receives this loser
         // Winner's round R losers go to Loser's round (R * 2 - 1) for R >= 2
@@ -1182,9 +1223,9 @@ public class TournamentService
             {
                 targetMatch = losersRoundMatches[targetMatchIndex];
                 if (matchIndexInRound % 2 == 0)
-                    targetMatch.Player1Id = loserId;
+                    MatchSideAccessor.SetSide1Id(targetMatch, loserSideId, isDoubles);
                 else
-                    targetMatch.Player2Id = loserId;
+                    MatchSideAccessor.SetSide2Id(targetMatch, loserSideId, isDoubles);
 
                 // Check if the other slot will remain empty (bye case)
                 // The paired Winners R1 match
@@ -1192,39 +1233,40 @@ public class TournamentService
                 if (pairedMatchIndex < winnersRoundMatches.Count)
                 {
                     var pairedMatch = winnersRoundMatches[pairedMatchIndex];
-                    // If paired match was a bye (one player null), no loser will come from it
-                    bool pairedWasBye = (pairedMatch.Player1Id == null || pairedMatch.Player2Id == null);
+                    // If paired match was a bye (one side null), no loser will come from it
+                    bool pairedWasBye = (MatchSideAccessor.GetSide1Id(pairedMatch, isDoubles) == null
+                        || MatchSideAccessor.GetSide2Id(pairedMatch, isDoubles) == null);
                     if (pairedWasBye)
                     {
                         // This loser gets a bye in Losers R1 - auto advance
-                        targetMatch.WinnerId = loserId;
+                        MatchSideAccessor.SetWinnerSideId(targetMatch, loserSideId, isDoubles);
                         targetMatch.Status = MatchStatus.Completed;
                         targetMatch.Player1Score = 0;
                         targetMatch.Player2Score = 0;
 
                         // Advance to next losers round
-                        await AdvanceWinnerInLosersBracketAsync(targetMatch);
+                        await AdvanceWinnerInLosersBracketAsync(targetMatch, isDoubles);
                     }
                 }
             }
         }
         else
         {
-            // For round 2+ losers: they join as Player2 to face winners from previous loser's round
+            // For round 2+ losers: they join as side 2 to face winners from previous loser's round
             if (matchIndexInRound < losersRoundMatches.Count)
             {
                 targetMatch = losersRoundMatches[matchIndexInRound];
-                targetMatch.Player2Id = loserId;
+                MatchSideAccessor.SetSide2Id(targetMatch, loserSideId, isDoubles);
 
-                // Check if Player1 slot (from previous losers round) is already filled
-                // If Player1 is set and match is not completed, both players are ready
-                // If Player1 is null, the previous losers match might have been a bye cascade
+                // Check if side 1 slot (from previous losers round) is already filled
+                // If side 1 is set and match is not completed, both sides are ready
+                // If side 1 is null, the previous losers match might have been a bye cascade
                 // We need to check if the previous losers round match was auto-completed as bye
             }
         }
     }
 
-    private async Task AdvanceWinnerInLosersBracketAsync(Match completedMatch)
+    private async Task AdvanceWinnerInLosersBracketAsync(Match completedMatch, bool isDoubles)
     {
         // Check if this is the final loser's bracket match
         var maxLosersRound = await _context.Matches
@@ -1242,7 +1284,7 @@ public class TournamentService
 
             if (grandFinal != null)
             {
-                grandFinal.Player2Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide2Id(grandFinal, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
             return;
         }
@@ -1268,13 +1310,14 @@ public class TournamentService
 
         int matchIndexInRound = currentRoundMatches.FindIndex(m => m.Id == completedMatch.Id);
 
-        // Odd loser's rounds lead to Player1 slots, even rounds are drop-down rounds
+        // Odd loser's rounds lead to side 1 slots, even rounds are drop-down rounds
         if (completedMatch.Round % 2 == 1)
         {
-            // Consolidation round winners go to Player1 slots
+            // Consolidation round winners go to side 1 slots
             if (matchIndexInRound < nextRoundMatches.Count)
             {
-                nextRoundMatches[matchIndexInRound].Player1Id = completedMatch.WinnerId;
+                MatchSideAccessor.SetSide1Id(nextRoundMatches[matchIndexInRound],
+                    MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
         }
         else
@@ -1284,24 +1327,27 @@ public class TournamentService
             if (nextMatchIndex < nextRoundMatches.Count)
             {
                 var nextMatch = nextRoundMatches[nextMatchIndex];
+                var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
                 if (matchIndexInRound % 2 == 0)
-                    nextMatch.Player1Id = completedMatch.WinnerId;
+                    MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
                 else
-                    nextMatch.Player2Id = completedMatch.WinnerId;
+                    MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
             }
         }
     }
 
-    private async Task HandleGrandFinalCompletionAsync(Match grandFinalMatch)
+    private async Task HandleGrandFinalCompletionAsync(Match grandFinalMatch, bool isDoubles)
     {
         var tournament = await _context.Tournaments.FindAsync(grandFinalMatch.TournamentId);
         if (tournament == null) return;
 
+        var winnerSideId = MatchSideAccessor.GetWinnerSideId(grandFinalMatch, isDoubles);
+
         if (!grandFinalMatch.IsBracketReset)
         {
             // Grand Final 1
-            // Player1 is winner's bracket champion, Player2 is loser's bracket champion
-            if (grandFinalMatch.WinnerId == grandFinalMatch.Player1Id)
+            // Side 1 is winner's bracket champion, side 2 is loser's bracket champion
+            if (winnerSideId == MatchSideAccessor.GetSide1Id(grandFinalMatch, isDoubles))
             {
                 // Winner's bracket champion wins - tournament complete
                 tournament.Status = TournamentStatus.Completed;
@@ -1313,7 +1359,7 @@ public class TournamentService
                 if (resetMatch != null)
                 {
                     resetMatch.Status = MatchStatus.Completed;
-                    resetMatch.WinnerId = grandFinalMatch.WinnerId;
+                    MatchSideAccessor.SetWinnerSideId(resetMatch, winnerSideId, isDoubles);
                     resetMatch.Player1Score = 0;
                     resetMatch.Player2Score = 0;
                 }
@@ -1327,8 +1373,8 @@ public class TournamentService
 
                 if (resetMatch != null && tournament.AllowBracketReset)
                 {
-                    resetMatch.Player1Id = grandFinalMatch.Player1Id;
-                    resetMatch.Player2Id = grandFinalMatch.Player2Id;
+                    MatchSideAccessor.SetSide1Id(resetMatch, MatchSideAccessor.GetSide1Id(grandFinalMatch, isDoubles), isDoubles);
+                    MatchSideAccessor.SetSide2Id(resetMatch, MatchSideAccessor.GetSide2Id(grandFinalMatch, isDoubles), isDoubles);
                 }
                 else
                 {

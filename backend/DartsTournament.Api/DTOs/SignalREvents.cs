@@ -9,7 +9,8 @@ public record ThrowRecordedEvent(
     int Player1CurrentScore,
     int Player2CurrentScore,
     int CurrentPlayerId,
-    MatchStatsResponse Stats
+    MatchStatsResponse Stats,
+    int CurrentSideId = 0
 );
 
 /// <summary>
@@ -61,5 +62,6 @@ public record CricketTurnRecordedEvent(
     CricketTurnResponse Turn,
     int Player1CurrentScore,
     int Player2CurrentScore,
-    int CurrentPlayerId
+    int CurrentPlayerId,
+    int CurrentSideId = 0
 );

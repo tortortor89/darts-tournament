@@ -38,7 +38,8 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       </div>
 
       <!-- Self-registration section (for authenticated users with player profile) -->
-      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated() && !authService.isAdmin()) {
+      <!-- Masquée en double : les paires sont composées par l'administrateur -->
+      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated() && !authService.isAdmin() && !tournament.isDoubles) {
         <div class="self-registration-section">
           @if (authService.hasLinkedPlayer()) {
             @if (isUserRegistered()) {
@@ -74,25 +75,83 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
         </div>
       }
 
-      <!-- Players list visible to everyone in Draft status -->
+      <!-- Players/teams list visible to everyone in Draft status -->
       @if (tournament.status === TournamentStatus.Draft) {
         <div class="players-section">
-          <h3>Joueurs inscrits ({{ tournament.players.length }})</h3>
-
-          @if (!authService.isAdmin()) {
-            <ul class="player-list">
-              @for (player of tournament.players; track player.playerId) {
-                <li>
-                  {{ player.firstName }} {{ player.lastName }}
-                  @if (player.nickname) { ({{ player.nickname }}) }
-                </li>
-              }
-            </ul>
+          @if (tournament.isDoubles) {
+            <h3>Paires inscrites ({{ tournament.teams?.length || 0 }})</h3>
+            @if (!authService.isAdmin()) {
+              <ul class="player-list">
+                @for (team of tournament.teams; track team.id) {
+                  <li>{{ team.name }}</li>
+                }
+              </ul>
+            }
+          } @else {
+            <h3>Joueurs inscrits ({{ tournament.players.length }})</h3>
+            @if (!authService.isAdmin()) {
+              <ul class="player-list">
+                @for (player of tournament.players; track player.playerId) {
+                  <li>
+                    {{ player.firstName }} {{ player.lastName }}
+                    @if (player.nickname) { ({{ player.nickname }}) }
+                  </li>
+                }
+              </ul>
+            }
           }
         </div>
       }
 
-      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin()) {
+      <!-- Admin : gestion des paires (tournoi en double) -->
+      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin() && tournament.isDoubles) {
+        <div class="players-section">
+          <h3>Gestion des paires (Admin)</h3>
+
+          <div class="add-player">
+            <h4>Ajouter une paire</h4>
+            <select [(ngModel)]="selectedTeamPlayer1Id">
+              <option value="">Joueur 1</option>
+              @for (player of getUnpairedPlayers(); track player.id) {
+                <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+              }
+            </select>
+            <select [(ngModel)]="selectedTeamPlayer2Id">
+              <option value="">Joueur 2</option>
+              @for (player of getUnpairedPlayers(); track player.id) {
+                @if (player.id !== Number(selectedTeamPlayer1Id)) {
+                  <option [value]="player.id">{{ player.firstName }} {{ player.lastName }}</option>
+                }
+              }
+            </select>
+            <input type="number" [(ngModel)]="selectedTeamSeed" placeholder="Seed (optionnel)">
+            <button (click)="addTeam()" [disabled]="!selectedTeamPlayer1Id || !selectedTeamPlayer2Id">Ajouter la paire</button>
+          </div>
+
+          <div class="approved-section">
+            <h4>Paires ({{ tournament.teams?.length || 0 }})</h4>
+            <ul class="player-list">
+              @for (team of tournament.teams; track team.id) {
+                <li>
+                  <span>
+                    {{ team.name }}
+                    @if (team.seed) { - Seed: {{ team.seed }} }
+                  </span>
+                  <button (click)="removeTeam(team.id)" class="remove">X</button>
+                </li>
+              }
+            </ul>
+          </div>
+
+          @if ((tournament.teams?.length || 0) >= 2) {
+            <button (click)="generateBracket()" class="generate">Générer le bracket ({{ tournament.teams?.length }} paires)</button>
+          } @else {
+            <p class="info-text">Au moins 2 paires sont nécessaires pour générer le bracket</p>
+          }
+        </div>
+      }
+
+      @if (tournament.status === TournamentStatus.Draft && authService.isAdmin() && !tournament.isDoubles) {
         <div class="players-section">
           <h3>Gestion des joueurs (Admin)</h3>
 
@@ -995,6 +1054,10 @@ export class TournamentDetailComponent implements OnInit {
   availablePlayers: Player[] = [];
   selectedPlayerId = '';
   selectedSeed: number | null = null;
+  selectedTeamPlayer1Id = '';
+  selectedTeamPlayer2Id = '';
+  selectedTeamSeed: number | null = null;
+  Number = Number;
   scoreInputs: { [key: number]: { player1: number; player2: number } } = {};
   loading = false;
 
@@ -1062,6 +1125,45 @@ export class TournamentDetailComponent implements OnInit {
       this.tournament.matches.forEach(match => {
         this.scoreInputs[match.id] = { player1: 0, player2: 0 };
       });
+    }
+  }
+
+  // Joueurs pas encore membres d'une paire de ce tournoi (doubles)
+  getUnpairedPlayers(): Player[] {
+    const pairedIds = new Set(
+      (this.tournament?.teams ?? []).flatMap(t => [t.player1Id, t.player2Id])
+    );
+    return this.availablePlayers.filter(p => !pairedIds.has(p.id));
+  }
+
+  addTeam() {
+    if (this.tournament && this.selectedTeamPlayer1Id && this.selectedTeamPlayer2Id) {
+      this.apiService.addTeamToTournament(
+        this.tournament.id,
+        Number(this.selectedTeamPlayer1Id),
+        Number(this.selectedTeamPlayer2Id),
+        this.selectedTeamSeed || undefined
+      ).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(team => {
+        this.notificationService.showSuccess('Paire ajoutée');
+        if (this.tournament) {
+          this.tournament.teams = [...(this.tournament.teams ?? []), team];
+        }
+        this.selectedTeamPlayer1Id = '';
+        this.selectedTeamPlayer2Id = '';
+        this.selectedTeamSeed = null;
+      });
+    }
+  }
+
+  removeTeam(teamId: number) {
+    if (this.tournament) {
+      this.apiService.removeTeamFromTournament(this.tournament.id, teamId)
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+          this.notificationService.showSuccess('Paire retirée');
+          if (this.tournament) {
+            this.tournament.teams = (this.tournament.teams ?? []).filter(t => t.id !== teamId);
+          }
+        });
     }
   }
 

@@ -14,6 +14,20 @@ public class PlayerStatsService
         _context = context;
     }
 
+    // Le joueur participe au match : directement (simple) ou via sa paire (double)
+    private static bool PlaysInMatch(Match m, int playerId) =>
+        m.Player1Id == playerId || m.Player2Id == playerId
+        || (m.Team1 != null && (m.Team1.Player1Id == playerId || m.Team1.Player2Id == playerId))
+        || (m.Team2 != null && (m.Team2.Player1Id == playerId || m.Team2.Player2Id == playerId));
+
+    private static bool WonMatch(Match m, int playerId) =>
+        m.WinnerId == playerId
+        || (m.WinnerTeam != null && (m.WinnerTeam.Player1Id == playerId || m.WinnerTeam.Player2Id == playerId));
+
+    private static bool OnSide1(Match m, int playerId) =>
+        m.Player1Id == playerId
+        || (m.Team1 != null && (m.Team1.Player1Id == playerId || m.Team1.Player2Id == playerId));
+
     public async Task<PlayerCareerStatsResponse> GetCareerStatsAsync(int playerId)
     {
         // 1. Récupérer Player
@@ -21,24 +35,36 @@ public class PlayerStatsService
         if (player == null)
             throw new InvalidOperationException($"Player {playerId} not found");
 
-        // 2. Tous les matchs terminés (wins/losses)
+        // 2. Tous les matchs terminés (wins/losses) — les matchs de double comptent
+        // via l'appartenance à une paire
         var matches = await _context.Matches
             .Include(m => m.Tournament)
-            .Where(m => (m.Player1Id == playerId || m.Player2Id == playerId)
+            .Include(m => m.Team1)
+            .Include(m => m.Team2)
+            .Include(m => m.WinnerTeam)
+            .Where(m => (m.Player1Id == playerId || m.Player2Id == playerId
+                        || (m.Team1 != null && (m.Team1.Player1Id == playerId || m.Team1.Player2Id == playerId))
+                        || (m.Team2 != null && (m.Team2.Player1Id == playerId || m.Team2.Player2Id == playerId)))
                         && m.Status == MatchStatus.Completed)
             .ToListAsync();
 
         int totalMatches = matches.Count;
-        int matchesWon = matches.Count(m => m.WinnerId == playerId);
+        int matchesWon = matches.Count(m => WonMatch(m, playerId));
         int matchesLost = totalMatches - matchesWon;
         double winPct = totalMatches > 0 ? (double)matchesWon / totalMatches * 100 : 0;
 
         // 3. MatchSessions avec Throws (stats détaillées, x01 uniquement :
         // les visites Cricket fausseraient moyennes et checkouts)
+        // Les volées étant attribuées au vrai lanceur, les stats de double sont exactes
         var sessionsWithThrows = await _context.MatchSessions
             .Include(ms => ms.Throws)
             .Include(ms => ms.Match)
-            .Where(ms => (ms.Match.Player1Id == playerId || ms.Match.Player2Id == playerId)
+            .ThenInclude(m => m.Team1)
+            .Include(ms => ms.Match)
+            .ThenInclude(m => m.Team2)
+            .Where(ms => (ms.Match.Player1Id == playerId || ms.Match.Player2Id == playerId
+                         || (ms.Match.Team1 != null && (ms.Match.Team1.Player1Id == playerId || ms.Match.Team1.Player2Id == playerId))
+                         || (ms.Match.Team2 != null && (ms.Match.Team2.Player1Id == playerId || ms.Match.Team2.Player2Id == playerId)))
                          && ms.Status == MatchSessionStatus.Finished
                          && ms.GameMode != GameMode.Cricket
                          && ms.Throws.Any())
@@ -50,12 +76,16 @@ public class PlayerStatsService
             detailedStats = CalculateAggregatedStats(sessionsWithThrows, playerId);
         }
 
-        // 4. Tournois
-        var tournaments = await _context.TournamentPlayers
+        // 4. Tournois (inscriptions individuelles + paires)
+        var soloTournaments = await _context.TournamentPlayers
             .Where(tp => tp.PlayerId == playerId && tp.Status == RegistrationStatus.Approved)
             .Select(tp => tp.TournamentId)
-            .Distinct()
-            .CountAsync();
+            .ToListAsync();
+        var teamTournaments = await _context.TournamentTeams
+            .Where(tt => tt.Player1Id == playerId || tt.Player2Id == playerId)
+            .Select(tt => tt.TournamentId)
+            .ToListAsync();
+        var tournaments = soloTournaments.Concat(teamTournaments).Distinct().Count();
 
         // 5. Tournois gagnés (TODO: affiner pour vérifier que c'est bien la finale)
         var tournamentsWon = 0; // Placeholder pour l'instant
@@ -81,26 +111,44 @@ public class PlayerStatsService
             .Include(tp => tp.Tournament)
             .Include(tp => tp.Group)
             .Where(tp => tp.PlayerId == playerId && tp.Status == RegistrationStatus.Approved)
-            .OrderByDescending(tp => tp.Tournament.StartDate ?? tp.Tournament.CreatedAt)
             .ToListAsync();
+
+        // Participations en double (via une paire)
+        var tournamentTeams = await _context.TournamentTeams
+            .Include(tt => tt.Tournament)
+            .Include(tt => tt.Group)
+            .Where(tt => tt.Player1Id == playerId || tt.Player2Id == playerId)
+            .ToListAsync();
+
+        // (Tournoi, Groupe) de chaque participation, tous types confondus
+        var participations = tournamentPlayers
+            .Select(tp => (tp.Tournament, tp.GroupId, GroupName: tp.Group?.Name))
+            .Concat(tournamentTeams.Select(tt => (tt.Tournament, tt.GroupId, GroupName: tt.Group?.Name)))
+            .OrderByDescending(p => p.Tournament.StartDate ?? p.Tournament.CreatedAt)
+            .ToList();
 
         var history = new List<PlayerTournamentHistoryItem>();
 
-        foreach (var tp in tournamentPlayers)
+        foreach (var (tournament, groupId, groupName) in participations)
         {
             var matches = await _context.Matches
-                .Where(m => m.TournamentId == tp.TournamentId
-                            && (m.Player1Id == playerId || m.Player2Id == playerId)
+                .Include(m => m.Team1)
+                .Include(m => m.Team2)
+                .Include(m => m.WinnerTeam)
+                .Where(m => m.TournamentId == tournament.Id
+                            && (m.Player1Id == playerId || m.Player2Id == playerId
+                                || (m.Team1 != null && (m.Team1.Player1Id == playerId || m.Team1.Player2Id == playerId))
+                                || (m.Team2 != null && (m.Team2.Player1Id == playerId || m.Team2.Player2Id == playerId)))
                             && m.Status == MatchStatus.Completed)
                 .ToListAsync();
 
             int matchesPlayed = matches.Count;
-            int matchesWon = matches.Count(m => m.WinnerId == playerId);
+            int matchesWon = matches.Count(m => WonMatch(m, playerId));
             int matchesLost = matchesPlayed - matchesWon;
 
             // Déterminer résultat
             string result = "Participant";
-            if (tp.Tournament.Status == TournamentStatus.Completed)
+            if (tournament.Status == TournamentStatus.Completed)
             {
                 // Logique simple: si a gagné tous les matchs, probablement winner
                 if (matchesLost == 0 && matchesPlayed > 0)
@@ -116,7 +164,7 @@ public class PlayerStatsService
                     result = "Did not play";
                 }
             }
-            else if (tp.Tournament.Status == TournamentStatus.InProgress)
+            else if (tournament.Status == TournamentStatus.InProgress)
             {
                 result = matchesPlayed > 0 ? $"En cours ({matchesWon}W-{matchesLost}L)" : "En cours";
             }
@@ -126,17 +174,17 @@ public class PlayerStatsService
             }
 
             history.Add(new PlayerTournamentHistoryItem(
-                tp.TournamentId,
-                tp.Tournament.Name,
-                tp.Tournament.Format,
-                tp.Tournament.Status,
-                tp.Tournament.StartDate,
+                tournament.Id,
+                tournament.Name,
+                tournament.Format,
+                tournament.Status,
+                tournament.StartDate,
                 matchesPlayed,
                 matchesWon,
                 matchesLost,
                 result,
-                tp.GroupId,
-                tp.Group?.Name,
+                groupId,
+                groupName,
                 null // TODO: Group rank calculation
             ));
         }
@@ -146,11 +194,14 @@ public class PlayerStatsService
 
     public async Task<List<HeadToHeadRecord>> GetHeadToHeadStatsAsync(int playerId)
     {
+        // Head-to-head limité aux tournois en simple : en double, le face-à-face
+        // est une affaire de paires, pas de joueurs (à revoir plus tard)
         var matches = await _context.Matches
             .Include(m => m.Player1)
             .Include(m => m.Player2)
             .Include(m => m.Tournament)
             .Where(m => (m.Player1Id == playerId || m.Player2Id == playerId)
+                        && m.Tournament.TeamSize != 2
                         && m.Status == MatchStatus.Completed)
             .ToListAsync();
 
@@ -220,7 +271,7 @@ public class PlayerStatsService
         int oneEighties = allThrows.Count(t => t.Score == 180);
 
         int totalLegsWon = sessions.Sum(s =>
-            s.Match.Player1Id == playerId ? s.Player1LegsWon : s.Player2LegsWon
+            OnSide1(s.Match, playerId) ? s.Player1LegsWon : s.Player2LegsWon
         );
 
         // First 9 average: moyenne des 3 premiers throws de chaque leg

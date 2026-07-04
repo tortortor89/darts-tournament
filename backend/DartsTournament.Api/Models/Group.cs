@@ -9,5 +9,6 @@ public class Group
     public Tournament Tournament { get; set; } = null!;
 
     public ICollection<TournamentPlayer> Players { get; set; } = new List<TournamentPlayer>();
+    public ICollection<TournamentTeam> Teams { get; set; } = new List<TournamentTeam>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();
 }

@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<Throw> Throws => Set<Throw>();
     public DbSet<Circuit> Circuits => Set<Circuit>();
     public DbSet<CircuitPointsRule> CircuitPointsRules => Set<CircuitPointsRule>();
+    public DbSet<TournamentTeam> TournamentTeams => Set<TournamentTeam>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,6 +72,42 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Tournament
+        modelBuilder.Entity<Tournament>(entity =>
+        {
+            // Défaut SQL explicite : sans lui, les lignes existantes avaient reçu 0
+            // lors de la migration AddDoublesSupport
+            entity.Property(t => t.TeamSize).HasDefaultValue(1);
+        });
+
+        // TournamentTeam (paires des tournois en double)
+        modelBuilder.Entity<TournamentTeam>(entity =>
+        {
+            entity.HasOne(tt => tt.Tournament)
+                .WithMany(t => t.Teams)
+                .HasForeignKey(tt => tt.TournamentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(tt => tt.Player1)
+                .WithMany()
+                .HasForeignKey(tt => tt.Player1Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(tt => tt.Player2)
+                .WithMany()
+                .HasForeignKey(tt => tt.Player2Id)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(tt => tt.Group)
+                .WithMany(g => g.Teams)
+                .HasForeignKey(tt => tt.GroupId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Un joueur ne peut appartenir qu'à une paire par tournoi
+            entity.HasIndex(tt => new { tt.TournamentId, tt.Player1Id }).IsUnique();
+            entity.HasIndex(tt => new { tt.TournamentId, tt.Player2Id }).IsUnique();
+        });
+
         // Match
         modelBuilder.Entity<Match>(entity =>
         {
@@ -97,6 +134,21 @@ public class AppDbContext : DbContext
             entity.HasOne(m => m.Winner)
                 .WithMany()
                 .HasForeignKey(m => m.WinnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(m => m.Team1)
+                .WithMany()
+                .HasForeignKey(m => m.Team1Id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(m => m.Team2)
+                .WithMany()
+                .HasForeignKey(m => m.Team2Id)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(m => m.WinnerTeam)
+                .WithMany()
+                .HasForeignKey(m => m.WinnerTeamId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 

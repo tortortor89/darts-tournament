@@ -42,7 +42,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
           <!-- Main Score Display -->
           <div class="main-score">
-            <div class="player-side left" [class.active]="session.currentPlayerId === session.player1.playerId" [class.winner]="isWinner(session.player1.playerId)">
+            <div class="player-side left" [class.active]="session.currentSideId === session.player1.playerId" [class.winner]="isWinner(session.player1.playerId)">
               <div class="player-name">{{ session.player1.name }}</div>
               <div class="score-display">
                 <div class="remaining">{{ session.player1.currentScore }}</div>
@@ -59,7 +59,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
               }
             </div>
 
-            <div class="player-side right" [class.active]="session.currentPlayerId === session.player2.playerId" [class.winner]="isWinner(session.player2.playerId)">
+            <div class="player-side right" [class.active]="session.currentSideId === session.player2.playerId" [class.winner]="isWinner(session.player2.playerId)">
               <div class="player-name">{{ session.player2.name }}</div>
               <div class="score-display">
                 <div class="remaining">{{ session.player2.currentScore }}</div>
@@ -623,6 +623,7 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
             this.session.player1.currentScore = event.player1CurrentScore;
             this.session.player2.currentScore = event.player2CurrentScore;
             this.session.currentPlayerId = event.currentPlayerId;
+            this.session.currentSideId = event.currentSideId;
             this.stats = event.stats;
           }
         });
@@ -643,6 +644,7 @@ export class MatchSpectateComponent implements OnInit, OnDestroy {
             this.session.player1.currentScore = event.player1CurrentScore;
             this.session.player2.currentScore = event.player2CurrentScore;
             this.session.currentPlayerId = event.currentPlayerId;
+            this.session.currentSideId = event.currentSideId;
             this.session.cricketState = event.turn.currentState;
             this.loadStats();
           }

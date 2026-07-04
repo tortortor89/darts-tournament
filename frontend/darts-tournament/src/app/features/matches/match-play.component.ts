@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit, isX01 } from '../../core/models';
+import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit, isX01, StartMatchSessionRequest } from '../../core/models';
 import { ScoreInputComponent, ThrowData } from './components/score-input.component';
 import { CricketDisplayComponent } from './components/cricket-display.component';
 import { CricketInputComponent } from './components/cricket-input.component';
@@ -50,7 +50,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
             </div>
 
             <div class="form-group">
-              <label>Qui commence ?</label>
+              <label>{{ match.isDoubles ? 'Quelle équipe commence ?' : 'Qui commence ?' }}</label>
               <div class="starter-selector">
                 <button
                   type="button"
@@ -66,6 +66,38 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
                 </button>
               </div>
             </div>
+
+            <!-- Doubles : ordre de passage dans chaque paire (fixé pour tout le match) -->
+            @if (match.isDoubles && match.team1Members && match.team2Members) {
+              <div class="form-group">
+                <label>Premier lanceur — {{ match.player1Name }}</label>
+                <div class="starter-selector">
+                  @for (m of match.team1Members; track m.playerId) {
+                    <button
+                      type="button"
+                      [class.selected]="config.side1FirstThrowerId === m.playerId"
+                      (click)="config.side1FirstThrowerId = m.playerId">
+                      {{ m.name }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Premier lanceur — {{ match.player2Name }}</label>
+                <div class="starter-selector">
+                  @for (m of match.team2Members; track m.playerId) {
+                    <button
+                      type="button"
+                      [class.selected]="config.side2FirstThrowerId === m.playerId"
+                      (click)="config.side2FirstThrowerId = m.playerId">
+                      {{ m.name }}
+                    </button>
+                  }
+                </div>
+                <span class="hint">Les coéquipiers alternent à chaque volée (A1 → B1 → A2 → B2)</span>
+              </div>
+            }
 
             <div class="form-group">
               <label>Mode de jeu</label>
@@ -130,14 +162,16 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       <!-- Playing -->
       @if (phase === 'playing' && session) {
         <div class="play-screen">
-          <!-- Score Header -->
+          <!-- Score Header (en double : surbrillance par côté + lanceur courant) -->
           <div class="score-header">
-            <div class="player-score" [class.active]="session.currentPlayerId === session.player1.playerId">
+            <div class="player-score" [class.active]="isSideActive(1)">
               <div class="player-name">{{ session.player1.name }}</div>
               <div class="legs">Legs: {{ session.player1.legsWon }}</div>
               <div class="remaining">{{ session.player1.currentScore }}</div>
-              @if (session.currentPlayerId === session.player1.playerId) {
-                <div class="turn-indicator">A toi !</div>
+              @if (isSideActive(1)) {
+                <div class="turn-indicator">
+                  {{ session.isDoubles && session.currentThrowerName ? 'Au tour de ' + session.currentThrowerName : 'A toi !' }}
+                </div>
               }
             </div>
 
@@ -147,12 +181,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
               <div class="current-leg">Leg {{ session.currentLeg }}</div>
             </div>
 
-            <div class="player-score" [class.active]="session.currentPlayerId === session.player2.playerId">
+            <div class="player-score" [class.active]="isSideActive(2)">
               <div class="player-name">{{ session.player2.name }}</div>
               <div class="legs">Legs: {{ session.player2.legsWon }}</div>
               <div class="remaining">{{ session.player2.currentScore }}</div>
-              @if (session.currentPlayerId === session.player2.playerId) {
-                <div class="turn-indicator">A toi !</div>
+              @if (isSideActive(2)) {
+                <div class="turn-indicator">
+                  {{ session.isDoubles && session.currentThrowerName ? 'Au tour de ' + session.currentThrowerName : 'A toi !' }}
+                </div>
               }
             </div>
           </div>
@@ -831,10 +867,12 @@ export class MatchPlayComponent implements OnInit {
 
   config = {
     legsToWin: 3,
-    startingPlayerId: 0,
+    startingPlayerId: 0,  // en double : id de l'équipe qui commence
     trackDoubles: false,
     gameMode: GameMode.FiveOhOne,
-    doubleOut: true
+    doubleOut: true,
+    side1FirstThrowerId: 0,
+    side2FirstThrowerId: 0
   };
 
   isX01Config(): boolean {
@@ -866,6 +904,10 @@ export class MatchPlayComponent implements OnInit {
         next: (match) => {
           this.match = match;
           this.config.startingPlayerId = match.player1Id || 0;
+          if (match.isDoubles) {
+            this.config.side1FirstThrowerId = match.team1Members?.[0]?.playerId || 0;
+            this.config.side2FirstThrowerId = match.team2Members?.[0]?.playerId || 0;
+          }
           this.checkForExistingSession();
         },
         error: () => {
@@ -928,13 +970,23 @@ export class MatchPlayComponent implements OnInit {
   startMatch() {
     if (!this.config.startingPlayerId) return;
 
-    this.apiService.startMatchSession(this.matchId, {
+    const request: StartMatchSessionRequest = {
       legsToWin: this.config.legsToWin,
-      startingPlayerId: this.config.startingPlayerId,
       trackDoubles: this.config.trackDoubles && this.config.doubleOut,
       gameMode: this.config.gameMode,
       doubleOut: this.config.doubleOut
-    }).pipe(takeUntilDestroyed(this.destroyRef))
+    };
+
+    if (this.match?.isDoubles && this.match.team1Members && this.match.team2Members) {
+      // Double : équipe qui commence + ordre de passage (premier lanceur puis coéquipier)
+      request.startingTeamId = this.config.startingPlayerId;
+      request.side1PlayerOrder = this.buildTeamOrder(this.match.team1Members, this.config.side1FirstThrowerId);
+      request.side2PlayerOrder = this.buildTeamOrder(this.match.team2Members, this.config.side2FirstThrowerId);
+    } else {
+      request.startingPlayerId = this.config.startingPlayerId;
+    }
+
+    this.apiService.startMatchSession(this.matchId, request).pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {
           this.session = session;
@@ -1021,9 +1073,22 @@ export class MatchPlayComponent implements OnInit {
       });
   }
 
+  // Côté au trait (en simple, currentSideId == playerId du joueur courant)
+  isSideActive(sideNumber: 1 | 2): boolean {
+    if (!this.session) return false;
+    const side = sideNumber === 1 ? this.session.player1 : this.session.player2;
+    return this.session.currentSideId === side.playerId;
+  }
+
+  private buildTeamOrder(members: { playerId: number }[], firstThrowerId: number): number[] {
+    const first = members.find(m => m.playerId === firstThrowerId) ?? members[0];
+    const second = members.find(m => m.playerId !== first.playerId)!;
+    return [first.playerId, second.playerId];
+  }
+
   getCurrentPlayerScore(): number {
     if (!this.session) return 501;
-    if (this.session.currentPlayerId === this.session.player1.playerId) {
+    if (this.session.currentSideId === this.session.player1.playerId) {
       return this.session.player1.currentScore;
     }
     return this.session.player2.currentScore;
@@ -1063,6 +1128,14 @@ export class MatchPlayComponent implements OnInit {
 
   getPlayerShortName(playerId: number): string {
     if (!this.session) return '';
+    if (this.session.isDoubles) {
+      // En double, les volées sont attribuées au lanceur individuel
+      const member = [
+        ...(this.session.player1.members ?? []),
+        ...(this.session.player2.members ?? [])
+      ].find(m => m.playerId === playerId);
+      return member ? member.name.split(' ')[0] : '';
+    }
     if (playerId === this.session.player1.playerId) {
       return this.session.player1.name.split(' ')[0];
     }

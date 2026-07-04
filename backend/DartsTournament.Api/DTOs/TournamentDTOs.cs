@@ -25,7 +25,10 @@ public record CreateTournamentRequest(
     bool HasKnockoutPhase = true,
     bool AllowBracketReset = true,
 
-    int? CircuitId = null
+    int? CircuitId = null,
+
+    // Tournoi en double : les inscriptions se font par paires (TeamSize = 2)
+    bool IsDoubles = false
 );
 
 public record UpdateTournamentRequest(
@@ -58,7 +61,8 @@ public record TournamentResponse(
     bool HasKnockoutPhase,
     bool AllowBracketReset,
     int? CircuitId = null,
-    string? CircuitName = null
+    string? CircuitName = null,
+    bool IsDoubles = false
 );
 
 public record TournamentDetailResponse(
@@ -77,11 +81,35 @@ public record TournamentDetailResponse(
     List<GroupResponse> Groups,
     List<MatchResponse> Matches,
     int? CircuitId = null,
-    string? CircuitName = null
+    string? CircuitName = null,
+    bool IsDoubles = false,
+    List<TournamentTeamResponse>? Teams = null
 );
 
 public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);
-public record GroupResponse(int Id, string Name, List<TournamentPlayerResponse> Players);
+public record GroupResponse(int Id, string Name, List<TournamentPlayerResponse> Players, List<TournamentTeamResponse>? Teams = null);
+
+public record CreateTournamentTeamRequest(
+    [Range(1, int.MaxValue, ErrorMessage = "L'identifiant du joueur 1 est invalide")]
+    int Player1Id,
+
+    [Range(1, int.MaxValue, ErrorMessage = "L'identifiant du joueur 2 est invalide")]
+    int Player2Id,
+
+    [Range(1, 1000, ErrorMessage = "Le seed doit être entre 1 et 1000")]
+    int? Seed = null
+);
+
+public record TournamentTeamResponse(
+    int Id,
+    int Player1Id,
+    string Player1Name,
+    int Player2Id,
+    string Player2Name,
+    string Name,
+    int? Seed,
+    int? GroupId
+);
 
 public record GroupStandingResponse(
     int GroupId,

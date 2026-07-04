@@ -46,8 +46,17 @@ public class MatchesController : ControllerBase
     public async Task<ActionResult<MatchResponse>> GetMatch(int id)
     {
         var match = await _context.Matches
+            .Include(m => m.Tournament)
             .Include(m => m.Player1)
             .Include(m => m.Player2)
+            .Include(m => m.Team1)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(m => m.Team1)
+            .ThenInclude(tt => tt!.Player2)
+            .Include(m => m.Team2)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(m => m.Team2)
+            .ThenInclude(tt => tt!.Player2)
             .FirstOrDefaultAsync(m => m.Id == id);
 
         if (match == null)
@@ -55,24 +64,46 @@ public class MatchesController : ControllerBase
             return NotFound();
         }
 
+        bool isDoubles = match.Tournament.TeamSize == 2;
+
+        // En double : ids/noms de côté aliasés sur les champs joueur (cf. MatchResponse)
         var response = new MatchResponse(
             match.Id,
             match.TournamentId,
             match.GroupId,
             match.Round,
             match.Position,
-            match.Player1Id,
-            match.Player1 != null ? $"{match.Player1.FirstName} {match.Player1.LastName}" : null,
-            match.Player2Id,
-            match.Player2 != null ? $"{match.Player2.FirstName} {match.Player2.LastName}" : null,
+            isDoubles ? match.Team1Id : match.Player1Id,
+            isDoubles
+                ? match.Team1?.Name
+                : (match.Player1 != null ? $"{match.Player1.FirstName} {match.Player1.LastName}" : null),
+            isDoubles ? match.Team2Id : match.Player2Id,
+            isDoubles
+                ? match.Team2?.Name
+                : (match.Player2 != null ? $"{match.Player2.FirstName} {match.Player2.LastName}" : null),
             match.Player1Score,
             match.Player2Score,
-            match.WinnerId,
+            isDoubles ? match.WinnerTeamId : match.WinnerId,
             match.Status,
             match.ScheduledAt,
             match.IsKnockoutMatch,
             match.BracketType,
-            match.IsBracketReset
+            match.IsBracketReset,
+            isDoubles,
+            isDoubles && match.Team1 != null
+                ? new List<TeamMemberInfo>
+                {
+                    new(match.Team1.Player1Id, $"{match.Team1.Player1.FirstName} {match.Team1.Player1.LastName}"),
+                    new(match.Team1.Player2Id, $"{match.Team1.Player2.FirstName} {match.Team1.Player2.LastName}")
+                }
+                : null,
+            isDoubles && match.Team2 != null
+                ? new List<TeamMemberInfo>
+                {
+                    new(match.Team2.Player1Id, $"{match.Team2.Player1.FirstName} {match.Team2.Player1.LastName}"),
+                    new(match.Team2.Player2Id, $"{match.Team2.Player2.FirstName} {match.Team2.Player2.LastName}")
+                }
+                : null
         );
 
         return Ok(response);

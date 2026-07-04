@@ -7,25 +7,52 @@ namespace DartsTournament.Api.Services;
 public class MatchStatsService
 {
     /// <summary>
-    /// Calcule les statistiques complètes d'un match
+    /// Calcule les statistiques complètes d'un match.
+    /// Simple : un sujet par joueur. Double : un sujet agrégé par équipe
+    /// (volées des deux membres) + le détail individuel de chaque membre.
     /// </summary>
     public MatchStatsResponse CalculateStats(MatchSession session)
     {
-        var player1Id = session.Match.Player1Id!.Value;
-        var player2Id = session.Match.Player2Id!.Value;
+        var match = session.Match;
+        bool isDoubles = match.Tournament.TeamSize == 2;
+
+        if (!isDoubles)
+        {
+            var p1 = match.Player1!;
+            var p2 = match.Player2!;
+            return new MatchStatsResponse(
+                CalculateSubjectStats(session, new[] { p1.Id }, p1.Id, $"{p1.FirstName} {p1.LastName}", session.Player1LegsWon),
+                CalculateSubjectStats(session, new[] { p2.Id }, p2.Id, $"{p2.FirstName} {p2.LastName}", session.Player2LegsWon)
+            );
+        }
+
+        var team1 = match.Team1!;
+        var team2 = match.Team2!;
 
         return new MatchStatsResponse(
-            CalculatePlayerStats(session, player1Id, session.Match.Player1!, session.Player1LegsWon),
-            CalculatePlayerStats(session, player2Id, session.Match.Player2!, session.Player2LegsWon)
+            CalculateSubjectStats(session, new[] { team1.Player1Id, team1.Player2Id }, team1.Id, team1.Name, session.Player1LegsWon),
+            CalculateSubjectStats(session, new[] { team2.Player1Id, team2.Player2Id }, team2.Id, team2.Name, session.Player2LegsWon),
+            new List<PlayerStatsInfo>
+            {
+                CalculateSubjectStats(session, new[] { team1.Player1Id }, team1.Player1Id, $"{team1.Player1.FirstName} {team1.Player1.LastName}", session.Player1LegsWon),
+                CalculateSubjectStats(session, new[] { team1.Player2Id }, team1.Player2Id, $"{team1.Player2.FirstName} {team1.Player2.LastName}", session.Player1LegsWon)
+            },
+            new List<PlayerStatsInfo>
+            {
+                CalculateSubjectStats(session, new[] { team2.Player1Id }, team2.Player1Id, $"{team2.Player1.FirstName} {team2.Player1.LastName}", session.Player2LegsWon),
+                CalculateSubjectStats(session, new[] { team2.Player2Id }, team2.Player2Id, $"{team2.Player2.FirstName} {team2.Player2.LastName}", session.Player2LegsWon)
+            }
         );
     }
 
-    private PlayerStatsInfo CalculatePlayerStats(MatchSession session, int playerId, Player player, int legsWon)
+    // Sujet = un joueur (simple, membre) ou une équipe (volées des deux membres)
+    private PlayerStatsInfo CalculateSubjectStats(MatchSession session, IReadOnlyCollection<int> throwerIds,
+        int subjectId, string subjectName, int legsWon)
     {
-        var playerThrows = session.Throws.Where(t => t.PlayerId == playerId).ToList();
+        var playerThrows = session.Throws.Where(t => throwerIds.Contains(t.PlayerId)).ToList();
 
         if (session.GameMode == GameMode.Cricket)
-            return CalculateCricketStats(playerThrows, playerId, player, legsWon);
+            return CalculateCricketStats(playerThrows, subjectId, subjectName, legsWon);
 
         // Moyenne 3 fléchettes
         var totalScore = playerThrows.Sum(t => t.Score);
@@ -89,8 +116,8 @@ public class MatchStatsService
         var oneEighties = playerThrows.Count(t => t.Score == 180);
 
         return new PlayerStatsInfo(
-            playerId,
-            $"{player.FirstName} {player.LastName}",
+            subjectId,
+            subjectName,
             Math.Round(average, 2),
             checkoutPercentage.HasValue ? Math.Round(checkoutPercentage.Value, 1) : null,
             first9Average.HasValue ? Math.Round(first9Average.Value, 2) : null,
@@ -109,7 +136,7 @@ public class MatchStatsService
     /// <summary>
     /// Statistiques Cricket : MPR (marks per round), points marqués
     /// </summary>
-    private PlayerStatsInfo CalculateCricketStats(List<Throw> playerThrows, int playerId, Player player, int legsWon)
+    private PlayerStatsInfo CalculateCricketStats(List<Throw> playerThrows, int subjectId, string subjectName, int legsWon)
     {
         var rounds = playerThrows.Count;
         var totalMarks = playerThrows.Sum(CountMarks);
@@ -123,8 +150,8 @@ public class MatchStatsService
             .Max();
 
         return new PlayerStatsInfo(
-            playerId,
-            $"{player.FirstName} {player.LastName}",
+            subjectId,
+            subjectName,
             0,      // ThreeDartAverage : sans objet en Cricket
             null,   // CheckoutPercentage
             null,   // First9Average

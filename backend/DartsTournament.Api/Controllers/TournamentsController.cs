@@ -53,7 +53,8 @@ public class TournamentsController : ControllerBase
                 t.HasKnockoutPhase,
                 t.AllowBracketReset,
                 t.CircuitId,
-                t.Circuit != null ? t.Circuit.Name : null
+                t.Circuit != null ? t.Circuit.Name : null,
+                t.TeamSize == 2
             ))
             .ToListAsync();
 
@@ -82,6 +83,22 @@ public class TournamentsController : ControllerBase
             .ThenInclude(m => m.Player1)
             .Include(t => t.Matches)
             .ThenInclude(m => m.Player2)
+            .Include(t => t.Matches)
+            .ThenInclude(m => m.Team1)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(t => t.Matches)
+            .ThenInclude(m => m.Team1)
+            .ThenInclude(tt => tt!.Player2)
+            .Include(t => t.Matches)
+            .ThenInclude(m => m.Team2)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(t => t.Matches)
+            .ThenInclude(m => m.Team2)
+            .ThenInclude(tt => tt!.Player2)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player1)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player2)
             .Include(t => t.Circuit)
             .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -89,6 +106,8 @@ public class TournamentsController : ControllerBase
         {
             return NotFound();
         }
+
+        bool isDoubles = tournament.TeamSize == 2;
 
         var response = new TournamentDetailResponse(
             tournament.Id,
@@ -122,29 +141,16 @@ public class TournamentsController : ControllerBase
                     tp.Seed,
                     tp.GroupId,
                     tp.Status
-                )).ToList()
+                )).ToList(),
+                isDoubles
+                    ? tournament.Teams.Where(tt => tt.GroupId == g.Id).Select(ToTeamResponse).ToList()
+                    : null
             )).ToList(),
-            tournament.Matches.OrderBy(m => m.Round).ThenBy(m => m.Position).Select(m => new MatchResponse(
-                m.Id,
-                m.TournamentId,
-                m.GroupId,
-                m.Round,
-                m.Position,
-                m.Player1Id,
-                m.Player1 != null ? $"{m.Player1.FirstName} {m.Player1.LastName}" : null,
-                m.Player2Id,
-                m.Player2 != null ? $"{m.Player2.FirstName} {m.Player2.LastName}" : null,
-                m.Player1Score,
-                m.Player2Score,
-                m.WinnerId,
-                m.Status,
-                m.ScheduledAt,
-                m.IsKnockoutMatch,
-                m.BracketType,
-                m.IsBracketReset
-            )).ToList(),
+            tournament.Matches.OrderBy(m => m.Round).ThenBy(m => m.Position).Select(m => ToMatchResponse(m, isDoubles)).ToList(),
             tournament.CircuitId,
-            tournament.Circuit?.Name
+            tournament.Circuit?.Name,
+            isDoubles,
+            isDoubles ? tournament.Teams.Select(ToTeamResponse).ToList() : null
         );
 
         return Ok(response);
@@ -188,7 +194,8 @@ public class TournamentsController : ControllerBase
             QualifiersPerGroup = request.QualifiersPerGroup,
             HasKnockoutPhase = request.HasKnockoutPhase,
             AllowBracketReset = request.AllowBracketReset,
-            CircuitId = request.CircuitId
+            CircuitId = request.CircuitId,
+            TeamSize = request.IsDoubles ? 2 : 1
         };
 
         _context.Tournaments.Add(tournament);
@@ -208,7 +215,8 @@ public class TournamentsController : ControllerBase
             tournament.HasKnockoutPhase,
             tournament.AllowBracketReset,
             tournament.CircuitId,
-            circuitName
+            circuitName,
+            tournament.TeamSize == 2
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);
@@ -301,6 +309,11 @@ public class TournamentsController : ControllerBase
             return BadRequest("Cannot add players to a tournament that has already started");
         }
 
+        if (tournament.TeamSize == 2)
+        {
+            return BadRequest(new { message = "Ce tournoi se joue en double : ajoutez des paires, pas des joueurs individuels" });
+        }
+
         var player = await _context.Players.FindAsync(request.PlayerId);
 
         if (player == null)
@@ -371,6 +384,115 @@ public class TournamentsController : ControllerBase
     }
 
     /// <summary>
+    /// Ajouter une paire à un tournoi en double
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="request">Les deux joueurs de la paire et leur seed optionnel</param>
+    /// <response code="200">Paire ajoutée</response>
+    /// <response code="400">Tournoi non double, déjà démarré, joueurs invalides ou déjà en paire</response>
+    /// <response code="404">Tournoi ou joueur non trouvé</response>
+    [HttpPost("{id}/teams")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(TournamentTeamResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TournamentTeamResponse>> AddTeam(int id, CreateTournamentTeamRequest request)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound("Tournament not found");
+        }
+
+        if (tournament.TeamSize != 2)
+        {
+            return BadRequest(new { message = "Ce tournoi n'est pas un tournoi en double" });
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible d'ajouter une paire à un tournoi déjà démarré" });
+        }
+
+        if (request.Player1Id == request.Player2Id)
+        {
+            return BadRequest(new { message = "Une paire doit être composée de deux joueurs différents" });
+        }
+
+        var player1 = await _context.Players.FindAsync(request.Player1Id);
+        var player2 = await _context.Players.FindAsync(request.Player2Id);
+        if (player1 == null || player2 == null)
+        {
+            return NotFound("Player not found");
+        }
+
+        var alreadyPaired = await _context.TournamentTeams
+            .AnyAsync(tt => tt.TournamentId == id
+                && (tt.Player1Id == request.Player1Id || tt.Player2Id == request.Player1Id
+                    || tt.Player1Id == request.Player2Id || tt.Player2Id == request.Player2Id));
+
+        if (alreadyPaired)
+        {
+            return BadRequest(new { message = "Un des joueurs fait déjà partie d'une paire de ce tournoi" });
+        }
+
+        var team = new TournamentTeam
+        {
+            TournamentId = id,
+            Player1Id = request.Player1Id,
+            Player1 = player1,
+            Player2Id = request.Player2Id,
+            Player2 = player2,
+            Seed = request.Seed
+        };
+
+        _context.TournamentTeams.Add(team);
+        await _context.SaveChangesAsync();
+
+        return Ok(ToTeamResponse(team));
+    }
+
+    /// <summary>
+    /// Retirer une paire d'un tournoi en double
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="teamId">Identifiant de la paire</param>
+    /// <response code="204">Paire retirée</response>
+    /// <response code="400">Tournoi déjà démarré</response>
+    /// <response code="404">Paire non trouvée</response>
+    [HttpDelete("{id}/teams/{teamId}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveTeam(int id, int teamId)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound("Tournament not found");
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de retirer une paire d'un tournoi déjà démarré" });
+        }
+
+        var team = await _context.TournamentTeams
+            .FirstOrDefaultAsync(tt => tt.TournamentId == id && tt.Id == teamId);
+
+        if (team == null)
+        {
+            return NotFound("Team not found");
+        }
+
+        _context.TournamentTeams.Remove(team);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// S'inscrire au tournoi (auto-inscription)
     /// </summary>
     /// <param name="id">Identifiant du tournoi</param>
@@ -409,6 +531,11 @@ public class TournamentsController : ControllerBase
         if (tournament.Status != TournamentStatus.Draft)
         {
             return BadRequest(new { message = "Impossible de s'inscrire à un tournoi qui a déjà commencé" });
+        }
+
+        if (tournament.TeamSize == 2)
+        {
+            return BadRequest(new { message = "Les inscriptions de ce tournoi en double sont gérées par l'administrateur" });
         }
 
         // Check if already registered
@@ -618,4 +745,58 @@ public class TournamentsController : ControllerBase
             return NotFound(ex.Message);
         }
     }
+
+    // ----- Helpers de projection -----
+
+    private static TournamentTeamResponse ToTeamResponse(TournamentTeam team) => new(
+        team.Id,
+        team.Player1Id,
+        $"{team.Player1.FirstName} {team.Player1.LastName}",
+        team.Player2Id,
+        $"{team.Player2.FirstName} {team.Player2.LastName}",
+        team.Name,
+        team.Seed,
+        team.GroupId
+    );
+
+    // En double : Player1Id/Player2Id/WinnerId portent les ids d'équipe et les noms
+    // le label de la paire (aliasing assumé côté DTO, cf. MatchResponse)
+    private static MatchResponse ToMatchResponse(Match m, bool isDoubles) => new(
+        m.Id,
+        m.TournamentId,
+        m.GroupId,
+        m.Round,
+        m.Position,
+        isDoubles ? m.Team1Id : m.Player1Id,
+        isDoubles
+            ? m.Team1?.Name
+            : (m.Player1 != null ? $"{m.Player1.FirstName} {m.Player1.LastName}" : null),
+        isDoubles ? m.Team2Id : m.Player2Id,
+        isDoubles
+            ? m.Team2?.Name
+            : (m.Player2 != null ? $"{m.Player2.FirstName} {m.Player2.LastName}" : null),
+        m.Player1Score,
+        m.Player2Score,
+        isDoubles ? m.WinnerTeamId : m.WinnerId,
+        m.Status,
+        m.ScheduledAt,
+        m.IsKnockoutMatch,
+        m.BracketType,
+        m.IsBracketReset,
+        isDoubles,
+        isDoubles && m.Team1 != null
+            ? new List<TeamMemberInfo>
+            {
+                new(m.Team1.Player1Id, $"{m.Team1.Player1.FirstName} {m.Team1.Player1.LastName}"),
+                new(m.Team1.Player2Id, $"{m.Team1.Player2.FirstName} {m.Team1.Player2.LastName}")
+            }
+            : null,
+        isDoubles && m.Team2 != null
+            ? new List<TeamMemberInfo>
+            {
+                new(m.Team2.Player1Id, $"{m.Team2.Player1.FirstName} {m.Team2.Player1.LastName}"),
+                new(m.Team2.Player2Id, $"{m.Team2.Player2.FirstName} {m.Team2.Player2.LastName}")
+            }
+            : null
+    );
 }

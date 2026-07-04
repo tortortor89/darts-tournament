@@ -42,6 +42,7 @@ export interface Tournament {
   allowBracketReset: boolean;
   circuitId?: number;
   circuitName?: string;
+  isDoubles: boolean;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -53,6 +54,24 @@ export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
   players: TournamentPlayer[];
   groups: Group[];
   matches: Match[];
+  teams?: TournamentTeam[];
+}
+
+// Paire d'un tournoi en double
+export interface TournamentTeam {
+  id: number;
+  player1Id: number;
+  player1Name: string;
+  player2Id: number;
+  player2Name: string;
+  name: string;
+  seed?: number;
+  groupId?: number;
+}
+
+export interface TeamMemberInfo {
+  playerId: number;
+  name: string;
 }
 
 export interface TournamentPlayer {
@@ -69,8 +88,12 @@ export interface Group {
   id: number;
   name: string;
   players: TournamentPlayer[];
+  teams?: TournamentTeam[];
 }
 
+// En double : player1Id/player2Id/winnerId portent des ids d'ÉQUIPE et les noms
+// le label de la paire. Ne pas utiliser ces ids pour naviguer vers un profil
+// joueur quand isDoubles est vrai.
 export interface Match {
   id: number;
   tournamentId: number;
@@ -89,6 +112,9 @@ export interface Match {
   isKnockoutMatch: boolean;
   bracketType: BracketType;
   isBracketReset: boolean;
+  isDoubles: boolean;
+  team1Members?: TeamMemberInfo[];
+  team2Members?: TeamMemberInfo[];
 }
 
 export interface GroupStanding {
@@ -209,6 +235,8 @@ export enum MatchSessionStatus {
   Cancelled = 3
 }
 
+// En double : player1/player2 sont les ÉQUIPES (playerId = id d'équipe, name =
+// label de paire). currentPlayerId = lanceur individuel, currentSideId = côté au trait.
 export interface MatchSession {
   id: number;
   matchId: number;
@@ -226,6 +254,9 @@ export interface MatchSession {
   trackDoubles: boolean;
   cricketState?: CricketDisplayState;
   doubleOut: boolean;
+  isDoubles: boolean;
+  currentSideId: number;
+  currentThrowerName?: string;
 }
 
 export interface PlayerSessionInfo {
@@ -234,6 +265,7 @@ export interface PlayerSessionInfo {
   legsWon: number;
   currentScore: number;
   isStarting: boolean;
+  members?: TeamMemberInfo[];
 }
 
 export interface ThrowInfo {
@@ -264,6 +296,9 @@ export interface MatchSessionSpectator {
   currentLeg: number;
   legsHistory: LegSummary[];
   cricketState?: CricketDisplayState;
+  isDoubles: boolean;
+  currentSideId: number;
+  currentThrowerName?: string;
 }
 
 export interface PlayerSpectatorInfo {
@@ -271,6 +306,7 @@ export interface PlayerSpectatorInfo {
   name: string;
   legsWon: number;
   currentScore: number;
+  members?: TeamMemberInfo[];
 }
 
 export interface LegSummary {
@@ -283,10 +319,14 @@ export interface LegSummary {
 
 export interface StartMatchSessionRequest {
   legsToWin: number;
-  startingPlayerId: number;
+  startingPlayerId?: number;   // simple uniquement
   trackDoubles?: boolean;
   gameMode?: GameMode;
   doubleOut?: boolean;
+  // Double uniquement : équipe qui commence + ordre de passage de chaque paire
+  startingTeamId?: number;
+  side1PlayerOrder?: number[];
+  side2PlayerOrder?: number[];
 }
 
 export interface RecordThrowRequest {
@@ -299,9 +339,13 @@ export interface RecordThrowRequest {
 }
 
 // Statistics
+// En double : player1Stats/player2Stats = stats agrégées de chaque équipe,
+// memberStats = détail individuel de chaque lanceur
 export interface MatchStats {
   player1Stats: PlayerStats;
   player2Stats: PlayerStats;
+  player1MemberStats?: PlayerStats[];
+  player2MemberStats?: PlayerStats[];
 }
 
 export interface PlayerStats {
@@ -329,6 +373,7 @@ export interface ThrowRecordedEvent {
   player2CurrentScore: number;
   currentPlayerId: number;
   stats: MatchStats;
+  currentSideId: number;
 }
 
 export interface ThrowUndoneEvent {
@@ -366,6 +411,7 @@ export interface CricketTurnRecordedEvent {
   player1CurrentScore: number;
   player2CurrentScore: number;
   currentPlayerId: number;
+  currentSideId: number;
 }
 
 // Player Statistics

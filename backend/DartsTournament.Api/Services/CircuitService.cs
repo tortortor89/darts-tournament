@@ -59,7 +59,8 @@ public class CircuitService
                     t.TournamentPlayers.Count,
                     t.NumberOfGroups, t.PlayersPerGroup, t.QualifiersPerGroup,
                     t.HasKnockoutPhase, t.AllowBracketReset,
-                    circuit.Id, circuit.Name))
+                    circuit.Id, circuit.Name,
+                    t.TeamSize == 2))
                 .ToList());
     }
 
@@ -182,6 +183,10 @@ public class CircuitService
             .Include(t => t.Matches)
             .Include(t => t.TournamentPlayers)
             .ThenInclude(tp => tp.Player)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player1)
+            .Include(t => t.Teams)
+            .ThenInclude(tt => tt.Player2)
             .ToListAsync();
 
         var placements = completedTournaments

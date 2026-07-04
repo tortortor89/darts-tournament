@@ -311,4 +311,126 @@ public class FinalPlacementCalculatorTests
         Assert.Equal(5, RankOf(placements, t, "C"));
         Assert.Equal(5, RankOf(placements, t, "F"));
     }
+
+    // ----- Doubles (paires) -----
+
+    // Tournoi double avec 4 paires (ids d'équipe 101-104), joueurs 1-8
+    private static Tournament MakeDoublesTournament(TournamentFormat format)
+    {
+        var t = new Tournament { Id = 1, Name = "Test double", Format = format, TeamSize = 2 };
+        int playerId = 1;
+        for (int teamId = 101; teamId <= 104; teamId++)
+        {
+            var p1 = new Player { Id = playerId, FirstName = $"J{playerId}", LastName = "Test" };
+            playerId++;
+            var p2 = new Player { Id = playerId, FirstName = $"J{playerId}", LastName = "Test" };
+            playerId++;
+            t.Teams.Add(new TournamentTeam
+            {
+                Id = teamId,
+                TournamentId = 1,
+                Player1Id = p1.Id,
+                Player1 = p1,
+                Player2Id = p2.Id,
+                Player2 = p2
+            });
+        }
+        return t;
+    }
+
+    private static void AddTeamMatch(Tournament t, int round, int? team1Id, int? team2Id, int? winnerTeamId)
+    {
+        t.Matches.Add(new Match
+        {
+            TournamentId = t.Id,
+            Round = round,
+            Position = t.Matches.Count,
+            Team1Id = team1Id,
+            Team2Id = team2Id,
+            WinnerTeamId = winnerTeamId,
+            Status = winnerTeamId != null ? MatchStatus.Completed : MatchStatus.Pending
+        });
+    }
+
+    [Fact]
+    public void Doubles_SingleElim_ComputeSides_ClasseLesEquipes()
+    {
+        var t = MakeDoublesTournament(TournamentFormat.SingleElimination);
+        // Demi-finales : 101 bat 102, 103 bat 104 ; finale : 101 bat 103
+        AddTeamMatch(t, 1, 101, 102, 101);
+        AddTeamMatch(t, 1, 103, 104, 103);
+        AddTeamMatch(t, 2, 101, 103, 101);
+
+        var sides = FinalPlacementCalculator.ComputeSides(t);
+
+        Assert.Equal(1, sides.First(s => s.SideId == 101).Rank);
+        Assert.Equal(2, sides.First(s => s.SideId == 103).Rank);
+        Assert.Equal(3, sides.First(s => s.SideId == 102).Rank);
+        Assert.Equal(3, sides.First(s => s.SideId == 104).Rank);
+    }
+
+    [Fact]
+    public void Doubles_Compute_ChaqueMembreHeriteDuRangDeSaPaire()
+    {
+        var t = MakeDoublesTournament(TournamentFormat.SingleElimination);
+        AddTeamMatch(t, 1, 101, 102, 101);
+        AddTeamMatch(t, 1, 103, 104, 103);
+        AddTeamMatch(t, 2, 101, 103, 101);
+
+        var placements = FinalPlacementCalculator.Compute(t);
+
+        // 8 joueurs placés (2 par paire)
+        Assert.Equal(8, placements.Count);
+        // Membres de la paire 101 (joueurs 1 et 2) : rang 1
+        Assert.Equal(1, placements.First(p => p.PlayerId == 1).Rank);
+        Assert.Equal(1, placements.First(p => p.PlayerId == 2).Rank);
+        // Membres de la paire 103 (joueurs 5 et 6) : rang 2
+        Assert.Equal(2, placements.First(p => p.PlayerId == 5).Rank);
+        Assert.Equal(2, placements.First(p => p.PlayerId == 6).Rank);
+        // Membres des paires éliminées en demi : rang 3
+        Assert.Equal(3, placements.First(p => p.PlayerId == 3).Rank);
+        Assert.Equal(3, placements.First(p => p.PlayerId == 8).Rank);
+    }
+
+    [Fact]
+    public void Doubles_RoundRobin_ClassementParEquipe()
+    {
+        var t = MakeDoublesTournament(TournamentFormat.RoundRobin);
+        // 101 bat tout le monde, 102 bat 103 et 104, 103 bat 104
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 0, Team1Id = 101, Team2Id = 102, WinnerTeamId = 101, Player1Score = 2, Player2Score = 0, Status = MatchStatus.Completed });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 1, Team1Id = 101, Team2Id = 103, WinnerTeamId = 101, Player1Score = 2, Player2Score = 0, Status = MatchStatus.Completed });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 2, Team1Id = 101, Team2Id = 104, WinnerTeamId = 101, Player1Score = 2, Player2Score = 0, Status = MatchStatus.Completed });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 3, Team1Id = 102, Team2Id = 103, WinnerTeamId = 102, Player1Score = 2, Player2Score = 1, Status = MatchStatus.Completed });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 4, Team1Id = 102, Team2Id = 104, WinnerTeamId = 102, Player1Score = 2, Player2Score = 1, Status = MatchStatus.Completed });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 5, Team1Id = 103, Team2Id = 104, WinnerTeamId = 103, Player1Score = 2, Player2Score = 1, Status = MatchStatus.Completed });
+
+        var sides = FinalPlacementCalculator.ComputeSides(t);
+
+        Assert.Equal(1, sides.First(s => s.SideId == 101).Rank);
+        Assert.Equal(2, sides.First(s => s.SideId == 102).Rank);
+        Assert.Equal(3, sides.First(s => s.SideId == 103).Rank);
+        Assert.Equal(4, sides.First(s => s.SideId == 104).Rank);
+    }
+
+    [Fact]
+    public void Doubles_DoubleElim_ClassementParElimination()
+    {
+        var t = MakeDoublesTournament(TournamentFormat.DoubleElimination);
+        // Winners
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 0, Team1Id = 101, Team2Id = 102, WinnerTeamId = 101, Status = MatchStatus.Completed, BracketType = BracketType.Winners });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 1, Team1Id = 103, Team2Id = 104, WinnerTeamId = 103, Status = MatchStatus.Completed, BracketType = BracketType.Winners });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 2, Position = 2, Team1Id = 101, Team2Id = 103, WinnerTeamId = 101, Status = MatchStatus.Completed, BracketType = BracketType.Winners });
+        // Losers
+        t.Matches.Add(new Match { TournamentId = 1, Round = 1, Position = 3, Team1Id = 102, Team2Id = 104, WinnerTeamId = 102, Status = MatchStatus.Completed, BracketType = BracketType.Losers });
+        t.Matches.Add(new Match { TournamentId = 1, Round = 2, Position = 4, Team1Id = 102, Team2Id = 103, WinnerTeamId = 102, Status = MatchStatus.Completed, BracketType = BracketType.Losers });
+        // Grande finale
+        t.Matches.Add(new Match { TournamentId = 1, Round = 100, Position = 5, Team1Id = 101, Team2Id = 102, WinnerTeamId = 101, Status = MatchStatus.Completed, BracketType = BracketType.GrandFinal });
+
+        var sides = FinalPlacementCalculator.ComputeSides(t);
+
+        Assert.Equal(1, sides.First(s => s.SideId == 101).Rank);
+        Assert.Equal(2, sides.First(s => s.SideId == 102).Rank);
+        Assert.Equal(3, sides.First(s => s.SideId == 103).Rank);
+        Assert.Equal(4, sides.First(s => s.SideId == 104).Rank);
+    }
 }

@@ -160,6 +160,6 @@
 - [x] Support Cricket (visite complète avec validation, scoring, stats basiques)
 - [x] Support format 301 (option Double Out / Straight Out, score de départ généralisé)
 - [ ] Gestion des sets (en plus des legs)
-- [ ] Mode équipes / doubles
+- [x] Mode équipes / doubles (paires par tournoi, alternance stricte A1→B1→A2→B2, tous formats + 501/301/Cricket)
 - [ ] Export des résultats (PDF, CSV)
 - [ ] Dashboard récapitulatif (stats globales, tournois récents)

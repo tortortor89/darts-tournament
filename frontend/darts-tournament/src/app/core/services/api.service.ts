@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule } from '../models';
+import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -97,6 +97,7 @@ export class ApiService {
     qualifiersPerGroup?: number;
     hasKnockoutPhase?: boolean;
     circuitId?: number;
+    isDoubles?: boolean;
   }): Observable<Tournament> {
     return this.http.post<Tournament>(`${this.API_URL}/tournaments`, tournament);
   }
@@ -115,6 +116,15 @@ export class ApiService {
 
   removePlayerFromTournament(tournamentId: number, playerId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/tournaments/${tournamentId}/players/${playerId}`);
+  }
+
+  // Doubles (paires)
+  addTeamToTournament(tournamentId: number, player1Id: number, player2Id: number, seed?: number): Observable<TournamentTeam> {
+    return this.http.post<TournamentTeam>(`${this.API_URL}/tournaments/${tournamentId}/teams`, { player1Id, player2Id, seed });
+  }
+
+  removeTeamFromTournament(tournamentId: number, teamId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/tournaments/${tournamentId}/teams/${teamId}`);
   }
 
   // Self-registration

@@ -10,14 +10,20 @@ public record StartMatchSessionRequest(
     [Range(1, 10, ErrorMessage = "Le nombre de legs à gagner doit être entre 1 et 10")]
     int LegsToWin,
 
-    [Required(ErrorMessage = "L'ID du joueur qui commence est requis")]
-    int StartingPlayerId,
+    // Simple : joueur qui commence. Double : ignoré (utiliser StartingTeamId + ordres)
+    int StartingPlayerId = 0,
 
     bool TrackDoubles = false,  // Active le tracking avancé des doubles tentés
 
     GameMode GameMode = GameMode.FiveOhOne,  // Mode de jeu (501 par défaut)
 
-    bool DoubleOut = true  // x01 : finir sur un double (ignoré en Cricket)
+    bool DoubleOut = true,  // x01 : finir sur un double (ignoré en Cricket)
+
+    // Double uniquement : équipe qui commence + ordre de passage de chaque paire
+    // (fixé pour tout le match)
+    int? StartingTeamId = null,
+    List<int>? Side1PlayerOrder = null,
+    List<int>? Side2PlayerOrder = null
 );
 
 /// <summary>
@@ -41,6 +47,9 @@ public record RecordThrowRequest(
 /// <summary>
 /// Réponse d'état d'une session de match
 /// </summary>
+// En double, Player1/Player2 représentent les deux ÉQUIPES (PlayerId = id d'équipe,
+// Name = label de paire, Members renseigné). CurrentPlayerId reste le lanceur
+// individuel courant ; CurrentSideId identifie le côté au trait.
 public record MatchSessionResponse(
     int Id,
     int MatchId,
@@ -57,18 +66,22 @@ public record MatchSessionResponse(
     DateTime? FinishedAt,
     bool TrackDoubles,
     CricketDisplayState? CricketState,  // État Cricket (null si mode x01)
-    bool DoubleOut
+    bool DoubleOut,
+    bool IsDoubles = false,
+    int CurrentSideId = 0,
+    string? CurrentThrowerName = null
 );
 
 /// <summary>
-/// Informations d'un joueur dans une session
+/// Informations d'un côté (joueur ou paire) dans une session
 /// </summary>
 public record PlayerSessionInfo(
     int PlayerId,
     string Name,
     int LegsWon,
     int CurrentScore,
-    bool IsStarting
+    bool IsStarting,
+    List<TeamMemberInfo>? Members = null
 );
 
 /// <summary>
@@ -106,17 +119,21 @@ public record MatchSessionSpectatorResponse(
     int CurrentPlayerId,
     int CurrentLeg,
     List<LegSummary> LegsHistory,
-    CricketDisplayState? CricketState
+    CricketDisplayState? CricketState,
+    bool IsDoubles = false,
+    int CurrentSideId = 0,
+    string? CurrentThrowerName = null
 );
 
 /// <summary>
-/// Informations joueur pour spectateur
+/// Informations d'un côté (joueur ou paire) pour spectateur
 /// </summary>
 public record PlayerSpectatorInfo(
     int PlayerId,
     string Name,
     int LegsWon,
-    int CurrentScore
+    int CurrentScore,
+    List<TeamMemberInfo>? Members = null
 );
 
 /// <summary>

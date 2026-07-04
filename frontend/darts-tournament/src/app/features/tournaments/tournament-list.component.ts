@@ -43,6 +43,13 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
               }
             </div>
 
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="form.isDoubles" name="isDoubles">
+                Tournoi en double (équipes de 2)
+              </label>
+            </div>
+
             @if (form.format == TournamentFormat.GroupStage) {
               <div class="form-row group-config">
                 <label>
@@ -70,6 +77,9 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
           <div class="tournament-card">
             <h3>
               <a [routerLink]="['/tournaments', tournament.id]">{{ tournament.name }}</a>
+              @if (tournament.isDoubles) {
+                <span class="doubles-badge">Double</span>
+              }
             </h3>
             <p>Format: {{ getFormatLabel(tournament.format) }}</p>
             <p>Status: <span [class]="'status-' + tournament.status">{{ getStatusLabel(tournament.status) }}</span></p>
@@ -174,6 +184,15 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
     .status-0 { color: #6c757d; }
     .status-1 { color: #28a745; }
     .status-2 { color: #007bff; }
+    .doubles-badge {
+      margin-left: 8px;
+      padding: 2px 8px;
+      background: #6f42c1;
+      color: white;
+      border-radius: 10px;
+      font-size: 0.6em;
+      vertical-align: middle;
+    }
     button.delete {
       background: #dc3545;
       color: white;
@@ -199,7 +218,8 @@ export class TournamentListComponent implements OnInit {
     numberOfGroups: null as number | null,
     qualifiersPerGroup: 2,
     hasKnockoutPhase: true,
-    circuitId: null as number | null
+    circuitId: null as number | null,
+    isDoubles: false
   };
   loading = false;
 
@@ -252,6 +272,10 @@ export class TournamentListComponent implements OnInit {
       data.circuitId = this.form.circuitId;
     }
 
+    if (this.form.isDoubles) {
+      data.isDoubles = true;
+    }
+
     if (Number(this.form.format) === TournamentFormat.GroupStage) {
       if (this.form.numberOfGroups) {
         data.numberOfGroups = this.form.numberOfGroups;
@@ -270,7 +294,8 @@ export class TournamentListComponent implements OnInit {
         numberOfGroups: null,
         qualifiersPerGroup: 2,
         hasKnockoutPhase: true,
-        circuitId: null
+        circuitId: null,
+        isDoubles: false
       };
     });
   }

@@ -29,6 +29,72 @@ public class MatchSessionService
         _cricketService = cricketService;
     }
 
+    // ----- Helpers de côté (simple : 1 joueur, double : paire avec ordre de passage) -----
+
+    private static bool IsDoubles(MatchSession session) => session.Match.Tournament.TeamSize == 2;
+
+    // Ordre de passage des lanceurs du côté (fixé à la config en double)
+    private static List<int> Side1Order(MatchSession s) => IsDoubles(s)
+        ? new List<int> { s.Side1Player1Id!.Value, s.Side1Player2Id!.Value }
+        : new List<int> { s.Match.Player1Id!.Value };
+
+    private static List<int> Side2Order(MatchSession s) => IsDoubles(s)
+        ? new List<int> { s.Side2Player1Id!.Value, s.Side2Player2Id!.Value }
+        : new List<int> { s.Match.Player2Id!.Value };
+
+    // Id de côté (clé cricket, ids des DTOs) : joueur en simple, équipe en double
+    private static int Side1Key(MatchSession s) => IsDoubles(s) ? s.Match.Team1Id!.Value : s.Match.Player1Id!.Value;
+    private static int Side2Key(MatchSession s) => IsDoubles(s) ? s.Match.Team2Id!.Value : s.Match.Player2Id!.Value;
+
+    private static int SideOf(MatchSession s, int throwerId) =>
+        TurnRotationCalculator.SideOfThrower(throwerId, Side1Order(s), Side2Order(s));
+
+    private static int SideKeyOf(MatchSession s, int throwerId) =>
+        SideOf(s, throwerId) == 1 ? Side1Key(s) : Side2Key(s);
+
+    private static string SideName(MatchSession s, int sideNumber)
+    {
+        var m = s.Match;
+        if (IsDoubles(s))
+            return sideNumber == 1 ? m.Team1!.Name : m.Team2!.Name;
+        var p = sideNumber == 1 ? m.Player1! : m.Player2!;
+        return $"{p.FirstName} {p.LastName}";
+    }
+
+    private static List<TeamMemberInfo>? SideMembers(MatchSession s, int sideNumber)
+    {
+        if (!IsDoubles(s))
+            return null;
+        var team = sideNumber == 1 ? s.Match.Team1! : s.Match.Team2!;
+        return new List<TeamMemberInfo>
+        {
+            new(team.Player1Id, $"{team.Player1.FirstName} {team.Player1.LastName}"),
+            new(team.Player2Id, $"{team.Player2.FirstName} {team.Player2.LastName}")
+        };
+    }
+
+    private static string ThrowerName(MatchSession s, int playerId)
+    {
+        var m = s.Match;
+        if (m.Player1Id == playerId && m.Player1 != null) return $"{m.Player1.FirstName} {m.Player1.LastName}";
+        if (m.Player2Id == playerId && m.Player2 != null) return $"{m.Player2.FirstName} {m.Player2.LastName}";
+        foreach (var team in new[] { m.Team1, m.Team2 })
+        {
+            if (team == null) continue;
+            if (team.Player1Id == playerId) return $"{team.Player1.FirstName} {team.Player1.LastName}";
+            if (team.Player2Id == playerId) return $"{team.Player2.FirstName} {team.Player2.LastName}";
+        }
+        return "Inconnu";
+    }
+
+    // Rotation du leg courant, et lanceur de la prochaine volée
+    private static int NextThrower(MatchSession s, int throwsAlreadyInLeg)
+    {
+        bool side1StartsLeg = SideOf(s, s.CurrentLegStartingPlayerId) == 1;
+        var rotation = TurnRotationCalculator.BuildLegRotation(Side1Order(s), Side2Order(s), side1StartsLeg);
+        return TurnRotationCalculator.NextThrower(rotation, throwsAlreadyInLeg);
+    }
+
     /// <summary>
     /// Récupère ou crée une session pour un match
     /// </summary>
@@ -39,6 +105,20 @@ public class MatchSessionService
                 .ThenInclude(m => m.Player1)
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Tournament)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player2)
             .Include(ms => ms.Throws)
             .FirstOrDefaultAsync(ms => ms.MatchId == matchId && ms.Status != MatchSessionStatus.Cancelled);
 
@@ -51,22 +131,60 @@ public class MatchSessionService
     public async Task<MatchSession> StartSessionAsync(int matchId, StartMatchSessionRequest request)
     {
         var match = await _context.Matches
+            .Include(m => m.Tournament)
             .Include(m => m.Player1)
             .Include(m => m.Player2)
+            .Include(m => m.Team1)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(m => m.Team1)
+            .ThenInclude(tt => tt!.Player2)
+            .Include(m => m.Team2)
+            .ThenInclude(tt => tt!.Player1)
+            .Include(m => m.Team2)
+            .ThenInclude(tt => tt!.Player2)
             .FirstOrDefaultAsync(m => m.Id == matchId);
 
         if (match == null)
             throw new InvalidOperationException("Match non trouvé");
 
-        if (match.Player1Id == null || match.Player2Id == null)
+        bool isDoubles = match.Tournament.TeamSize == 2;
+
+        if (isDoubles)
+        {
+            if (match.Team1Id == null || match.Team2Id == null)
+                throw new InvalidOperationException("Les deux équipes doivent être définies");
+        }
+        else if (match.Player1Id == null || match.Player2Id == null)
+        {
             throw new InvalidOperationException("Les deux joueurs doivent être définis");
+        }
 
         if (match.Status == MatchStatus.Completed)
             throw new InvalidOperationException("Ce match est déjà terminé");
 
-        // Vérifier que le joueur qui commence est bien un des deux joueurs
-        if (request.StartingPlayerId != match.Player1Id && request.StartingPlayerId != match.Player2Id)
-            throw new InvalidOperationException("Le joueur qui commence doit être un des deux joueurs du match");
+        int startingThrowerId;
+        List<int>? side1Order = null;
+        List<int>? side2Order = null;
+
+        if (isDoubles)
+        {
+            // Valider l'équipe qui commence et les ordres de passage
+            if (request.StartingTeamId != match.Team1Id && request.StartingTeamId != match.Team2Id)
+                throw new InvalidOperationException("L'équipe qui commence doit être une des deux équipes du match");
+
+            side1Order = ValidateTeamOrder(request.Side1PlayerOrder, match.Team1!);
+            side2Order = ValidateTeamOrder(request.Side2PlayerOrder, match.Team2!);
+
+            startingThrowerId = request.StartingTeamId == match.Team1Id ? side1Order[0] : side2Order[0];
+        }
+        else
+        {
+            // Vérifier que le joueur qui commence est bien un des deux joueurs
+            if (request.StartingPlayerId != match.Player1Id && request.StartingPlayerId != match.Player2Id)
+                throw new InvalidOperationException("Le joueur qui commence doit être un des deux joueurs du match");
+
+            startingThrowerId = request.StartingPlayerId;
+        }
 
         // Annuler toute session existante
         var existingSession = await _context.MatchSessions
@@ -82,14 +200,18 @@ public class MatchSessionService
             MatchId = matchId,
             LegsToWin = request.LegsToWin,
             GameMode = request.GameMode,
-            StartingPlayerId = request.StartingPlayerId,
-            CurrentPlayerId = request.StartingPlayerId,
-            CurrentLegStartingPlayerId = request.StartingPlayerId,
+            StartingPlayerId = startingThrowerId,
+            CurrentPlayerId = startingThrowerId,
+            CurrentLegStartingPlayerId = startingThrowerId,
             Status = MatchSessionStatus.InProgress,
             // Le tracking des doubles n'a de sens qu'en double out
             TrackDoubles = request.TrackDoubles && request.DoubleOut,
             DoubleOut = request.DoubleOut,
-            StartedAt = DateTime.UtcNow
+            StartedAt = DateTime.UtcNow,
+            Side1Player1Id = side1Order?[0],
+            Side1Player2Id = side1Order?[1],
+            Side2Player1Id = side2Order?[0],
+            Side2Player2Id = side2Order?[1]
         };
 
         // Initialisation selon le mode
@@ -100,7 +222,11 @@ public class MatchSessionService
         }
         else if (request.GameMode == GameMode.Cricket)
         {
-            var cricketState = _cricketService.InitializeState(match.Player1Id!.Value, match.Player2Id!.Value);
+            // État Cricket indexé par côté : joueur en simple, équipe en double
+            // (tableau de cibles partagé par la paire)
+            var cricketState = _cricketService.InitializeState(
+                isDoubles ? match.Team1Id!.Value : match.Player1Id!.Value,
+                isDoubles ? match.Team2Id!.Value : match.Player2Id!.Value);
             session.CricketState = cricketState;
             session.Player1CurrentScore = 0;  // Réutilisé pour le score Cricket
             session.Player2CurrentScore = 0;
@@ -125,6 +251,21 @@ public class MatchSessionService
     }
 
     /// <summary>
+    /// Valide que l'ordre fourni est une permutation exacte des deux membres de l'équipe
+    /// </summary>
+    private static List<int> ValidateTeamOrder(List<int>? order, TournamentTeam team)
+    {
+        if (order == null || order.Count != 2
+            || !order.Contains(team.Player1Id) || !order.Contains(team.Player2Id)
+            || order[0] == order[1])
+        {
+            throw new InvalidOperationException(
+                $"L'ordre de passage de l'équipe {team.Name} doit contenir ses deux joueurs");
+        }
+        return order;
+    }
+
+    /// <summary>
     /// Récupère une session par son ID
     /// </summary>
     public async Task<MatchSession?> GetSessionByIdAsync(int sessionId)
@@ -136,6 +277,18 @@ public class MatchSessionService
                 .ThenInclude(m => m.Player2)
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Tournament)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player2)
             .Include(ms => ms.Throws)
                 .ThenInclude(t => t.Player)
             .FirstOrDefaultAsync(ms => ms.Id == sessionId);
@@ -157,13 +310,17 @@ public class MatchSessionService
         if (!session.GameMode.IsX01())
             throw new InvalidOperationException("Cette session n'est pas en mode x01 (501/301)");
 
-        var currentScore = session.CurrentPlayerId == session.Match.Player1Id
+        int currentSide = SideOf(session, session.CurrentPlayerId);
+        var currentScore = currentSide == 1
             ? session.Player1CurrentScore
             : session.Player2CurrentScore;
 
         // Calculer le nombre de volées pour ce leg et ce joueur
         var throwNumber = session.Throws
             .Count(t => t.LegNumber == session.CurrentLeg && t.PlayerId == session.CurrentPlayerId) + 1;
+
+        // Volées déjà jouées dans ce leg (tous lanceurs), avant celle-ci
+        var throwsInLegBefore = session.Throws.Count(t => t.LegNumber == session.CurrentLeg);
 
         // Vérifier la validité du score
         var isBust = false;
@@ -209,30 +366,28 @@ public class MatchSessionService
 
         _context.Throws.Add(throwEntity);
 
-        // Mettre à jour le score du joueur
-        if (session.CurrentPlayerId == session.Match.Player1Id)
+        // Mettre à jour le score du côté
+        if (currentSide == 1)
             session.Player1CurrentScore = newScore;
         else
             session.Player2CurrentScore = newScore;
 
         // Capturer les infos avant de potentiellement modifier le leg
         var legNumberBeforeCheckout = session.CurrentLeg;
-        var winnerId = session.CurrentPlayerId;
-        var winnerPlayer = session.CurrentPlayerId == session.Match.Player1Id
-            ? session.Match.Player1!
-            : session.Match.Player2!;
+        var throwerId = session.CurrentPlayerId;
+        var throwerName = ThrowerName(session, throwerId);
+        var winnerSideKey = SideKeyOf(session, throwerId);
+        var winnerSideName = SideName(session, currentSide);
 
-        // Si checkout, le joueur gagne le leg
+        // Si checkout, le côté gagne le leg
         if (isCheckout)
         {
             HandleLegWon(session);
         }
         else
         {
-            // Passer au joueur suivant
-            session.CurrentPlayerId = session.CurrentPlayerId == session.Match.Player1Id
-                ? session.Match.Player2Id!.Value
-                : session.Match.Player1Id!.Value;
+            // Passer au lanceur suivant dans la rotation (A1→B1 en simple, A1→B1→A2→B2 en double)
+            session.CurrentPlayerId = NextThrower(session, throwsInLegBefore + 1);
         }
 
         await _context.SaveChangesAsync();
@@ -243,7 +398,7 @@ public class MatchSessionService
         var throwResponse = new ThrowResponse(
             throwEntity.Id,
             throwEntity.PlayerId,
-            $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+            throwerName,
             throwEntity.LegNumber,
             throwEntity.ThrowNumber,
             throwEntity.Score,
@@ -269,14 +424,16 @@ public class MatchSessionService
                 reloadedSession.Player1CurrentScore,
                 reloadedSession.Player2CurrentScore,
                 reloadedSession.CurrentPlayerId,
-                stats
+                stats,
+                SideKeyOf(reloadedSession, reloadedSession.CurrentPlayerId)
             ));
 
-        // Si leg gagné, broadcaster l'événement
+        // Si leg gagné, broadcaster l'événement (WinnerId = id du côté gagnant)
         if (isCheckout)
         {
+            var winnerSideMembers = currentSide == 1 ? Side1Order(reloadedSession) : Side2Order(reloadedSession);
             var legThrows = reloadedSession.Throws
-                .Where(t => t.LegNumber == legNumberBeforeCheckout && t.PlayerId == winnerId)
+                .Where(t => t.LegNumber == legNumberBeforeCheckout && winnerSideMembers.Contains(t.PlayerId))
                 .ToList();
             var dartsThrown = legThrows.Count * 3;
             var totalScored = legThrows.Sum(t => t.Score);
@@ -284,8 +441,8 @@ public class MatchSessionService
 
             var legSummary = new LegSummary(
                 legNumberBeforeCheckout,
-                winnerId,
-                $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                winnerSideKey,
+                winnerSideName,
                 dartsThrown,
                 Math.Round(average, 2)
             );
@@ -294,8 +451,8 @@ public class MatchSessionService
                 .LegWon(new LegWonEvent(
                     reloadedSession.MatchId,
                     legNumberBeforeCheckout,
-                    winnerId,
-                    $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                    winnerSideKey,
+                    winnerSideName,
                     reloadedSession.Player1LegsWon,
                     reloadedSession.Player2LegsWon,
                     reloadedSession.CurrentLeg,
@@ -308,8 +465,8 @@ public class MatchSessionService
                 await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
                     .MatchFinished(new MatchFinishedEvent(
                         reloadedSession.MatchId,
-                        winnerId,
-                        $"{winnerPlayer.FirstName} {winnerPlayer.LastName}",
+                        winnerSideKey,
+                        winnerSideName,
                         reloadedSession.Player1LegsWon,
                         reloadedSession.Player2LegsWon,
                         stats
@@ -325,8 +482,8 @@ public class MatchSessionService
     /// </summary>
     private void HandleLegWon(MatchSession session)
     {
-        // Incrémenter les legs gagnés
-        if (session.CurrentPlayerId == session.Match.Player1Id)
+        // Incrémenter les legs gagnés du côté du lanceur
+        if (SideOf(session, session.CurrentPlayerId) == 1)
             session.Player1LegsWon++;
         else
             session.Player2LegsWon++;
@@ -344,10 +501,8 @@ public class MatchSessionService
             session.Player1CurrentScore = session.GameMode.StartingScore();
             session.Player2CurrentScore = session.GameMode.StartingScore();
 
-            // Alterner qui commence
-            session.CurrentLegStartingPlayerId = session.CurrentLegStartingPlayerId == session.Match.Player1Id
-                ? session.Match.Player2Id!.Value
-                : session.Match.Player1Id!.Value;
+            // Le côté qui commence alterne ; le leg repart sur son premier lanceur
+            session.CurrentLegStartingPlayerId = GetLegStartingPlayerId(session, session.CurrentLeg);
             session.CurrentPlayerId = session.CurrentLegStartingPlayerId;
         }
     }
@@ -436,10 +591,10 @@ public class MatchSessionService
         if (lastThrow == null)
             throw new InvalidOperationException("Aucune volée à annuler");
 
-        // Si la volée annulée avait gagné un leg, le rendre
+        // Si la volée annulée avait gagné un leg, le rendre (au côté du lanceur)
         if (lastThrow.IsCheckout)
         {
-            if (lastThrow.PlayerId == session.Match.Player1Id)
+            if (SideOf(session, lastThrow.PlayerId) == 1)
                 session.Player1LegsWon--;
             else
                 session.Player2LegsWon--;
@@ -468,19 +623,22 @@ public class MatchSessionService
         if (session.GameMode.IsX01())
         {
             // Les volées bust sont stockées avec Score = 0, la somme reste donc correcte
+            // (score du côté = somme des volées de ses lanceurs)
+            var side1Members = Side1Order(session);
+            var side2Members = Side2Order(session);
             session.Player1CurrentScore = session.GameMode.StartingScore() - legThrows
-                .Where(t => t.PlayerId == session.Match.Player1Id)
+                .Where(t => side1Members.Contains(t.PlayerId))
                 .Sum(t => t.Score);
             session.Player2CurrentScore = session.GameMode.StartingScore() - legThrows
-                .Where(t => t.PlayerId == session.Match.Player2Id)
+                .Where(t => side2Members.Contains(t.PlayerId))
                 .Sum(t => t.Score);
         }
         else if (session.GameMode == GameMode.Cricket)
         {
             var state = ReplayCricketLeg(session, legThrows);
             session.CricketState = state;
-            session.Player1CurrentScore = state.PlayerStates[session.Match.Player1Id!.Value].Score;
-            session.Player2CurrentScore = state.PlayerStates[session.Match.Player2Id!.Value].Score;
+            session.Player1CurrentScore = state.PlayerStates[Side1Key(session)].Score;
+            session.Player2CurrentScore = state.PlayerStates[Side2Key(session)].Score;
         }
 
         await _context.SaveChangesAsync();
@@ -494,16 +652,17 @@ public class MatchSessionService
     }
 
     /// <summary>
-    /// Détermine quel joueur commence un leg donné (alternance à partir de StartingPlayerId au leg 1)
+    /// Détermine quel lanceur commence un leg donné : le côté qui démarre alterne
+    /// à chaque leg, et le leg repart sur le premier lanceur de ce côté.
     /// </summary>
-    private int GetLegStartingPlayerId(MatchSession session, int legNumber)
+    private static int GetLegStartingPlayerId(MatchSession session, int legNumber)
     {
-        if (legNumber % 2 == 1)
-            return session.StartingPlayerId;
+        bool side1StartedLeg1 = TurnRotationCalculator.SideOfThrower(
+            session.StartingPlayerId, Side1Order(session), Side2Order(session)) == 1;
 
-        return session.StartingPlayerId == session.Match.Player1Id
-            ? session.Match.Player2Id!.Value
-            : session.Match.Player1Id!.Value;
+        return TurnRotationCalculator.Side1StartsLeg(legNumber, side1StartedLeg1)
+            ? Side1Order(session)[0]
+            : Side2Order(session)[0];
     }
 
     /// <summary>
@@ -511,9 +670,10 @@ public class MatchSessionService
     /// </summary>
     private CricketGameState ReplayCricketLeg(MatchSession session, List<Throw> legThrows)
     {
-        var player1Id = session.Match.Player1Id!.Value;
-        var player2Id = session.Match.Player2Id!.Value;
-        var state = _cricketService.InitializeState(player1Id, player2Id);
+        // État indexé par côté (tableau partagé par la paire en double)
+        var side1Key = Side1Key(session);
+        var side2Key = Side2Key(session);
+        var state = _cricketService.InitializeState(side1Key, side2Key);
 
         foreach (var legThrow in legThrows)
         {
@@ -524,8 +684,9 @@ public class MatchSessionService
             if (data?.Hits == null)
                 continue;
 
-            var opponentId = legThrow.PlayerId == player1Id ? player2Id : player1Id;
-            _cricketService.ProcessTurn(state, legThrow.PlayerId, opponentId, data.Hits);
+            var throwerSideKey = SideKeyOf(session, legThrow.PlayerId);
+            var opponentKey = throwerSideKey == side1Key ? side2Key : side1Key;
+            _cricketService.ProcessTurn(state, throwerSideKey, opponentKey, data.Hits);
         }
 
         return state;
@@ -559,16 +720,18 @@ public class MatchSessionService
             ))
             .ToList();
 
-        // Construire l'état Cricket si applicable
+        // Construire l'état Cricket si applicable (indexé par côté)
         CricketDisplayState? cricketDisplayState = null;
         if (session.GameMode == GameMode.Cricket && session.CricketState != null)
         {
             cricketDisplayState = _cricketService.BuildDisplayState(
                 session.CricketState,
-                match.Player1Id!.Value,
-                match.Player2Id!.Value
+                Side1Key(session),
+                Side2Key(session)
             );
         }
+
+        int startingSide = SideOf(session, session.StartingPlayerId);
 
         return new MatchSessionResponse(
             session.Id,
@@ -577,18 +740,20 @@ public class MatchSessionService
             session.GameMode,
             session.Status,
             new PlayerSessionInfo(
-                match.Player1Id!.Value,
-                $"{match.Player1!.FirstName} {match.Player1.LastName}",
+                Side1Key(session),
+                SideName(session, 1),
                 session.Player1LegsWon,
                 session.Player1CurrentScore,
-                session.StartingPlayerId == match.Player1Id
+                startingSide == 1,
+                SideMembers(session, 1)
             ),
             new PlayerSessionInfo(
-                match.Player2Id!.Value,
-                $"{match.Player2!.FirstName} {match.Player2.LastName}",
+                Side2Key(session),
+                SideName(session, 2),
                 session.Player2LegsWon,
                 session.Player2CurrentScore,
-                session.StartingPlayerId == match.Player2Id
+                startingSide == 2,
+                SideMembers(session, 2)
             ),
             session.CurrentPlayerId,
             session.CurrentLeg,
@@ -598,7 +763,10 @@ public class MatchSessionService
             session.FinishedAt,
             session.TrackDoubles,
             cricketDisplayState,
-            session.DoubleOut
+            session.DoubleOut,
+            IsDoubles(session),
+            SideKeyOf(session, session.CurrentPlayerId),
+            ThrowerName(session, session.CurrentPlayerId)
         );
     }
 
@@ -614,6 +782,18 @@ public class MatchSessionService
                 .ThenInclude(m => m.Player2)
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Tournament)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team1)
+                .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player1)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Team2)
+                .ThenInclude(tt => tt!.Player2)
             .Where(ms => ms.Status == MatchSessionStatus.InProgress)
             .OrderBy(ms => ms.StartedAt)
             .ToListAsync();
@@ -621,8 +801,8 @@ public class MatchSessionService
         return sessions.Select(s => new ActiveSessionSummaryResponse(
             s.MatchId,
             s.Match.Tournament?.Name ?? "Tournoi",
-            $"{s.Match.Player1!.FirstName} {s.Match.Player1.LastName}",
-            $"{s.Match.Player2!.FirstName} {s.Match.Player2.LastName}",
+            SideName(s, 1),
+            SideName(s, 2),
             s.Player1LegsWon,
             s.Player2LegsWon,
             s.LegsToWin,
@@ -648,31 +828,31 @@ public class MatchSessionService
 
         foreach (var checkoutThrow in completedLegs)
         {
+            int winnerSide = SideOf(session, checkoutThrow.PlayerId);
+            var winnerSideMembers = winnerSide == 1 ? Side1Order(session) : Side2Order(session);
             var legThrows = session.Throws.Where(t => t.LegNumber == checkoutThrow.LegNumber).ToList();
-            var winnerThrows = legThrows.Where(t => t.PlayerId == checkoutThrow.PlayerId).ToList();
+            var winnerThrows = legThrows.Where(t => winnerSideMembers.Contains(t.PlayerId)).ToList();
             var dartsThrown = winnerThrows.Count * 3; // Approximation
             var totalScored = winnerThrows.Sum(t => t.Score);
             var average = dartsThrown > 0 ? (double)totalScored / dartsThrown * 3 : 0;
 
-            var winner = checkoutThrow.PlayerId == match.Player1Id ? match.Player1 : match.Player2;
-
             legsHistory.Add(new LegSummary(
                 checkoutThrow.LegNumber,
-                checkoutThrow.PlayerId,
-                $"{winner!.FirstName} {winner.LastName}",
+                winnerSide == 1 ? Side1Key(session) : Side2Key(session),
+                SideName(session, winnerSide),
                 dartsThrown,
                 Math.Round(average, 2)
             ));
         }
 
-        // Construire l'état Cricket si applicable
+        // Construire l'état Cricket si applicable (indexé par côté)
         CricketDisplayState? cricketDisplayState = null;
         if (session.GameMode == GameMode.Cricket && session.CricketState != null)
         {
             cricketDisplayState = _cricketService.BuildDisplayState(
                 session.CricketState,
-                match.Player1Id!.Value,
-                match.Player2Id!.Value
+                Side1Key(session),
+                Side2Key(session)
             );
         }
 
@@ -683,21 +863,26 @@ public class MatchSessionService
             session.GameMode,
             session.Status,
             new PlayerSpectatorInfo(
-                match.Player1Id!.Value,
-                $"{match.Player1!.FirstName} {match.Player1.LastName}",
+                Side1Key(session),
+                SideName(session, 1),
                 session.Player1LegsWon,
-                session.Player1CurrentScore
+                session.Player1CurrentScore,
+                SideMembers(session, 1)
             ),
             new PlayerSpectatorInfo(
-                match.Player2Id!.Value,
-                $"{match.Player2!.FirstName} {match.Player2.LastName}",
+                Side2Key(session),
+                SideName(session, 2),
                 session.Player2LegsWon,
-                session.Player2CurrentScore
+                session.Player2CurrentScore,
+                SideMembers(session, 2)
             ),
             session.CurrentPlayerId,
             session.CurrentLeg,
             legsHistory,
-            cricketDisplayState
+            cricketDisplayState,
+            IsDoubles(session),
+            SideKeyOf(session, session.CurrentPlayerId),
+            ThrowerName(session, session.CurrentPlayerId)
         );
     }
 
@@ -722,15 +907,16 @@ public class MatchSessionService
 
         var cricketState = session.CricketState!;
         var currentPlayerId = session.CurrentPlayerId;
-        var opponentId = currentPlayerId == session.Match.Player1Id
-            ? session.Match.Player2Id!.Value
-            : session.Match.Player1Id!.Value;
+
+        // L'état Cricket est indexé par côté : la paire partage le tableau en double
+        var currentSideKey = SideKeyOf(session, currentPlayerId);
+        var opponentSideKey = currentSideKey == Side1Key(session) ? Side2Key(session) : Side1Key(session);
 
         // Traiter toute la visite
         var hitResults = _cricketService.ProcessTurn(
             cricketState,
-            currentPlayerId,
-            opponentId,
+            currentSideKey,
+            opponentSideKey,
             request.Hits
         );
 
@@ -738,12 +924,15 @@ public class MatchSessionService
         session.CricketState = cricketState;
 
         // Mettre à jour les scores dans les champs CurrentScore
-        session.Player1CurrentScore = cricketState.PlayerStates[session.Match.Player1Id!.Value].Score;
-        session.Player2CurrentScore = cricketState.PlayerStates[session.Match.Player2Id!.Value].Score;
+        session.Player1CurrentScore = cricketState.PlayerStates[Side1Key(session)].Score;
+        session.Player2CurrentScore = cricketState.PlayerStates[Side2Key(session)].Score;
 
         // Calculer le numéro du throw
         var throwNumber = session.Throws
             .Count(t => t.LegNumber == session.CurrentLeg && t.PlayerId == currentPlayerId) + 1;
+
+        // Volées déjà jouées dans ce leg (tous lanceurs), avant celle-ci
+        var throwsInLegBefore = session.Throws.Count(t => t.LegNumber == session.CurrentLeg);
 
         // Calculer total de points marqués
         var totalPoints = hitResults.Sum(r => r.PointsScored);
@@ -770,11 +959,12 @@ public class MatchSessionService
 
         _context.Throws.Add(throwEntity);
 
-        // Vérifier si le joueur a gagné le leg
-        bool legWon = _cricketService.HasPlayerWonLeg(cricketState, currentPlayerId, opponentId);
+        // Vérifier si le côté a gagné le leg
+        bool legWon = _cricketService.HasPlayerWonLeg(cricketState, currentSideKey, opponentSideKey);
 
         // Capturer le numéro du leg avant que HandleCricketLegWon ne l'incrémente
         var legNumberBeforeWin = session.CurrentLeg;
+        var winnerSideName = SideName(session, SideOf(session, currentPlayerId));
 
         if (legWon)
         {
@@ -783,8 +973,8 @@ public class MatchSessionService
         }
         else
         {
-            // Passer au joueur suivant
-            session.CurrentPlayerId = opponentId;
+            // Passer au lanceur suivant dans la rotation
+            session.CurrentPlayerId = NextThrower(session, throwsInLegBefore + 1);
         }
 
         await _context.SaveChangesAsync();
@@ -794,17 +984,13 @@ public class MatchSessionService
 
         var displayState = _cricketService.BuildDisplayState(
             reloadedSession.CricketState!,
-            reloadedSession.Match.Player1Id!.Value,
-            reloadedSession.Match.Player2Id!.Value
+            Side1Key(reloadedSession),
+            Side2Key(reloadedSession)
         );
-
-        var currentPlayer = currentPlayerId == reloadedSession.Match.Player1Id
-            ? reloadedSession.Match.Player1!
-            : reloadedSession.Match.Player2!;
 
         var response = new CricketTurnResponse(
             currentPlayerId,
-            $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+            ThrowerName(reloadedSession, currentPlayerId),
             hitResults,
             totalPoints,
             displayState
@@ -817,22 +1003,25 @@ public class MatchSessionService
                 response,
                 reloadedSession.Player1CurrentScore,
                 reloadedSession.Player2CurrentScore,
-                reloadedSession.CurrentPlayerId
+                reloadedSession.CurrentPlayerId,
+                SideKeyOf(reloadedSession, reloadedSession.CurrentPlayerId)
             ));
 
-        // Si leg gagné, broadcaster l'événement
+        // Si leg gagné, broadcaster l'événement (WinnerId = id du côté gagnant)
         if (legWon)
         {
+            var winnerSideMembers = SideOf(reloadedSession, currentPlayerId) == 1
+                ? Side1Order(reloadedSession)
+                : Side2Order(reloadedSession);
             var legThrows = reloadedSession.Throws
-                .Where(t => t.LegNumber == legNumberBeforeWin && t.PlayerId == currentPlayerId)
+                .Where(t => t.LegNumber == legNumberBeforeWin && winnerSideMembers.Contains(t.PlayerId))
                 .ToList();
             var dartsThrown = legThrows.Count * 3; // Approximation pour Cricket
-            var totalScored = legThrows.Sum(t => t.Score);
 
             var legSummary = new LegSummary(
                 legNumberBeforeWin,
-                currentPlayerId,
-                $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                currentSideKey,
+                winnerSideName,
                 dartsThrown,
                 0 // Moyenne non calculée pour Cricket pour le moment
             );
@@ -841,8 +1030,8 @@ public class MatchSessionService
                 .LegWon(new LegWonEvent(
                     reloadedSession.MatchId,
                     legNumberBeforeWin,
-                    currentPlayerId,
-                    $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                    currentSideKey,
+                    winnerSideName,
                     reloadedSession.Player1LegsWon,
                     reloadedSession.Player2LegsWon,
                     reloadedSession.CurrentLeg,
@@ -857,8 +1046,8 @@ public class MatchSessionService
                 await _matchHub.Clients.Group($"match-{reloadedSession.MatchId}")
                     .MatchFinished(new MatchFinishedEvent(
                         reloadedSession.MatchId,
-                        currentPlayerId,
-                        $"{currentPlayer.FirstName} {currentPlayer.LastName}",
+                        currentSideKey,
+                        winnerSideName,
                         reloadedSession.Player1LegsWon,
                         reloadedSession.Player2LegsWon,
                         finalStats
@@ -903,8 +1092,8 @@ public class MatchSessionService
     /// </summary>
     private void HandleCricketLegWon(MatchSession session)
     {
-        // Incrémenter les legs gagnés
-        if (session.CurrentPlayerId == session.Match.Player1Id)
+        // Incrémenter les legs gagnés du côté du lanceur
+        if (SideOf(session, session.CurrentPlayerId) == 1)
             session.Player1LegsWon++;
         else
             session.Player2LegsWon++;
@@ -917,20 +1106,18 @@ public class MatchSessionService
         }
         else
         {
-            // Nouveau leg - réinitialiser l'état Cricket
+            // Nouveau leg - réinitialiser l'état Cricket (indexé par côté)
             session.CurrentLeg++;
             var cricketState = _cricketService.InitializeState(
-                session.Match.Player1Id!.Value,
-                session.Match.Player2Id!.Value
+                Side1Key(session),
+                Side2Key(session)
             );
             session.CricketState = cricketState;
             session.Player1CurrentScore = 0;
             session.Player2CurrentScore = 0;
 
-            // Alterner qui commence
-            session.CurrentLegStartingPlayerId = session.CurrentLegStartingPlayerId == session.Match.Player1Id
-                ? session.Match.Player2Id!.Value
-                : session.Match.Player1Id!.Value;
+            // Le côté qui commence alterne ; le leg repart sur son premier lanceur
+            session.CurrentLegStartingPlayerId = GetLegStartingPlayerId(session, session.CurrentLeg);
             session.CurrentPlayerId = session.CurrentLegStartingPlayerId;
         }
     }
