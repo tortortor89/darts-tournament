@@ -964,6 +964,20 @@ public class TournamentService
 
         bool isDoubles = MatchSideAccessor.IsDoubles(match.Tournament);
 
+        // Correction d'un score déjà validé : en phase de groupes, refuser si la
+        // phase finale a déjà été générée (le classement qui a déterminé les
+        // qualifiés ne serait plus celui utilisé)
+        if (match.Status == MatchStatus.Completed
+            && match.Tournament.Format == TournamentFormat.GroupStage
+            && !match.IsKnockoutMatch)
+        {
+            var knockoutExists = await _context.Matches
+                .AnyAsync(m => m.TournamentId == match.TournamentId && m.IsKnockoutMatch);
+            if (knockoutExists)
+                throw new InvalidOperationException(
+                    "Impossible de corriger ce score : la phase finale a déjà été générée à partir de ce classement");
+        }
+
         match.Player1Score = player1Score;
         match.Player2Score = player2Score;
         match.Status = MatchStatus.Completed;
@@ -1067,6 +1081,34 @@ public class TournamentService
         }
     }
 
+    /// <summary>
+    /// Écrit un côté dans un slot de match d'avancement. En cas de correction de
+    /// score, refuse d'écraser un match suivant déjà joué (les byes auto-complétés,
+    /// avec un côté null, restent modifiables).
+    /// </summary>
+    private static void AdvanceSideToSlot(Match target, int slot, int? sideId, bool isDoubles)
+    {
+        var current = slot == 1
+            ? MatchSideAccessor.GetSide1Id(target, isDoubles)
+            : MatchSideAccessor.GetSide2Id(target, isDoubles);
+
+        if (current == sideId)
+            return; // rien à changer (correction sans changement de vainqueur)
+
+        bool targetWasPlayed = target.Status == MatchStatus.Completed
+            && MatchSideAccessor.GetSide1Id(target, isDoubles) != null
+            && MatchSideAccessor.GetSide2Id(target, isDoubles) != null;
+
+        if (targetWasPlayed)
+            throw new InvalidOperationException(
+                "Impossible de corriger ce score : le match suivant a déjà été joué");
+
+        if (slot == 1)
+            MatchSideAccessor.SetSide1Id(target, sideId, isDoubles);
+        else
+            MatchSideAccessor.SetSide2Id(target, sideId, isDoubles);
+    }
+
     private async Task AdvanceWinnerAsync(Match completedMatch, bool isDoubles)
     {
         // Get all matches in the next round for the same phase (knockout or group)
@@ -1095,10 +1137,7 @@ public class TournamentService
         {
             var nextMatch = nextRoundMatches[nextMatchIndex];
             var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
-            if (matchIndexInRound % 2 == 0)
-                MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
-            else
-                MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
+            AdvanceSideToSlot(nextMatch, matchIndexInRound % 2 == 0 ? 1 : 2, winnerSideId, isDoubles);
         }
     }
 
@@ -1150,7 +1189,7 @@ public class TournamentService
 
             if (grandFinal != null)
             {
-                MatchSideAccessor.SetSide1Id(grandFinal, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
+                AdvanceSideToSlot(grandFinal, 1, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
             return;
         }
@@ -1170,10 +1209,7 @@ public class TournamentService
         {
             var nextMatch = nextRoundMatches[nextMatchIndex];
             var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
-            if (matchIndexInRound % 2 == 0)
-                MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
-            else
-                MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
+            AdvanceSideToSlot(nextMatch, matchIndexInRound % 2 == 0 ? 1 : 2, winnerSideId, isDoubles);
         }
     }
 
@@ -1222,10 +1258,7 @@ public class TournamentService
             if (targetMatchIndex < losersRoundMatches.Count)
             {
                 targetMatch = losersRoundMatches[targetMatchIndex];
-                if (matchIndexInRound % 2 == 0)
-                    MatchSideAccessor.SetSide1Id(targetMatch, loserSideId, isDoubles);
-                else
-                    MatchSideAccessor.SetSide2Id(targetMatch, loserSideId, isDoubles);
+                AdvanceSideToSlot(targetMatch, matchIndexInRound % 2 == 0 ? 1 : 2, loserSideId, isDoubles);
 
                 // Check if the other slot will remain empty (bye case)
                 // The paired Winners R1 match
@@ -1256,7 +1289,7 @@ public class TournamentService
             if (matchIndexInRound < losersRoundMatches.Count)
             {
                 targetMatch = losersRoundMatches[matchIndexInRound];
-                MatchSideAccessor.SetSide2Id(targetMatch, loserSideId, isDoubles);
+                AdvanceSideToSlot(targetMatch, 2, loserSideId, isDoubles);
 
                 // Check if side 1 slot (from previous losers round) is already filled
                 // If side 1 is set and match is not completed, both sides are ready
@@ -1284,7 +1317,7 @@ public class TournamentService
 
             if (grandFinal != null)
             {
-                MatchSideAccessor.SetSide2Id(grandFinal, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
+                AdvanceSideToSlot(grandFinal, 2, MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
             return;
         }
@@ -1316,7 +1349,7 @@ public class TournamentService
             // Consolidation round winners go to side 1 slots
             if (matchIndexInRound < nextRoundMatches.Count)
             {
-                MatchSideAccessor.SetSide1Id(nextRoundMatches[matchIndexInRound],
+                AdvanceSideToSlot(nextRoundMatches[matchIndexInRound], 1,
                     MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles), isDoubles);
             }
         }
@@ -1328,10 +1361,7 @@ public class TournamentService
             {
                 var nextMatch = nextRoundMatches[nextMatchIndex];
                 var winnerSideId = MatchSideAccessor.GetWinnerSideId(completedMatch, isDoubles);
-                if (matchIndexInRound % 2 == 0)
-                    MatchSideAccessor.SetSide1Id(nextMatch, winnerSideId, isDoubles);
-                else
-                    MatchSideAccessor.SetSide2Id(nextMatch, winnerSideId, isDoubles);
+                AdvanceSideToSlot(nextMatch, matchIndexInRound % 2 == 0 ? 1 : 2, winnerSideId, isDoubles);
             }
         }
     }
@@ -1358,8 +1388,18 @@ public class TournamentService
                         && m.IsBracketReset);
                 if (resetMatch != null)
                 {
+                    // Correction : refuser si le bracket reset a réellement été joué
+                    if (resetMatch.Status == MatchStatus.Completed
+                        && MatchSideAccessor.GetSide1Id(resetMatch, isDoubles) != null
+                        && MatchSideAccessor.GetSide2Id(resetMatch, isDoubles) != null)
+                        throw new InvalidOperationException(
+                            "Impossible de corriger ce score : le match suivant a déjà été joué");
+
                     resetMatch.Status = MatchStatus.Completed;
                     MatchSideAccessor.SetWinnerSideId(resetMatch, winnerSideId, isDoubles);
+                    // Marqueur de skip : pas de côtés (correction possible tant que non joué)
+                    MatchSideAccessor.SetSide1Id(resetMatch, null, isDoubles);
+                    MatchSideAccessor.SetSide2Id(resetMatch, null, isDoubles);
                     resetMatch.Player1Score = 0;
                     resetMatch.Player2Score = 0;
                 }
@@ -1373,8 +1413,24 @@ public class TournamentService
 
                 if (resetMatch != null && tournament.AllowBracketReset)
                 {
-                    MatchSideAccessor.SetSide1Id(resetMatch, MatchSideAccessor.GetSide1Id(grandFinalMatch, isDoubles), isDoubles);
-                    MatchSideAccessor.SetSide2Id(resetMatch, MatchSideAccessor.GetSide2Id(grandFinalMatch, isDoubles), isDoubles);
+                    // Ne rien toucher si le reset a réellement été joué (correction
+                    // du score de la GF1 sans changement de vainqueur)
+                    bool resetWasPlayed = resetMatch.Status == MatchStatus.Completed
+                        && MatchSideAccessor.GetSide1Id(resetMatch, isDoubles) != null
+                        && MatchSideAccessor.GetSide2Id(resetMatch, isDoubles) != null;
+
+                    if (!resetWasPlayed)
+                    {
+                        // (Ré)initialiser le reset — y compris le rouvrir s'il avait été
+                        // marqué "skippé" (Completed sans côtés) lors d'un premier résultat
+                        resetMatch.Status = MatchStatus.Pending;
+                        MatchSideAccessor.SetWinnerSideId(resetMatch, null, isDoubles);
+                        resetMatch.Player1Score = null;
+                        resetMatch.Player2Score = null;
+                        MatchSideAccessor.SetSide1Id(resetMatch, MatchSideAccessor.GetSide1Id(grandFinalMatch, isDoubles), isDoubles);
+                        MatchSideAccessor.SetSide2Id(resetMatch, MatchSideAccessor.GetSide2Id(grandFinalMatch, isDoubles), isDoubles);
+                        tournament.Status = TournamentStatus.InProgress;
+                    }
                 }
                 else
                 {

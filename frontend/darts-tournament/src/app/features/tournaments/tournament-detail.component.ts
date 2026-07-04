@@ -286,6 +286,20 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                           </div>
                         </div>
                       }
+                      @if (authService.isAdmin() && match.status === MatchStatus.Completed && match.player1Id && match.player2Id) {
+                        <div class="match-actions">
+                          @if (correctingMatchId === match.id) {
+                            <div class="score-input">
+                              <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                              <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                              <button (click)="updateScore(match)">Valider</button>
+                              <button class="cancel-correct" (click)="correctingMatchId = null">Annuler</button>
+                            </div>
+                          } @else {
+                            <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                          }
+                        </div>
+                      }
                       @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
                         <a [routerLink]="['/matches', match.id, 'spectate']" class="spectate-btn">Spectateur</a>
                       }
@@ -329,6 +343,20 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                                 <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
                                 <button (click)="updateScore(match)">Valider</button>
                               </div>
+                            </div>
+                          }
+                          @if (authService.isAdmin() && match.status === MatchStatus.Completed && match.player1Id && match.player2Id) {
+                            <div class="match-actions">
+                              @if (correctingMatchId === match.id) {
+                                <div class="score-input">
+                                  <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                                  <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                                  <button (click)="updateScore(match)">Valider</button>
+                                  <button class="cancel-correct" (click)="correctingMatchId = null">Annuler</button>
+                                </div>
+                              } @else {
+                                <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                              }
                             </div>
                           }
                           @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
@@ -375,6 +403,20 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                               <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
                               <button (click)="updateScore(match)">Valider</button>
                             </div>
+                          </div>
+                        }
+                        @if (authService.isAdmin() && match.status === MatchStatus.Completed && match.player1Id && match.player2Id) {
+                          <div class="match-actions">
+                            @if (correctingMatchId === match.id) {
+                              <div class="score-input">
+                                <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                                <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                                <button (click)="updateScore(match)">Valider</button>
+                                <button class="cancel-correct" (click)="correctingMatchId = null">Annuler</button>
+                              </div>
+                            } @else {
+                              <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                            }
                           </div>
                         }
                         @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
@@ -526,6 +568,20 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                           <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
                           <button (click)="updateScore(match)">Valider</button>
                         </div>
+                      </div>
+                    }
+                    @if (authService.isAdmin() && match.status === MatchStatus.Completed && match.player1Id && match.player2Id) {
+                      <div class="match-actions">
+                        @if (correctingMatchId === match.id) {
+                          <div class="score-input">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player1" min="0" placeholder="Score 1">
+                            <input type="number" [(ngModel)]="scoreInputs[match.id].player2" min="0" placeholder="Score 2">
+                            <button (click)="updateScore(match)">Valider</button>
+                            <button class="cancel-correct" (click)="correctingMatchId = null">Annuler</button>
+                          </div>
+                        } @else {
+                          <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                        }
                       </div>
                     }
                     @if (match.player1Id && match.player2Id && match.status !== MatchStatus.Completed) {
@@ -909,6 +965,26 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       font-weight: 500;
       transition: background 0.2s;
     }
+    .correct-btn {
+      padding: 6px 14px;
+      background: transparent;
+      color: #856404;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+    .correct-btn:hover {
+      background: #fff3cd;
+    }
+    .cancel-correct {
+      padding: 6px 12px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     .play-btn:hover {
       background: #218838;
       color: white;
@@ -1059,6 +1135,7 @@ export class TournamentDetailComponent implements OnInit {
   selectedTeamSeed: number | null = null;
   Number = Number;
   scoreInputs: { [key: number]: { player1: number; player2: number } } = {};
+  correctingMatchId: number | null = null;
   loading = false;
 
   TournamentFormat = TournamentFormat;
@@ -1403,11 +1480,37 @@ export class TournamentDetailComponent implements OnInit {
       .sort((a, b) => a.position - b.position);
   }
 
+  startCorrection(match: Match) {
+    this.scoreInputs[match.id] = {
+      player1: match.player1Score ?? 0,
+      player2: match.player2Score ?? 0
+    };
+    this.correctingMatchId = match.id;
+  }
+
   updateScore(match: Match) {
     const scores = this.scoreInputs[match.id];
-    this.apiService.updateMatchScore(match.id, scores.player1, scores.player2).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.notificationService.showSuccess('Score enregistré');
-      this.loadTournament(this.tournament!.id);
+
+    // Correction d'un score déjà validé : avertir avant d'écraser
+    if (match.status === MatchStatus.Completed) {
+      const warning = 'Corriger le score de ce match ?\n\n'
+        + 'Si ce match a été joué via l\'interface de jeu, les statistiques détaillées '
+        + '(volées, moyennes) ne seront pas modifiées : seul le résultat le sera.';
+      if (!confirm(warning)) {
+        return;
+      }
+    }
+
+    this.apiService.updateMatchScore(match.id, scores.player1, scores.player2).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Score enregistré');
+        this.correctingMatchId = null;
+        this.loadTournament(this.tournament!.id);
+      },
+      error: (err) => {
+        this.notificationService.showError(
+          typeof err.error === 'string' ? err.error : (err.error?.message || 'Erreur lors de l\'enregistrement du score'));
+      }
     });
   }
 
