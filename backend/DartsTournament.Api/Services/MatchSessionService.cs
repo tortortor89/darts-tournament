@@ -11,6 +11,7 @@ public class MatchSessionService
 {
     private readonly AppDbContext _context;
     private readonly TournamentService _tournamentService;
+    private readonly InterclubService _interclubService;
     private readonly IHubContext<MatchHub, IMatchHubClient> _matchHub;
     private readonly MatchStatsService _statsService;
     private readonly CricketService _cricketService;
@@ -18,12 +19,14 @@ public class MatchSessionService
     public MatchSessionService(
         AppDbContext context,
         TournamentService tournamentService,
+        InterclubService interclubService,
         IHubContext<MatchHub, IMatchHubClient> matchHub,
         MatchStatsService statsService,
         CricketService cricketService)
     {
         _context = context;
         _tournamentService = tournamentService;
+        _interclubService = interclubService;
         _matchHub = matchHub;
         _statsService = statsService;
         _cricketService = cricketService;
@@ -31,7 +34,7 @@ public class MatchSessionService
 
     // ----- Helpers de côté (simple : 1 joueur, double : paire avec ordre de passage) -----
 
-    private static bool IsDoubles(MatchSession session) => session.Match.Tournament.TeamSize == 2;
+    private static bool IsDoubles(MatchSession session) => MatchSideAccessor.IsDoublesMatch(session.Match);
 
     // Ordre de passage des lanceurs du côté (fixé à la config en double)
     private static List<int> Side1Order(MatchSession s) => IsDoubles(s)
@@ -95,6 +98,14 @@ public class MatchSessionService
         return TurnRotationCalculator.NextThrower(rotation, throwsAlreadyInLeg);
     }
 
+    // Libellé du contexte du match : nom du tournoi ou « Club A vs Club B »
+    private static string ContextLabel(Match match)
+    {
+        if (match.Encounter != null)
+            return $"{match.Encounter.HomeClub.Name} vs {match.Encounter.AwayClub.Name}";
+        return match.Tournament?.Name ?? "Tournoi";
+    }
+
     /// <summary>
     /// Récupère ou crée une session pour un match
     /// </summary>
@@ -119,6 +130,12 @@ public class MatchSessionService
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Team2)
                 .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.HomeClub)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.AwayClub)
             .Include(ms => ms.Throws)
             .FirstOrDefaultAsync(ms => ms.MatchId == matchId && ms.Status != MatchSessionStatus.Cancelled);
 
@@ -147,7 +164,7 @@ public class MatchSessionService
         if (match == null)
             throw new InvalidOperationException("Match non trouvé");
 
-        bool isDoubles = match.Tournament.TeamSize == 2;
+        bool isDoubles = MatchSideAccessor.IsDoublesMatch(match);
 
         if (isDoubles)
         {
@@ -289,6 +306,12 @@ public class MatchSessionService
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Team2)
                 .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.HomeClub)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.AwayClub)
             .Include(ms => ms.Throws)
                 .ThenInclude(t => t.Player)
             .FirstOrDefaultAsync(ms => ms.Id == sessionId);
@@ -539,11 +562,23 @@ public class MatchSessionService
             throw new InvalidOperationException("Cette session n'est pas terminée");
 
         // Mettre à jour le match avec les scores finaux (legs gagnés)
-        await _tournamentService.UpdateMatchScoreAsync(
-            session.MatchId,
-            session.Player1LegsWon,
-            session.Player2LegsWon
-        );
+        // Tournoi : avancement de bracket ; rencontre interclubs : score de rencontre
+        if (session.Match.EncounterId != null)
+        {
+            await _interclubService.UpdateEncounterMatchScoreAsync(
+                session.MatchId,
+                session.Player1LegsWon,
+                session.Player2LegsWon
+            );
+        }
+        else
+        {
+            await _tournamentService.UpdateMatchScoreAsync(
+                session.MatchId,
+                session.Player1LegsWon,
+                session.Player2LegsWon
+            );
+        }
     }
 
     /// <summary>
@@ -794,13 +829,19 @@ public class MatchSessionService
             .Include(ms => ms.Match)
                 .ThenInclude(m => m.Team2)
                 .ThenInclude(tt => tt!.Player2)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.HomeClub)
+            .Include(ms => ms.Match)
+                .ThenInclude(m => m.Encounter)
+                .ThenInclude(e => e!.AwayClub)
             .Where(ms => ms.Status == MatchSessionStatus.InProgress)
             .OrderBy(ms => ms.StartedAt)
             .ToListAsync();
 
         return sessions.Select(s => new ActiveSessionSummaryResponse(
             s.MatchId,
-            s.Match.Tournament?.Name ?? "Tournoi",
+            ContextLabel(s.Match),
             SideName(s, 1),
             SideName(s, 2),
             s.Player1LegsWon,
@@ -858,7 +899,7 @@ public class MatchSessionService
 
         return new MatchSessionSpectatorResponse(
             session.MatchId,
-            match.Tournament?.Name ?? "Unknown",
+            ContextLabel(match),
             session.LegsToWin,
             session.GameMode,
             session.Status,

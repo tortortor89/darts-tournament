@@ -6,8 +6,13 @@ public class Match
     public int Round { get; set; }
     public int Position { get; set; }
 
-    public int TournamentId { get; set; }
-    public Tournament Tournament { get; set; } = null!;
+    // Un match appartient soit à un tournoi, soit à une rencontre interclubs
+    // (exactement un des deux — check constraint en base)
+    public int? TournamentId { get; set; }
+    public Tournament? Tournament { get; set; }
+
+    public int? EncounterId { get; set; }
+    public InterclubEncounter? Encounter { get; set; }
 
     public int? GroupId { get; set; }
     public Group? Group { get; set; }

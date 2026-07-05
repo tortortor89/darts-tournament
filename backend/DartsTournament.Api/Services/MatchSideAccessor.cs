@@ -18,6 +18,15 @@ public static class MatchSideAccessor
 {
     public static bool IsDoubles(Tournament tournament) => tournament.TeamSize == 2;
 
+    /// <summary>
+    /// « Double » au niveau du MATCH : déduit des FK d'équipe. Nécessaire pour les
+    /// rencontres interclubs qui mélangent simples et doubles. Dans un tournoi en
+    /// double, la génération écrit toujours les FK Team ; un slot de bracket vide
+    /// (deux côtés null) est lu « simple », inoffensif car une session exige les
+    /// deux côtés.
+    /// </summary>
+    public static bool IsDoublesMatch(Match match) => match.Team1Id != null || match.Team2Id != null;
+
     public static int? GetSide1Id(Match m, bool isDoubles) => isDoubles ? m.Team1Id : m.Player1Id;
     public static int? GetSide2Id(Match m, bool isDoubles) => isDoubles ? m.Team2Id : m.Player2Id;
     public static int? GetWinnerSideId(Match m, bool isDoubles) => isDoubles ? m.WinnerTeamId : m.WinnerId;

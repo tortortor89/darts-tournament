@@ -3,15 +3,19 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace DartsTournament.Api.Models;
 
 /// <summary>
-/// Paire de joueurs inscrite à un tournoi en double (TeamSize = 2).
-/// Les paires sont propres à un tournoi : pas d'équipe persistante entre tournois.
+/// Paire de joueurs, rattachée soit à un tournoi en double (TeamSize = 2), soit à
+/// une rencontre interclubs (matchs de double d'une soirée) — exactement un des
+/// deux (check constraint en base). Pas d'équipe persistante entre compétitions.
 /// </summary>
 public class TournamentTeam
 {
     public int Id { get; set; }
 
-    public int TournamentId { get; set; }
-    public Tournament Tournament { get; set; } = null!;
+    public int? TournamentId { get; set; }
+    public Tournament? Tournament { get; set; }
+
+    public int? EncounterId { get; set; }
+    public InterclubEncounter? Encounter { get; set; }
 
     public int Player1Id { get; set; }
     public Player Player1 { get; set; } = null!;

@@ -908,6 +908,14 @@ export class MatchPlayComponent implements OnInit {
             this.config.side1FirstThrowerId = match.team1Members?.[0]?.playerId || 0;
             this.config.side2FirstThrowerId = match.team2Members?.[0]?.playerId || 0;
           }
+          // Match de rencontre interclubs : préremplir la config du championnat
+          if (match.encounterId) {
+            if (match.defaultLegsToWin) this.config.legsToWin = match.defaultLegsToWin;
+            if (match.defaultGameMode) this.config.gameMode = match.defaultGameMode;
+            if (match.defaultDoubleOut !== undefined && match.defaultDoubleOut !== null) {
+              this.config.doubleOut = match.defaultDoubleOut;
+            }
+          }
           this.checkForExistingSession();
         },
         error: () => {
@@ -1073,6 +1081,15 @@ export class MatchPlayComponent implements OnInit {
       });
   }
 
+  // Retour au contexte du match : tournoi ou rencontre interclubs
+  private navigateBack() {
+    if (this.match?.encounterId) {
+      this.router.navigate(['/interclubs/encounters', this.match.encounterId]);
+    } else {
+      this.router.navigate(['/tournaments', this.match?.tournamentId]);
+    }
+  }
+
   // Côté au trait (en simple, currentSideId == playerId du joueur courant)
   isSideActive(sideNumber: 1 | 2): boolean {
     if (!this.session) return false;
@@ -1100,7 +1117,7 @@ export class MatchPlayComponent implements OnInit {
       .subscribe({
         next: () => {
           this.notificationService.showSuccess('Match validé et enregistré !');
-          this.router.navigate(['/tournaments', this.match?.tournamentId]);
+          this.navigateBack();
         },
         error: (err) => {
           this.notificationService.showError(err.error || 'Erreur lors de la validation');
@@ -1118,7 +1135,7 @@ export class MatchPlayComponent implements OnInit {
       .subscribe({
         next: () => {
           this.notificationService.showSuccess('Match annulé');
-          this.router.navigate(['/tournaments', this.match?.tournamentId]);
+          this.navigateBack();
         },
         error: (err) => {
           this.notificationService.showError(err.error || 'Erreur lors de l\'annulation');

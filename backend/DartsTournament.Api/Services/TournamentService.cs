@@ -962,6 +962,13 @@ public class TournamentService
         if (match == null)
             throw new InvalidOperationException("Match not found");
 
+        // Garde-fou : les matchs de rencontre interclubs ne passent JAMAIS par la
+        // logique tournoi (avancement de bracket, knockout, complétion) — ils sont
+        // gérés par InterclubService
+        if (match.TournamentId == null || match.Tournament == null)
+            throw new InvalidOperationException(
+                "Ce match appartient à une rencontre interclubs, pas à un tournoi");
+
         bool isDoubles = MatchSideAccessor.IsDoubles(match.Tournament);
 
         // Correction d'un score déjà validé : en phase de groupes, refuser si la
@@ -1008,11 +1015,11 @@ public class TournamentService
         // For group stage, check if all group matches are done
         if (tournament.Format == TournamentFormat.GroupStage && !match.IsKnockoutMatch)
         {
-            await CheckAndGenerateKnockoutAsync(match.TournamentId);
+            await CheckAndGenerateKnockoutAsync(match.TournamentId.Value);
         }
 
         // Check if tournament is completed
-        await CheckTournamentCompletionAsync(match.TournamentId);
+        await CheckTournamentCompletionAsync(match.TournamentId.Value);
     }
 
     private async Task CheckAndGenerateKnockoutAsync(int tournamentId)

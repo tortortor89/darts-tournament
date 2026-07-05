@@ -25,6 +25,7 @@ export interface Player {
   createdAt: Date;
   userId?: number;
   linkedUsername?: string;
+  clubId?: number;
 }
 
 export interface Tournament {
@@ -94,9 +95,16 @@ export interface Group {
 // En double : player1Id/player2Id/winnerId portent des ids d'ÉQUIPE et les noms
 // le label de la paire. Ne pas utiliser ces ids pour naviguer vers un profil
 // joueur quand isDoubles est vrai.
+// Un match appartient soit à un tournoi (tournamentId), soit à une rencontre
+// interclubs (encounterId + encounterLabel + valeurs par défaut du championnat).
 export interface Match {
   id: number;
-  tournamentId: number;
+  tournamentId?: number;
+  encounterId?: number;
+  encounterLabel?: string;
+  defaultLegsToWin?: number;
+  defaultGameMode?: GameMode;
+  defaultDoubleOut?: boolean;
   groupId?: number;
   round: number;
   position: number;
@@ -178,6 +186,128 @@ export interface CircuitStanding {
   totalPoints: number;
   rank: number;
   details: CircuitTournamentPoints[];
+}
+
+// Interclubs
+export interface Club {
+  id: number;
+  name: string;
+  createdAt: Date;
+  playerCount: number;
+}
+
+export interface ClubDetail {
+  id: number;
+  name: string;
+  createdAt: Date;
+  players: ClubPlayer[];
+}
+
+export interface ClubPlayer {
+  playerId: number;
+  name: string;
+  nickname?: string;
+}
+
+export enum ChampionshipStatus {
+  Draft = 0,
+  InProgress = 1,
+  Completed = 2
+}
+
+export enum EncounterStatus {
+  Pending = 0,
+  InProgress = 1,
+  Completed = 2
+}
+
+export interface InterclubChampionship {
+  id: number;
+  name: string;
+  status: ChampionshipStatus;
+  singlesPerEncounter: number;
+  doublesPerEncounter: number;
+  legsToWin: number;
+  gameMode: GameMode;
+  doubleOut: boolean;
+  pointsForWin: number;
+  pointsForDraw: number;
+  pointsForLoss: number;
+  createdAt: Date;
+  clubCount: number;
+}
+
+export interface InterclubChampionshipDetail extends Omit<InterclubChampionship, 'clubCount'> {
+  clubs: ChampionshipClub[];
+}
+
+export interface ChampionshipClub {
+  clubId: number;
+  clubName: string;
+  roster: ClubPlayer[];
+}
+
+export interface EncounterSummary {
+  id: number;
+  round: number;
+  homeClubId: number;
+  homeClubName: string;
+  awayClubId: number;
+  awayClubName: string;
+  scheduledAt?: Date;
+  status: EncounterStatus;
+  homeScore: number;
+  awayScore: number;
+}
+
+export interface CalendarRound {
+  round: number;
+  encounters: EncounterSummary[];
+}
+
+export interface EncounterDetail {
+  id: number;
+  championshipId: number;
+  championshipName: string;
+  round: number;
+  homeClubId: number;
+  homeClubName: string;
+  awayClubId: number;
+  awayClubName: string;
+  scheduledAt?: Date;
+  status: EncounterStatus;
+  homeScore: number;
+  awayScore: number;
+  singlesPerEncounter: number;
+  doublesPerEncounter: number;
+  homeRoster: ClubPlayer[];
+  awayRoster: ClubPlayer[];
+  boards: EncounterBoard[];
+}
+
+export interface EncounterBoard {
+  position: number;
+  isDoubles: boolean;
+  match: Match | null;
+}
+
+export interface BoardLineup {
+  position: number;
+  homePlayerIds: number[];
+  awayPlayerIds: number[];
+}
+
+export interface InterclubStanding {
+  clubId: number;
+  clubName: string;
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  points: number;
+  matchesWon: number;
+  matchesLost: number;
+  rank: number;
 }
 
 export enum TournamentFormat {

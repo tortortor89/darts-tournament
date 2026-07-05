@@ -20,17 +20,20 @@ public class MatchesController : ControllerBase
     private readonly TournamentService _tournamentService;
     private readonly MatchSessionService _matchSessionService;
     private readonly MatchStatsService _statsService;
+    private readonly InterclubService _interclubService;
 
     public MatchesController(
         AppDbContext context,
         TournamentService tournamentService,
         MatchSessionService matchSessionService,
-        MatchStatsService statsService)
+        MatchStatsService statsService,
+        InterclubService interclubService)
     {
         _context = context;
         _tournamentService = tournamentService;
         _matchSessionService = matchSessionService;
         _statsService = statsService;
+        _interclubService = interclubService;
     }
 
     /// <summary>
@@ -47,6 +50,12 @@ public class MatchesController : ControllerBase
     {
         var match = await _context.Matches
             .Include(m => m.Tournament)
+            .Include(m => m.Encounter)
+            .ThenInclude(e => e!.Championship)
+            .Include(m => m.Encounter)
+            .ThenInclude(e => e!.HomeClub)
+            .Include(m => m.Encounter)
+            .ThenInclude(e => e!.AwayClub)
             .Include(m => m.Player1)
             .Include(m => m.Player2)
             .Include(m => m.Team1)
@@ -64,7 +73,7 @@ public class MatchesController : ControllerBase
             return NotFound();
         }
 
-        bool isDoubles = match.Tournament.TeamSize == 2;
+        bool isDoubles = MatchSideAccessor.IsDoublesMatch(match);
 
         // En double : ids/noms de côté aliasés sur les champs joueur (cf. MatchResponse)
         var response = new MatchResponse(
@@ -103,7 +112,14 @@ public class MatchesController : ControllerBase
                     new(match.Team2.Player1Id, $"{match.Team2.Player1.FirstName} {match.Team2.Player1.LastName}"),
                     new(match.Team2.Player2Id, $"{match.Team2.Player2.FirstName} {match.Team2.Player2.LastName}")
                 }
-                : null
+                : null,
+            match.EncounterId,
+            match.Encounter != null
+                ? $"{match.Encounter.HomeClub.Name} vs {match.Encounter.AwayClub.Name}"
+                : null,
+            match.Encounter?.Championship.LegsToWin,
+            match.Encounter?.Championship.GameMode,
+            match.Encounter?.Championship.DoubleOut
         );
 
         return Ok(response);
@@ -132,7 +148,18 @@ public class MatchesController : ControllerBase
     {
         try
         {
-            await _tournamentService.UpdateMatchScoreAsync(id, request.Player1Score, request.Player2Score);
+            // Un match appartient soit à un tournoi (bracket), soit à une rencontre
+            // interclubs (score de rencontre) : deux chemins distincts
+            var isEncounterMatch = await _context.Matches
+                .Where(m => m.Id == id)
+                .Select(m => m.EncounterId != null)
+                .FirstOrDefaultAsync();
+
+            if (isEncounterMatch)
+                await _interclubService.UpdateEncounterMatchScoreAsync(id, request.Player1Score, request.Player2Score);
+            else
+                await _tournamentService.UpdateMatchScoreAsync(id, request.Player1Score, request.Player2Score);
+
             return Ok();
         }
         catch (InvalidOperationException ex)

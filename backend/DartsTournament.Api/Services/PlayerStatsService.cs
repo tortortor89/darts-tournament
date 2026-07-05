@@ -82,8 +82,9 @@ public class PlayerStatsService
             .Select(tp => tp.TournamentId)
             .ToListAsync();
         var teamTournaments = await _context.TournamentTeams
-            .Where(tt => tt.Player1Id == playerId || tt.Player2Id == playerId)
-            .Select(tt => tt.TournamentId)
+            .Where(tt => (tt.Player1Id == playerId || tt.Player2Id == playerId)
+                && tt.TournamentId != null)
+            .Select(tt => tt.TournamentId!.Value)
             .ToListAsync();
         var tournaments = soloTournaments.Concat(teamTournaments).Distinct().Count();
 
@@ -194,14 +195,15 @@ public class PlayerStatsService
 
     public async Task<List<HeadToHeadRecord>> GetHeadToHeadStatsAsync(int playerId)
     {
-        // Head-to-head limité aux tournois en simple : en double, le face-à-face
-        // est une affaire de paires, pas de joueurs (à revoir plus tard)
+        // Head-to-head limité aux matchs en simple (filtre au niveau du match :
+        // pas de FK d'équipe) : en double, le face-à-face est une affaire de
+        // paires, pas de joueurs (à revoir plus tard)
         var matches = await _context.Matches
             .Include(m => m.Player1)
             .Include(m => m.Player2)
             .Include(m => m.Tournament)
             .Where(m => (m.Player1Id == playerId || m.Player2Id == playerId)
-                        && m.Tournament.TeamSize != 2
+                        && m.Team1Id == null
                         && m.Status == MatchStatus.Completed)
             .ToListAsync();
 
@@ -219,7 +221,7 @@ public class PlayerStatsService
             .GroupBy(x => x.OpponentId)
             .Select(g => new HeadToHeadRecord(
                 g.Key!.Value,
-                $"{g.First().Opponent!.FirstName} {g.First().Opponent.LastName}",
+                $"{g.First().Opponent!.FirstName} {g.First().Opponent!.LastName}",
                 g.Count(),
                 g.Count(x => x.Won),
                 g.Count(x => !x.Won),

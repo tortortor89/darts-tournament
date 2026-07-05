@@ -7,6 +7,9 @@ import { TournamentListComponent } from './features/tournaments/tournament-list.
 import { TournamentDetailComponent } from './features/tournaments/tournament-detail.component';
 import { CircuitListComponent } from './features/circuits/circuit-list.component';
 import { CircuitDetailComponent } from './features/circuits/circuit-detail.component';
+import { InterclubListComponent } from './features/interclubs/interclub-list.component';
+import { InterclubDetailComponent } from './features/interclubs/interclub-detail.component';
+import { EncounterDetailComponent } from './features/interclubs/encounter-detail.component';
 import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
 import { ProfileComponent } from './features/profile/profile.component';
@@ -23,6 +26,9 @@ export const routes: Routes = [
   { path: 'tournaments/:id', component: TournamentDetailComponent },
   { path: 'circuits', component: CircuitListComponent },
   { path: 'circuits/:id', component: CircuitDetailComponent },
+  { path: 'interclubs', component: InterclubListComponent },
+  { path: 'interclubs/encounters/:id', component: EncounterDetailComponent },
+  { path: 'interclubs/:id', component: InterclubDetailComponent },
   { path: 'matches/:id/play', component: MatchPlayComponent },
   { path: 'matches/:id/spectate', component: MatchSpectateComponent },
   { path: 'tv', component: TvLobbyComponent }

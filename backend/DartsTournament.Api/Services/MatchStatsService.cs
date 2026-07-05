@@ -14,7 +14,7 @@ public class MatchStatsService
     public MatchStatsResponse CalculateStats(MatchSession session)
     {
         var match = session.Match;
-        bool isDoubles = match.Tournament.TeamSize == 2;
+        bool isDoubles = MatchSideAccessor.IsDoublesMatch(match);
 
         if (!isDoubles)
         {

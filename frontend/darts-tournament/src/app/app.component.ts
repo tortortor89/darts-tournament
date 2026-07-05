@@ -14,6 +14,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       <div class="nav-links">
         <a routerLink="/tournaments" routerLinkActive="active">Tournois</a>
         <a routerLink="/circuits" routerLinkActive="active">Circuits</a>
+        <a routerLink="/interclubs" routerLinkActive="active">Interclubs</a>
         <a routerLink="/players" routerLinkActive="active">Joueurs</a>
       </div>
       <div class="nav-auth">

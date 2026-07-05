@@ -28,7 +28,7 @@ public record UpdatePlayerRequest(
     string? Nickname
 );
 
-public record PlayerResponse(int Id, string FirstName, string LastName, string? Nickname, DateTime CreatedAt);
+public record PlayerResponse(int Id, string FirstName, string LastName, string? Nickname, DateTime CreatedAt, int? ClubId = null);
 
 // Link to existing player
 public record LinkPlayerRequest(

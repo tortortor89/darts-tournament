@@ -16,9 +16,11 @@ public record TeamMemberInfo(int PlayerId, string Name);
 // En double, Player1Id/Player2Id/WinnerId portent des ids de TournamentTeam et les
 // noms le label de la paire (« Alice D. / Bob M. »). Ne pas utiliser ces ids pour
 // naviguer vers un profil joueur quand IsDoubles est vrai.
+// Un match appartient soit à un tournoi (TournamentId), soit à une rencontre
+// interclubs (EncounterId + EncounterLabel + valeurs par défaut du championnat).
 public record MatchResponse(
     int Id,
-    int TournamentId,
+    int? TournamentId,
     int? GroupId,
     int Round,
     int Position,
@@ -36,5 +38,10 @@ public record MatchResponse(
     bool IsBracketReset,
     bool IsDoubles = false,
     List<TeamMemberInfo>? Team1Members = null,
-    List<TeamMemberInfo>? Team2Members = null
+    List<TeamMemberInfo>? Team2Members = null,
+    int? EncounterId = null,
+    string? EncounterLabel = null,
+    int? DefaultLegsToWin = null,
+    GameMode? DefaultGameMode = null,
+    bool? DefaultDoubleOut = null
 );
