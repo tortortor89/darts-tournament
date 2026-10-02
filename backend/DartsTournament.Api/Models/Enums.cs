@@ -72,3 +72,17 @@ public enum RegistrationStatus
     Approved,
     Rejected
 }
+
+public enum ChampionshipStatus
+{
+    Draft,
+    InProgress,
+    Completed
+}
+
+public enum EncounterStatus
+{
+    Pending,
+    InProgress,
+    Completed
+}

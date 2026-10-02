@@ -869,6 +869,15 @@ export class ScoreInputComponent {
       return;
     }
 
+    // CAS 3bis — Le joueur a pu passer par une position de double EN COURS de volée
+    // même si ni le départ ni l'arrivée n'en sont une
+    // (ex: 121 → T20, S11 → 50 → tentative Bull ratée en S25 → 96 marqués, reste 25)
+    if (!estCheckout && this.couldHavePassedThroughDouble(scoreAvantVolee, score)) {
+      this.pendingThrowData = throwData;
+      this.doublesAttemptedModalVisible.set(true);
+      return;
+    }
+
     // CAS 4 — Aucune popup nécessaire
     // Pas en position avant, pas en position après, pas de checkout
     this.throwSubmit.emit({
@@ -876,6 +885,18 @@ export class ScoreInputComponent {
       doublesAttempted: 0
     });
     this.resetInput();
+  }
+
+  /**
+   * Vrai si une position de double (50 ou pair de 2 à 40) a pu être un état
+   * intermédiaire de la volée : strictement entre le score de départ et le score
+   * d'arrivée, et atteignable depuis le départ en 1 ou 2 fléchettes (max 120)
+   */
+  private couldHavePassedThroughDouble(scoreAvant: number, scoreVolee: number): boolean {
+    const scoreApres = scoreAvant - scoreVolee;
+    const doublePositions = [50, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2];
+    return doublePositions.some(p =>
+      p < scoreAvant && p > scoreApres && scoreAvant - p <= 120);
   }
 
   submitThrowWithDoublesAttempted(doublesAttempted: number) {

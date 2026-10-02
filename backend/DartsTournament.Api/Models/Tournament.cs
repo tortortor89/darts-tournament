@@ -18,7 +18,15 @@ public class Tournament
     // Configuration Double Elimination
     public bool AllowBracketReset { get; set; } = true;
 
+    // Circuit (optionnel)
+    public int? CircuitId { get; set; }
+    public Circuit? Circuit { get; set; }
+
+    // Taille d'un côté : 1 = simple, 2 = double (paires)
+    public int TeamSize { get; set; } = 1;
+
     public ICollection<TournamentPlayer> TournamentPlayers { get; set; } = new List<TournamentPlayer>();
+    public ICollection<TournamentTeam> Teams { get; set; } = new List<TournamentTeam>();
     public ICollection<Group> Groups { get; set; } = new List<Group>();
     public ICollection<Match> Matches { get; set; } = new List<Match>();
 }

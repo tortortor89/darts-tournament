@@ -31,6 +31,13 @@ public class MatchSession
     public int CurrentPlayerId { get; set; }
     public int CurrentLegStartingPlayerId { get; set; }
 
+    // Doubles : ordre de passage des lanceurs de chaque côté, fixé à la config
+    // pour tout le match (null en simple)
+    public int? Side1Player1Id { get; set; }
+    public int? Side1Player2Id { get; set; }
+    public int? Side2Player1Id { get; set; }
+    public int? Side2Player2Id { get; set; }
+
     // Timestamps
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? StartedAt { get; set; }

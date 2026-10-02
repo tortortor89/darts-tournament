@@ -39,7 +39,7 @@ public class PlayersController : ControllerBase
         var players = await _context.Players
             .OrderBy(p => p.LastName)
             .ThenBy(p => p.FirstName)
-            .Select(p => new PlayerResponse(p.Id, p.FirstName, p.LastName, p.Nickname, p.CreatedAt))
+            .Select(p => new PlayerResponse(p.Id, p.FirstName, p.LastName, p.Nickname, p.CreatedAt, p.ClubId))
             .ToListAsync();
 
         return Ok(players);

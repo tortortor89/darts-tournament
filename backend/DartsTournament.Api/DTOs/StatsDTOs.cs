@@ -1,11 +1,15 @@
 namespace DartsTournament.Api.DTOs;
 
 /// <summary>
-/// Statistiques complètes d'un match
+/// Statistiques complètes d'un match.
+/// En double : Player1Stats/Player2Stats sont les stats agrégées de chaque ÉQUIPE
+/// (PlayerId = id d'équipe) et les MemberStats détaillent chaque lanceur.
 /// </summary>
 public record MatchStatsResponse(
     PlayerStatsInfo Player1Stats,
-    PlayerStatsInfo Player2Stats
+    PlayerStatsInfo Player2Stats,
+    List<PlayerStatsInfo>? Player1MemberStats = null,
+    List<PlayerStatsInfo>? Player2MemberStats = null
 );
 
 /// <summary>

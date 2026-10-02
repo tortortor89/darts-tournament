@@ -20,6 +20,7 @@ public class MatchStatsServiceTests
             TrackDoubles = trackDoubles,
             Match = new Match
             {
+                Tournament = new Tournament { Name = "Test", TeamSize = 1 },
                 Player1Id = player1.Id,
                 Player1 = player1,
                 Player2Id = player2.Id,
@@ -40,6 +41,32 @@ public class MatchStatsServiceTests
 
     private static string CricketJson(params CricketHit[] hits) =>
         JsonSerializer.Serialize(new { hits = hits.ToList(), results = new List<CricketHitResult>() });
+
+    // Session de double : paires 101 (joueurs 1, 2) et 102 (joueurs 11, 12)
+    private static MatchSession BuildDoublesSession(GameMode mode = GameMode.FiveOhOne)
+    {
+        var a1 = new Player { Id = 1, FirstName = "Alice", LastName = "Martin" };
+        var a2 = new Player { Id = 2, FirstName = "Anna", LastName = "Morel" };
+        var b1 = new Player { Id = 11, FirstName = "Bob", LastName = "Durand" };
+        var b2 = new Player { Id = 12, FirstName = "Bill", LastName = "Dupont" };
+
+        return new MatchSession
+        {
+            GameMode = mode,
+            Match = new Match
+            {
+                Tournament = new Tournament { Name = "Test double", TeamSize = 2 },
+                Team1Id = 101,
+                Team1 = new TournamentTeam { Id = 101, Player1Id = 1, Player1 = a1, Player2Id = 2, Player2 = a2 },
+                Team2Id = 102,
+                Team2 = new TournamentTeam { Id = 102, Player1Id = 11, Player1 = b1, Player2Id = 12, Player2 = b2 }
+            },
+            Side1Player1Id = 1,
+            Side1Player2Id = 2,
+            Side2Player1Id = 11,
+            Side2Player2Id = 12
+        };
+    }
 
     // --- 501 ---
 
@@ -179,5 +206,58 @@ public class MatchStatsServiceTests
         var stats = _service.CalculateStats(session);
 
         Assert.Equal(3.0, stats.Player1Stats.MarksPerRound);
+    }
+
+    // --- Doubles ---
+
+    [Fact]
+    public void Doubles_StatsDeCoteAgregentLesDeuxMembres()
+    {
+        var session = BuildDoublesSession();
+        // Alice (1) et Anna (2) lancent pour la paire 101
+        session.Throws.Add(NewThrow(1, 100, 401, 1));
+        session.Throws.Add(NewThrow(2, 60, 341, 1));
+        // Bob (11) lance pour la paire 102
+        session.Throws.Add(NewThrow(11, 45, 456, 1));
+
+        var stats = _service.CalculateStats(session);
+
+        // Sujet côté 1 = équipe 101 : 160 points en 6 fléchettes => 80.0
+        Assert.Equal(101, stats.Player1Stats.PlayerId);
+        Assert.Equal("Alice Martin / Anna Morel", stats.Player1Stats.Name);
+        Assert.Equal(160, stats.Player1Stats.TotalScore);
+        Assert.Equal(80.0, stats.Player1Stats.ThreeDartAverage);
+        Assert.Equal(102, stats.Player2Stats.PlayerId);
+        Assert.Equal(45, stats.Player2Stats.TotalScore);
+    }
+
+    [Fact]
+    public void Doubles_StatsIndividuellesParMembreExactes()
+    {
+        var session = BuildDoublesSession();
+        session.Throws.Add(NewThrow(1, 100, 401, 1));
+        session.Throws.Add(NewThrow(2, 60, 341, 1));
+        session.Throws.Add(NewThrow(1, 140, 201, 2));
+
+        var stats = _service.CalculateStats(session);
+
+        Assert.NotNull(stats.Player1MemberStats);
+        var alice = stats.Player1MemberStats!.First(m => m.PlayerId == 1);
+        var anna = stats.Player1MemberStats!.First(m => m.PlayerId == 2);
+        // Alice : 240 points en 6 fléchettes => 120.0 ; Anna : 60 en 3 => 60.0
+        Assert.Equal(120.0, alice.ThreeDartAverage);
+        Assert.Equal(60.0, anna.ThreeDartAverage);
+    }
+
+    [Fact]
+    public void Simple_PasDeStatsMembres()
+    {
+        var session = BuildSession();
+        session.Throws.Add(NewThrow(1, 60, 441, 1));
+
+        var stats = _service.CalculateStats(session);
+
+        Assert.Null(stats.Player1MemberStats);
+        Assert.Null(stats.Player2MemberStats);
     }
 }

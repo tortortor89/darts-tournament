@@ -138,7 +138,8 @@ public class PlayerService
                 p.FirstName,
                 p.LastName,
                 p.Nickname,
-                p.CreatedAt
+                p.CreatedAt,
+                p.ClubId
             ))
             .ToListAsync();
 

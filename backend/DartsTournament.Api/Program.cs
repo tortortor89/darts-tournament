@@ -88,6 +88,8 @@ builder.Services.AddScoped<MatchStatsService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<CricketService>();
+builder.Services.AddScoped<CircuitService>();
+builder.Services.AddScoped<InterclubService>();
 
 // SignalR
 builder.Services.AddSignalR();
