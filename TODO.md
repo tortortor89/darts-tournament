@@ -161,5 +161,6 @@
 - [x] Support format 301 (option Double Out / Straight Out, score de départ généralisé)
 - [ ] Gestion des sets (en plus des legs)
 - [x] Mode équipes / doubles (paires par tournoi, alternance stricte A1→B1→A2→B2, tous formats + 501/301/Cricket)
+- [x] Interclubs : clubs, championnats (composition configurable X simples + Y doubles), calendrier aller-retour, effectifs déclarés, feuille de rencontre avec composition rapide (ordre des joueurs → confrontations déduites), classement V2/N1/D0
 - [ ] Export des résultats (PDF, CSV)
 - [ ] Dashboard récapitulatif (stats globales, tournois récents)

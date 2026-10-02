@@ -124,6 +124,48 @@ interface BoardEdit {
         </div>
 
         @if (authService.isAdmin() && hasEditableBoards()) {
+          @if (editing) {
+            <!-- Composition rapide : ordre des joueurs -> confrontations déduites -->
+            <div class="quick-lineup">
+              <h4>Composition rapide</h4>
+              <p class="hint">
+                Renseigne l'ordre des joueurs de chaque club : les confrontations sont déduites
+                du format ({{ encounter.singlesPerEncounter }} simples
+                @if (encounter.doublesPerEncounter > 0) { + {{ encounter.doublesPerEncounter }} doubles, paires 1-2 et 3-4 }).
+              </p>
+              <div class="quick-sides">
+                <div class="quick-side">
+                  <span class="side-label">{{ encounter.homeClubName }}</span>
+                  @for (slot of quickHomeOrder; track $index; let i = $index) {
+                    <div class="order-slot">
+                      <span class="order-num">{{ i + 1 }}</span>
+                      <select [(ngModel)]="quickHomeOrder[i]">
+                        <option [ngValue]="null">—</option>
+                        @for (player of encounter.homeRoster; track player.playerId) {
+                          <option [ngValue]="player.playerId">{{ player.name }}</option>
+                        }
+                      </select>
+                    </div>
+                  }
+                </div>
+                <div class="quick-side">
+                  <span class="side-label">{{ encounter.awayClubName }}</span>
+                  @for (slot of quickAwayOrder; track $index; let i = $index) {
+                    <div class="order-slot">
+                      <span class="order-num">{{ i + 1 }}</span>
+                      <select [(ngModel)]="quickAwayOrder[i]">
+                        <option [ngValue]="null">—</option>
+                        @for (player of encounter.awayRoster; track player.playerId) {
+                          <option [ngValue]="player.playerId">{{ player.name }}</option>
+                        }
+                      </select>
+                    </div>
+                  }
+                </div>
+              </div>
+              <button class="generate" (click)="generateLineup()">Générer les confrontations</button>
+            </div>
+          }
           <div class="lineup-actions">
             @if (editing) {
               <button class="save" (click)="saveLineup()">Enregistrer la composition</button>
@@ -287,6 +329,56 @@ interface BoardEdit {
       cursor: pointer;
       font-size: 0.85em;
     }
+    .quick-lineup {
+      margin-top: 15px;
+      padding: 15px;
+      background: #eef4ff;
+      border: 1px solid #cfe0ff;
+      border-radius: 8px;
+    }
+    .quick-lineup h4 { margin: 0 0 6px; }
+    .quick-lineup .hint {
+      margin: 0 0 12px;
+      font-size: 0.85em;
+      color: #555;
+    }
+    .quick-sides {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .quick-side {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .order-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .order-num {
+      width: 20px;
+      text-align: right;
+      font-weight: 700;
+      color: #007bff;
+    }
+    .order-slot select {
+      padding: 6px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-width: 180px;
+    }
+    .quick-lineup .generate {
+      padding: 8px 16px;
+      background: #6f42c1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+    }
     .lineup-actions {
       margin-top: 15px;
       display: flex;
@@ -319,6 +411,8 @@ export class EncounterDetailComponent implements OnInit {
   correctingMatchId: number | null = null;
   editing = false;
   boardEdits: BoardEdit[] = [];
+  quickHomeOrder: (number | null)[] = [];
+  quickAwayOrder: (number | null)[] = [];
   loading = false;
 
   MatchStatus = MatchStatus;
@@ -401,7 +495,66 @@ export class EncounterDetailComponent implements OnInit {
         }
         return { position: b.position, isDoubles: b.isDoubles, homePlayerIds: home, awayPlayerIds: away };
       });
+    // Composition rapide : un slot d'ordre par joueur de l'effectif
+    this.quickHomeOrder = this.encounter.homeRoster.map(() => null);
+    this.quickAwayOrder = this.encounter.awayRoster.map(() => null);
     this.editing = true;
+  }
+
+  /**
+   * Déduit toutes les confrontations depuis l'ordre des joueurs.
+   * Simples : grille tournante — au tour r, le joueur i (domicile) rencontre le
+   * joueur (i + r) % n (extérieur). Avec 16 simples et 4 joueurs, tout le monde
+   * rencontre tout le monde ; avec 8 simples, chacun joue 2 adversaires.
+   * Doubles : paires consécutives (1-2, 3-4...), croisées au tour suivant.
+   */
+  generateLineup() {
+    if (!this.encounter) return;
+
+    const home = this.quickHomeOrder.filter((id): id is number => id !== null);
+    const away = this.quickAwayOrder.filter((id): id is number => id !== null);
+
+    if (home.length < 1 || away.length < 1) {
+      this.notificationService.showError('Renseigne l\'ordre des joueurs des deux clubs');
+      return;
+    }
+    if (home.length !== away.length) {
+      this.notificationService.showError('Les deux clubs doivent aligner le même nombre de joueurs');
+      return;
+    }
+    if (new Set(home).size !== home.length || new Set(away).size !== away.length) {
+      this.notificationService.showError('Un joueur apparaît plusieurs fois dans l\'ordre');
+      return;
+    }
+
+    const n = home.length;
+    const hasDoubles = this.boardEdits.some(e => e.isDoubles);
+    if (hasDoubles && n % 2 !== 0) {
+      this.notificationService.showError('Un nombre pair de joueurs est nécessaire pour déduire les paires de double');
+      return;
+    }
+
+    const singles = this.encounter.singlesPerEncounter;
+    const pairs = n / 2;
+
+    for (const edit of this.boardEdits) {
+      if (!edit.isDoubles) {
+        const k = edit.position - 1;
+        const r = Math.floor(k / n);
+        const i = k % n;
+        edit.homePlayerIds = [home[i]];
+        edit.awayPlayerIds = [away[(i + r) % n]];
+      } else {
+        const j = edit.position - singles - 1;
+        const r = Math.floor(j / pairs);
+        const i = j % pairs;
+        const opponent = (i + r) % pairs;
+        edit.homePlayerIds = [home[2 * i], home[2 * i + 1]];
+        edit.awayPlayerIds = [away[2 * opponent], away[2 * opponent + 1]];
+      }
+    }
+
+    this.notificationService.showSuccess('Confrontations générées — vérifie et enregistre');
   }
 
   cancelEdit() {
