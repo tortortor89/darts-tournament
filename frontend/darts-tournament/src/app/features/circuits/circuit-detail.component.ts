@@ -176,14 +176,14 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       margin-bottom: 5px;
     }
     .description {
-      color: #666;
+      color: var(--hd-text-muted);
       font-style: italic;
       margin-top: 0;
     }
     .section {
       margin-bottom: 30px;
       padding: 15px;
-      background: #f8f9fa;
+      background: var(--hd-cream-dark);
       border-radius: 8px;
     }
     .section h3 {
@@ -198,23 +198,23 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     th, td {
       padding: 8px 12px;
       text-align: left;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid var(--hd-border);
     }
     th {
-      background: #333;
-      color: white;
+      background: var(--hd-cream-dark);
+      color: var(--hd-green);
     }
     .top-three {
-      background: #fff8e1;
+      background: rgba(232, 149, 10, 0.12);
     }
     .detail-toggle {
       background: transparent;
       border: none;
       cursor: pointer;
-      color: #007bff;
+      color: var(--hd-green);
     }
     .details-row td {
-      background: #f0f7ff;
+      background: var(--hd-cream);
       padding: 5px 20px;
     }
     .details-table {
@@ -226,7 +226,7 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       font-size: 0.9em;
     }
     .details-table a {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
     }
     .tournament-rows {
@@ -241,10 +241,10 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       padding: 10px;
       background: white;
       border-radius: 4px;
-      border: 1px solid #eee;
+      border: 1px solid var(--hd-border);
     }
     .tournament-row a {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
       font-weight: 600;
     }
@@ -254,17 +254,17 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       font-size: 0.8em;
       color: white;
     }
-    .badge.status-0 { background: #6c757d; }
-    .badge.status-1 { background: #28a745; }
-    .badge.status-2 { background: #007bff; }
+    .badge.status-0 { background: var(--hd-text-muted); }
+    .badge.status-1 { background: var(--hd-amber); }
+    .badge.status-2 { background: var(--hd-success); }
     .pending-hint {
       font-size: 0.8em;
-      color: #999;
+      color: var(--hd-text-muted);
       font-style: italic;
     }
     .detach {
       margin-left: auto;
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       padding: 4px 10px;
@@ -278,13 +278,13 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     }
     .attach-form select {
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
       min-width: 250px;
     }
     .attach-form button, .edit-btn, .save {
       padding: 8px 16px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
@@ -300,17 +300,17 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     .rules-table input {
       width: 80px;
       padding: 4px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
     }
     .participation-row td {
-      color: #666;
+      color: var(--hd-text-muted);
       font-style: italic;
     }
     .remove-rule {
       background: transparent;
       border: none;
-      color: #dc3545;
+      color: var(--hd-danger);
       cursor: pointer;
       font-weight: bold;
     }
@@ -321,19 +321,19 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     }
     .add-rule, .cancel {
       padding: 8px 16px;
-      background: #6c757d;
+      background: var(--hd-text-muted);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     .save {
-      background: #28a745;
+      background: var(--hd-green);
     }
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--hd-text-muted);
     }
   `]
 })

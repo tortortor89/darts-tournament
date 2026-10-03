@@ -66,7 +66,7 @@ import { Circuit } from '../../core/models';
     .add-form {
       margin-bottom: 20px;
       padding: 15px;
-      background: #f5f5f5;
+      background: var(--hd-cream-dark);
       border-radius: 8px;
     }
     .add-form form {
@@ -87,16 +87,16 @@ import { Circuit } from '../../core/models';
     .hint {
       margin: 0;
       font-size: 0.85em;
-      color: #666;
+      color: var(--hd-text-muted);
     }
     .add-form input {
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
     }
     .add-form button {
       padding: 8px 16px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
@@ -110,25 +110,25 @@ import { Circuit } from '../../core/models';
     }
     .circuit-card {
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 8px;
     }
     .circuit-card h3 {
       margin-top: 0;
     }
     .circuit-card h3 a {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
     }
     .circuit-card h3 a:hover {
       text-decoration: underline;
     }
     .circuit-card .description {
-      color: #666;
+      color: var(--hd-text-muted);
       font-style: italic;
     }
     button.delete {
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
       border: none;
       padding: 5px 10px;
@@ -138,7 +138,7 @@ import { Circuit } from '../../core/models';
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--hd-text-muted);
     }
   `]
 })

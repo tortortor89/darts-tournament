@@ -185,7 +185,7 @@ interface BoardEdit {
       padding: 20px;
     }
     .back {
-      color: #007bff;
+      color: var(--hd-green);
       text-decoration: none;
       display: inline-block;
       margin-bottom: 12px;
@@ -196,7 +196,7 @@ interface BoardEdit {
       justify-content: center;
       gap: 24px;
       padding: 18px;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: linear-gradient(135deg, #0D2018 0%, var(--hd-green) 100%);
       color: white;
       border-radius: 10px;
     }
@@ -209,11 +209,11 @@ interface BoardEdit {
     .scoreboard .big-score {
       font-size: 2.2em;
       font-weight: bold;
-      color: #ffc107;
+      color: var(--hd-amber);
     }
     .meta {
       text-align: center;
-      color: #666;
+      color: var(--hd-text-muted);
       margin: 10px 0 20px;
     }
     .badge {
@@ -222,22 +222,22 @@ interface BoardEdit {
       font-size: 0.85em;
       color: white;
     }
-    .status-badge-0 { background: #6c757d; }
-    .status-badge-1 { background: #28a745; }
-    .status-badge-2 { background: #007bff; }
+    .status-badge-0 { background: var(--hd-text-muted); }
+    .status-badge-1 { background: var(--hd-amber); }
+    .status-badge-2 { background: var(--hd-success); }
     .boards {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
     .board-card {
-      background: #f8f9fa;
-      border: 1px solid #eee;
-      border-left: 4px solid #007bff;
+      background: var(--hd-cream-dark);
+      border: 1px solid var(--hd-border);
+      border-left: 4px solid var(--hd-green-mid);
       border-radius: 6px;
       padding: 12px 15px;
     }
-    .board-card.doubles { border-left-color: #6f42c1; }
+    .board-card.doubles { border-left-color: var(--hd-amber); }
     .board-header {
       display: flex;
       align-items: center;
@@ -248,18 +248,18 @@ interface BoardEdit {
       font-size: 0.8em;
       font-weight: 700;
       text-transform: uppercase;
-      color: #666;
+      color: var(--hd-text-muted);
     }
-    .board-done { color: #28a745; font-weight: bold; }
+    .board-done { color: var(--hd-success); font-weight: bold; }
     .board-match {
       display: flex;
       align-items: center;
       gap: 12px;
     }
     .board-match .player { font-weight: 600; }
-    .board-match .player.winner { color: #28a745; }
-    .board-match .vs { color: #999; font-size: 0.85em; }
-    .not-composed { color: #999; font-style: italic; margin: 0; }
+    .board-match .player.winner { color: var(--hd-success); }
+    .board-match .vs { color: var(--hd-text-muted); font-size: 0.85em; }
+    .not-composed { color: var(--hd-text-muted); font-style: italic; margin: 0; }
     .lineup-edit {
       display: flex;
       gap: 15px;
@@ -271,14 +271,14 @@ interface BoardEdit {
       flex-direction: column;
       gap: 6px;
     }
-    .side-label { font-size: 0.8em; color: #666; }
+    .side-label { font-size: 0.8em; color: var(--hd-text-muted); }
     .side-select select {
       padding: 6px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
       min-width: 180px;
     }
-    .lineup-edit .vs { margin-top: 24px; color: #999; }
+    .lineup-edit .vs { margin-top: 24px; color: var(--hd-text-muted); }
     .board-actions {
       display: flex;
       gap: 10px;
@@ -287,7 +287,7 @@ interface BoardEdit {
     }
     .play-btn {
       padding: 6px 14px;
-      background: #28a745;
+      background: var(--hd-green);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -296,7 +296,7 @@ interface BoardEdit {
     .spectate-btn {
       display: inline-block;
       margin-top: 6px;
-      color: #007bff;
+      color: var(--hd-green);
       font-size: 0.85em;
       text-decoration: none;
     }
@@ -308,23 +308,23 @@ interface BoardEdit {
     .score-input input {
       width: 55px;
       padding: 5px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
     }
     .score-input button {
       padding: 5px 12px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
-    .score-input .cancel { background: #6c757d; }
+    .score-input .cancel { background: var(--hd-text-muted); }
     .correct-btn {
       padding: 5px 12px;
       background: transparent;
-      color: #856404;
-      border: 1px solid #ffc107;
+      color: var(--hd-amber);
+      border: 1px solid var(--hd-amber);
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85em;
@@ -332,15 +332,15 @@ interface BoardEdit {
     .quick-lineup {
       margin-top: 15px;
       padding: 15px;
-      background: #eef4ff;
-      border: 1px solid #cfe0ff;
+      background: var(--hd-cream-dark);
+      border: 1px solid var(--hd-border);
       border-radius: 8px;
     }
     .quick-lineup h4 { margin: 0 0 6px; }
     .quick-lineup .hint {
       margin: 0 0 12px;
       font-size: 0.85em;
-      color: #555;
+      color: var(--hd-text-muted);
     }
     .quick-sides {
       display: flex;
@@ -362,17 +362,17 @@ interface BoardEdit {
       width: 20px;
       text-align: right;
       font-weight: 700;
-      color: #007bff;
+      color: var(--hd-amber);
     }
     .order-slot select {
       padding: 6px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--hd-border);
       border-radius: 4px;
       min-width: 180px;
     }
     .quick-lineup .generate {
       padding: 8px 16px;
-      background: #6f42c1;
+      background: var(--hd-green);
       color: white;
       border: none;
       border-radius: 4px;
@@ -386,23 +386,23 @@ interface BoardEdit {
     }
     .lineup-actions .edit, .lineup-actions .save {
       padding: 10px 20px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
     }
-    .lineup-actions .save { background: #28a745; }
+    .lineup-actions .save { background: var(--hd-green); }
     .lineup-actions .cancel {
       padding: 10px 20px;
-      background: #6c757d;
+      background: var(--hd-text-muted);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
-    .loading { text-align: center; color: #666; padding: 20px; }
+    .loading { text-align: center; color: var(--hd-text-muted); padding: 20px; }
   `]
 })
 export class EncounterDetailComponent implements OnInit {

@@ -114,17 +114,18 @@ public class PlayerStatsService
             .Where(tp => tp.PlayerId == playerId && tp.Status == RegistrationStatus.Approved)
             .ToListAsync();
 
-        // Participations en double (via une paire)
+        // Participations en double (via une paire) - hors paires d'interclubs, sans tournoi
         var tournamentTeams = await _context.TournamentTeams
             .Include(tt => tt.Tournament)
             .Include(tt => tt.Group)
-            .Where(tt => tt.Player1Id == playerId || tt.Player2Id == playerId)
+            .Where(tt => (tt.Player1Id == playerId || tt.Player2Id == playerId)
+                && tt.TournamentId != null)
             .ToListAsync();
 
         // (Tournoi, Groupe) de chaque participation, tous types confondus
         var participations = tournamentPlayers
             .Select(tp => (tp.Tournament, tp.GroupId, GroupName: tp.Group?.Name))
-            .Concat(tournamentTeams.Select(tt => (tt.Tournament, tt.GroupId, GroupName: tt.Group?.Name)))
+            .Concat(tournamentTeams.Select(tt => (Tournament: tt.Tournament!, tt.GroupId, GroupName: tt.Group?.Name)))
             .OrderByDescending(p => p.Tournament.StartDate ?? p.Tournament.CreatedAt)
             .ToList();
 

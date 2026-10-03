@@ -7,7 +7,7 @@ Write-Host "Demarrage de l'environnement de developpement..." -ForegroundColor C
 
 # Lancer le backend (.NET) dans une nouvelle fenêtre
 Write-Host "Lancement du backend (https://localhost:7228)..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\backend'; dotnet run --project DartsTournament.Api"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$rootPath\backend'; dotnet run --project DartsTournament.Api --launch-profile https"
 
 # Lancer le frontend (Angular) dans une nouvelle fenêtre
 Write-Host "Lancement du frontend (http://localhost:4200)..." -ForegroundColor Green
