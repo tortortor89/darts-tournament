@@ -17,7 +17,7 @@
   - ✓ Broadcasting temps réel vers spectateurs
   - ✓ Vue spectateur avec tableau Cricket
   - ✓ Détection fin de leg et match
-  - ⚠️ Stats Cricket détaillées reportées post-MVP (ligne 70)
+  - ⚠️ Stats Cricket détaillées reportées post-MVP (fait depuis, voir « Gestion de Match »)
 
 ### ✅ TERMINÉ (Session 2026-06-12)
 
@@ -30,22 +30,25 @@
 - [x] **Validation Cricket réaliste** : faisabilité en 3 fléchettes (max 3 marques/fléchette, 2 sur le Bull), backend + UI
 - [x] **Checkout % précis** : basé sur les doubles réellement tentés quand le tracking est actif
 - [x] **Projet de tests backend** : DartsTournament.Tests (xUnit, 23 tests sur la logique de jeu et les stats)
+- [x] **Format 301** : score de départ généralisé, option Double Out / Straight Out
+
+### ✅ TERMINÉ (Sessions 2026-06-24 → 2026-07-05)
+
+- [x] **TV Lobby** : route /tv, écran d'accueil pour le bar (matchs en cours / à venir)
+- [x] **Circuit de tournois** : barème de points configurable, classement global calculé à la demande
+- [x] **Doubles / équipes** : paires par tournoi, alternance stricte A1→B1→A2→B2, tous formats + 501/301/Cricket
+- [x] **Interclubs** : clubs, championnats, effectifs, calendrier des rencontres, validation des compositions, classement (+ tests)
+- [x] Affichage du match Cricket amélioré
 
 ### 🔴 À FAIRE - Prochaine session
 
-- [ ] **Tester Cricket end-to-end manuellement** : Valider le mode Cricket complet
-  - Créer un tournoi
-  - Lancer un match en mode Cricket
-  - Jouer quelques legs
-  - Vérifier vue spectateur en temps réel
-  - Valider la fin du match
+- [x] **Externaliser les credentials** (2026-10-13)
+  - ✓ appsettings.json sans secrets, désormais versionné
+  - ✓ Dev : dotnet user-secrets ; Prod : variables d'environnement (Jwt__Key, ConnectionStrings__DefaultConnection, CORS__Origins)
+  - ✓ Démarrage refusé si secret absent / clé JWT < 32 octets / clé d'exemple hors dev
+  - [ ] Branche `docker` : retirer les secrets par défaut de docker-compose.yml et vider appsettings.Production.json
 
-- [ ] **Externaliser les credentials** : Priorité HAUTE - Sécurité
-  - Déplacer JWT Key vers variables d'environnement
-  - Déplacer connection string PostgreSQL vers variables d'environnement
-  - Mettre à jour appsettings.json et appsettings.Production.json
-
-- [ ] **Tester déploiement Docker** : Valider les fichiers Docker créés
+- [ ] **Tester déploiement Docker** : Valider les fichiers Docker créés (sur la branche `docker`, pas encore mergée)
   - Build des images backend et frontend
   - Test du démarrage complet avec PostgreSQL
   - Vérifier les variables d'environnement
@@ -56,12 +59,62 @@
   - Double Elimination : brackets winners/losers → final
   - Round Robin : tous contre tous → classement final
   - Group Stage : phase de groupes → knockout → résultats
-  - Cricket : match complet avec vue spectateur
+  - Cricket : match complet (plusieurs legs) avec vue spectateur en temps réel
+  - Doubles : tournoi en paires, alternance des lanceurs
+  - Circuit : plusieurs tournois → classement cumulé
+  - Interclubs : championnat → rencontres → classement
+  - TV Lobby : affichage sur l'écran du bar
+
+## 🧭 Prochaines grosses fonctionnalités (analyse du 2026-10-19, plan validé, rien de codé)
+
+Ordre de réalisation : **A** (cadre) → **B** (s'appuie sur la saison) → **C** (indépendante, peut être décalée).
+
+### A. Deux usages : mode « Bar » (one-shot) / mode « Ligue » (compétitions liées)
+Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant tournois, circuits, interclubs, exploits, toujours en 501 double out.
+- [ ] Modules activables par instance : section `Features` dans appsettings (surchargeable par env `Features__Interclubs=false`)
+  - [ ] Backend : endpoint `GET /api/config/features` + filtre `[RequiresFeature("...")]` (404 si désactivé, données conservées)
+  - [ ] Front : `FeatureService` (signal) chargé via `APP_INITIALIZER`, `featureGuard` sur les routes, `@if` dans la nav
+  - Modules envisagés : Circuits, Interclubs, Exploits, Inscription en ligne, Doubles, TV, Cricket/301
+- [ ] Entité `Season` (mode Ligue) : regroupe circuits, championnats interclubs, tournois ; porte le règlement (501 DO, legs par défaut) appliqué aux tournois/sessions rattachés
+- Pas de multi-tenant (une instance Docker par client), sauf réponse contraire à A2
+- ❓ En attente de réponse :
+  - [ ] A1. Flags en config de déploiement (appsettings/env) suffisent, ou écran d'admin pour activer sans redéployer ?
+  - [ ] A2. Une instance par client (bar X, ligue Y), ou un seul déploiement pour plusieurs structures un jour ?
+
+### B. Exploits (mode Ligue)
+Exploit = manche en ≤ 15 fléchettes, checkout ≥ 100, 180, 171. Uniquement en 501 double out.
+- [ ] Modèle `Exploit` : MatchId, PlayerId, Type (Leg15Darts / Checkout100 / Score180 / Score171), Value (nb fléchettes ou montant), LegNumber?, Source (Auto/Manual)
+  - Rattaché au match ; la saison est résolue au calcul (match → tournoi ou rencontre → championnat → saison)
+- [ ] Flag « suivre les exploits » (sur la saison et/ou le tournoi)
+- [ ] Détection auto : fonction pure `ExploitDetector` sur les `Throws`, appelée dans `ValidateMatchAsync` (supprime puis régénère les exploits Auto du match : idempotent, pas de gestion de l'undo)
+  - Manche : 3 fléchettes par volée (busts inclus), dernière volée = `DartsUsed ?? 3` (vérifier que `DartsUsed` est bien toujours demandé au checkout)
+  - 180/171 : volée non bust avec Score == 180/171 ; checkout : IsCheckout && Score >= 100
+- [ ] Saisie manuelle (admin) : `GET/POST/DELETE /matches/{id}/exploits`, validations (joueur du match, checkout 100-170, manche 9-15) ; dialogue séparé `match-exploits-dialog` à côté de la saisie du score
+- [ ] Recalcul des exploits des matchs déjà validés si on active le suivi en cours de route
+- [ ] Classement de saison calculé à la demande (sur le modèle de `CircuitRankingCalculator`) : nb de 180, 171, checkouts ≥ 100 (+ meilleur), manches ≤ 15 (+ meilleure)
+- [ ] Interclubs : exploits aussi sur les matchs de rencontres
+- [ ] Tests unitaires du détecteur
+- [ ] Bonus : événement SignalR « 180 ! » sur spectateur / TV
+- ❓ En attente de réponse :
+  - [ ] B1. En double : exploit attribué au finisseur ou aux deux joueurs ? Manche en 15 : fléchettes de la paire ou du joueur ?
+  - [ ] B2. Classement : simple comptage ou points par type (ex. 180 = 2, 171 = 1…) ?
+  - [ ] B3. Départage des ex-aequo ?
+
+### C. Événements multi-tableaux + inscription en ligne simple/double
+- [ ] Entité `Event` (nom, date, lieu, ouverture/clôture des inscriptions) + `Tournament.EventId` nullable ; chaque tableau reste un `Tournament` autonome (bracket, matchs inchangés), tournoi sans événement = comportement actuel
+- [ ] `TournamentTeam.Status` (PendingPartner → Pending → Approved / Rejected), Approved par défaut pour les paires créées par l'admin et en interclubs
+  - [ ] Filtrer les paires sur Approved partout où les joueurs le sont déjà (`MatchSideAccessor`, génération, `FinalPlacementCalculator`, stats)
+- [ ] Endpoint transactionnel `POST /events/{id}/register` `{ singles: bool, doubles: { partnerId } }` (lever le refus actuel de l'auto-inscription en double)
+- [ ] Vue admin « Inscriptions en attente » par événement (simples + paires)
+- [ ] Profil : section « Mes inscriptions » (statut, désinscription) ; si un partenaire se désinscrit, la paire est annulée
+- ❓ En attente de réponse :
+  - [ ] C1. Le partenaire doit-il confirmer (exige un compte) ou l'inscription part directement à l'admin ? Statut « cherche un partenaire » ?
+  - [ ] C2. Capacité max par tableau + liste d'attente ? Date limite d'inscription ?
 
 ## Priorité Haute - Sécurité / Intégrité
 
 - [x] Ajouter validation des entrées sur les DTOs (password, username, noms)
-- [ ] Externaliser les credentials (BDD, JWT) hors de appsettings.json
+- [x] Externaliser les credentials (BDD, JWT) hors de appsettings.json
 - [x] Protéger les routes Angular avec authGuard
 - [x] Ajouter middleware global de gestion des erreurs (Backend)
 - [x] Corriger la race condition sur la génération knockout
@@ -121,7 +174,6 @@
 - [ ] Authentification : restreindre l'écran de jeu aux joueurs du match (nécessite lien User -> Player)
 - [x] Formats de jeu supplémentaires : Cricket (saisie visite complète, scoring, victoire)
 - [x] Format de jeu 301 (avec option Double Out / Straight Out)
-- [ ] Gestion des sets en plus des legs
 - [x] Statistiques en temps réel : moyenne, % doubles, checkout rate
 - [ ] Historique : voir le détail d'un match terminé (toutes les volées)
 - [ ] Vue joueur (match-play) branchée sur SignalR : synchronisation multi-écrans (deux appareils ouverts sur le même match divergent aujourd'hui)
@@ -157,10 +209,9 @@
 - [ ] Seeding automatique basé sur le classement circuit
 
 ### Fonctionnalités avancées
-- [x] Support Cricket (visite complète avec validation, scoring, stats basiques)
-- [x] Support format 301 (option Double Out / Straight Out, score de départ généralisé)
 - [ ] Gestion des sets (en plus des legs)
 - [x] Mode équipes / doubles (paires par tournoi, alternance stricte A1→B1→A2→B2, tous formats + 501/301/Cricket)
 - [x] Interclubs : clubs, championnats (composition configurable X simples + Y doubles), calendrier aller-retour, effectifs déclarés, feuille de rencontre avec composition rapide (ordre des joueurs → confrontations déduites), classement V2/N1/D0
+- [x] TV Lobby (écran /tv pour le bar)
 - [ ] Export des résultats (PDF, CSV)
 - [ ] Dashboard récapitulatif (stats globales, tournois récents)

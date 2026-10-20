@@ -57,12 +57,29 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// Secrets : jamais dans appsettings.json.
+// Dev : dotnet user-secrets ; Prod : variables d'environnement (ConnectionStrings__DefaultConnection, Jwt__Key)
+// User-secrets chargés hors Production (pas seulement en Development) : DOTNET_ENVIRONMENT=Staging
+// sur le poste de dev l'emporterait sinon sur le profil de lancement.
+if (!builder.Environment.IsProduction())
+    builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException(
+        "ConnectionStrings:DefaultConnection non configurée (user-secrets en dev, variable ConnectionStrings__DefaultConnection en prod).");
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException(
+        "Jwt:Key absente ou trop courte (32 octets minimum) : user-secrets en dev, variable Jwt__Key en prod.");
+if (jwtKey.Contains("CHANGE", StringComparison.OrdinalIgnoreCase) && !builder.Environment.IsDevelopment())
+    throw new InvalidOperationException("Jwt:Key contient encore une valeur d'exemple : définir une vraie clé.");
+
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 // JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -94,12 +111,14 @@ builder.Services.AddScoped<InterclubService>();
 // SignalR
 builder.Services.AddSignalR();
 
-// CORS
+// CORS (Cors:Origins = liste séparée par des virgules, surchargeable via CORS__Origins)
+var corsOrigins = (builder.Configuration["Cors:Origins"] ?? "http://localhost:4200")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();

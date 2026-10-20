@@ -51,9 +51,12 @@ dotnet ef database update --project DartsTournament.Api
 
 ## Configuration
 
-### Backend (`appsettings.json`)
+### Backend
+- `appsettings.json` is committed and holds **no secrets** (Jwt Issuer/Audience, `Cors:Origins` comma-separated, default `http://localhost:4200`)
+- Secrets: `ConnectionStrings:DefaultConnection` and `Jwt:Key` (>= 32 bytes). The API refuses to start without them.
+  - Dev: `dotnet user-secrets set "Jwt:Key" "..." --project DartsTournament.Api` (loaded in every non-Production environment)
+  - Prod/Docker: env vars `ConnectionStrings__DefaultConnection`, `Jwt__Key`, `CORS__Origins` (see `.env.example`)
 - PostgreSQL: `localhost:5432`, database: `dartstournament`
-- CORS allows: `http://localhost:4200`
 
 ### Frontend
 - API base URL hardcoded in ApiService: `https://localhost:7228/api`

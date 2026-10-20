@@ -44,12 +44,12 @@ ehthumbs.db
 Desktop.ini
 
 # Secrets - NE PAS COMMITER
-**/appsettings.json
 appsettings.Development.json
 appsettings.Local.json
 *.local.json
 .env
 .env.*
+!.env.example
 secrets.json
 
 # Logs
