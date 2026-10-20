@@ -6,7 +6,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Circuit } from '../../core/models';
+import { FeatureService } from '../../core/services/feature.service';
+import { Circuit, Season, SeasonStatus } from '../../core/models';
 
 @Component({
   selector: 'app-circuit-list',
@@ -27,6 +28,14 @@ import { Circuit } from '../../core/models';
             <div class="form-row">
               <input type="text" [(ngModel)]="form.name" name="name" placeholder="Nom du circuit" required>
               <input type="text" [(ngModel)]="form.description" name="description" placeholder="Description (optionnelle)" class="description-input">
+              @if (openSeasons.length > 0) {
+                <select [(ngModel)]="form.seasonId" name="seasonId">
+                  <option [ngValue]="null">Hors saison</option>
+                  @for (season of openSeasons; track season.id) {
+                    <option [ngValue]="season.id">{{ season.name }} (501 DO)</option>
+                  }
+                </select>
+              }
             </div>
             <p class="hint">Le barème de points par défaut sera appliqué (modifiable ensuite sur la page du circuit).</p>
             <button type="submit">Créer</button>
@@ -42,6 +51,9 @@ import { Circuit } from '../../core/models';
             </h3>
             @if (circuit.description) {
               <p class="description">{{ circuit.description }}</p>
+            }
+            @if (circuit.seasonName && features.isEnabled('seasons')) {
+              <p>Saison: <a [routerLink]="['/seasons', circuit.seasonId]">{{ circuit.seasonName }}</a></p>
             }
             <p>Tournois: {{ circuit.tournamentCount }} ({{ circuit.completedTournamentCount }} terminé{{ circuit.completedTournamentCount > 1 ? 's' : '' }})</p>
             <p>Créé le {{ circuit.createdAt | date:'dd/MM/yyyy' }}</p>
@@ -89,7 +101,7 @@ import { Circuit } from '../../core/models';
       font-size: 0.85em;
       color: #666;
     }
-    .add-form input {
+    .add-form input, .add-form select {
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
@@ -144,12 +156,15 @@ import { Circuit } from '../../core/models';
 })
 export class CircuitListComponent implements OnInit {
   circuits: Circuit[] = [];
+  openSeasons: Season[] = [];
   form = {
     name: '',
-    description: ''
+    description: '',
+    seasonId: null as number | null
   };
   loading = false;
 
+  features = inject(FeatureService);
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
 
@@ -157,6 +172,11 @@ export class CircuitListComponent implements OnInit {
 
   ngOnInit() {
     this.loadCircuits();
+    if (this.authService.isAdmin() && this.features.isEnabled('seasons')) {
+      this.apiService.getSeasons().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(seasons => {
+        this.openSeasons = seasons.filter(s => s.status === SeasonStatus.InProgress);
+      });
+    }
   }
 
   loadCircuits() {
@@ -170,11 +190,12 @@ export class CircuitListComponent implements OnInit {
   createCircuit() {
     this.apiService.createCircuit({
       name: this.form.name,
-      description: this.form.description || undefined
+      description: this.form.description || undefined,
+      seasonId: this.form.seasonId ?? undefined
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newCircuit => {
       this.notificationService.showSuccess('Circuit créé avec succès');
       this.circuits = [newCircuit, ...this.circuits];
-      this.form = { name: '', description: '' };
+      this.form = { name: '', description: '', seasonId: null };
     });
   }
 

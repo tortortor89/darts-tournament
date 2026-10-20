@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<ChampionshipClub> ChampionshipClubs => Set<ChampionshipClub>();
     public DbSet<ChampionshipRosterEntry> ChampionshipRosterEntries => Set<ChampionshipRosterEntry>();
     public DbSet<InterclubEncounter> InterclubEncounters => Set<InterclubEncounter>();
+    public DbSet<Season> Seasons => Set<Season>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -260,6 +261,25 @@ public class AppDbContext : DbContext
                 .WithOne(r => r.Circuit)
                 .HasForeignKey(r => r.CircuitId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Season : la supprimer détache tournois, circuits et championnats
+        modelBuilder.Entity<Season>(entity =>
+        {
+            entity.HasMany(s => s.Tournaments)
+                .WithOne(t => t.Season)
+                .HasForeignKey(t => t.SeasonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(s => s.Circuits)
+                .WithOne(c => c.Season)
+                .HasForeignKey(c => c.SeasonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(s => s.Championships)
+                .WithOne(c => c.Season)
+                .HasForeignKey(c => c.SeasonId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Throw

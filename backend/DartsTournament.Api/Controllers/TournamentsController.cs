@@ -23,11 +23,13 @@ public class TournamentsController : ControllerBase
     private readonly TournamentService _tournamentService;
     private readonly PlayerService _playerService;
     private readonly IOptionsMonitor<FeatureOptions> _features;
+    private readonly SeasonService _seasonService;
 
     public TournamentsController(AppDbContext context, TournamentService tournamentService, PlayerService playerService,
-        IOptionsMonitor<FeatureOptions> features)
+        IOptionsMonitor<FeatureOptions> features, SeasonService seasonService)
     {
         _features = features;
+        _seasonService = seasonService;
         _context = context;
         _tournamentService = tournamentService;
         _playerService = playerService;
@@ -59,7 +61,11 @@ public class TournamentsController : ControllerBase
                 t.AllowBracketReset,
                 t.CircuitId,
                 t.Circuit != null ? t.Circuit.Name : null,
-                t.TeamSize == 2
+                t.TeamSize == 2,
+                // Saison effective : propre ou héritée du circuit
+                t.SeasonId ?? (t.Circuit != null ? t.Circuit.SeasonId : null),
+                t.Season != null ? t.Season.Name
+                    : t.Circuit != null && t.Circuit.Season != null ? t.Circuit.Season.Name : null
             ))
             .ToListAsync();
 
@@ -105,6 +111,8 @@ public class TournamentsController : ControllerBase
             .Include(t => t.Teams)
             .ThenInclude(tt => tt.Player2)
             .Include(t => t.Circuit)
+            .ThenInclude(c => c!.Season)
+            .Include(t => t.Season)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (tournament == null)
@@ -155,7 +163,9 @@ public class TournamentsController : ControllerBase
             tournament.CircuitId,
             tournament.Circuit?.Name,
             isDoubles,
-            isDoubles ? tournament.Teams.Select(ToTeamResponse).ToList() : null
+            isDoubles ? tournament.Teams.Select(ToTeamResponse).ToList() : null,
+            (tournament.Season ?? tournament.Circuit?.Season)?.Id,
+            (tournament.Season ?? tournament.Circuit?.Season)?.Name
         );
 
         return Ok(response);
@@ -184,7 +194,7 @@ public class TournamentsController : ControllerBase
             return BadRequest(new { message = "Les tournois en double ne sont pas activés" });
         }
 
-        string? circuitName = null;
+        Circuit? circuit = null;
         if (request.CircuitId != null)
         {
             if (!features.Circuits)
@@ -192,12 +202,36 @@ public class TournamentsController : ControllerBase
                 return BadRequest(new { message = "Les circuits ne sont pas activés" });
             }
 
-            var circuit = await _context.Circuits.FindAsync(request.CircuitId.Value);
+            circuit = await _context.Circuits
+                .Include(c => c.Season)
+                .FirstOrDefaultAsync(c => c.Id == request.CircuitId.Value);
             if (circuit == null)
             {
                 return BadRequest(new { message = "Circuit introuvable" });
             }
-            circuitName = circuit.Name;
+        }
+
+        // Un tournoi de circuit prend la saison du circuit
+        Season? season = circuit?.Season;
+        if (season?.Status == SeasonStatus.Closed)
+        {
+            return BadRequest(new { message = "La saison de ce circuit est clôturée" });
+        }
+        if (request.SeasonId != null)
+        {
+            if (circuit != null)
+            {
+                return BadRequest(new { message = "Un tournoi de circuit prend la saison du circuit" });
+            }
+
+            try
+            {
+                season = await _seasonService.GetOpenSeasonAsync(request.SeasonId.Value);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         var tournament = new Tournament
@@ -211,6 +245,7 @@ public class TournamentsController : ControllerBase
             HasKnockoutPhase = request.HasKnockoutPhase,
             AllowBracketReset = request.AllowBracketReset,
             CircuitId = request.CircuitId,
+            SeasonId = circuit == null ? season?.Id : null,
             TeamSize = request.IsDoubles ? 2 : 1
         };
 
@@ -231,8 +266,10 @@ public class TournamentsController : ControllerBase
             tournament.HasKnockoutPhase,
             tournament.AllowBracketReset,
             tournament.CircuitId,
-            circuitName,
-            tournament.TeamSize == 2
+            circuit?.Name,
+            tournament.TeamSize == 2,
+            season?.Id,
+            season?.Name
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);

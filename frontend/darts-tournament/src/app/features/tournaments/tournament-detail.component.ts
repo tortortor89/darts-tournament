@@ -29,6 +29,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
         @if (tournament.circuitName && features.isEnabled('circuits')) {
           <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
         }
+        @if (tournament.seasonName && features.isEnabled('seasons')) {
+          <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a> (501 double out)</p>
+        }
         @if (tournament.format === TournamentFormat.GroupStage) {
           <p>
             {{ tournament.numberOfGroups || 'Auto' }} groupes,

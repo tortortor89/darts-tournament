@@ -100,6 +100,12 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
               </div>
             }
 
+            @if (match.seasonRulesLocked) {
+              <div class="form-group">
+                <label>Mode de jeu</label>
+                <span class="hint">501, Straight In, Double Out : règlement de la saison</span>
+              </div>
+            } @else {
             <div class="form-group">
               <label>Mode de jeu</label>
               <div class="game-mode-selector">
@@ -148,6 +154,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
               </div>
               <span class="hint">{{ config.doubleOut ? 'Le leg doit se finir sur un double' : 'Le leg se finit dès que le score atteint exactement 0' }}</span>
             </div>
+            }
 
             <div class="form-group" *ngIf="isX01Config() && config.doubleOut">
               <label class="checkbox-label">
@@ -914,15 +921,13 @@ export class MatchPlayComponent implements OnInit {
             this.config.side1FirstThrowerId = match.team1Members?.[0]?.playerId || 0;
             this.config.side2FirstThrowerId = match.team2Members?.[0]?.playerId || 0;
           }
-          // Match de rencontre interclubs : préremplir la config du championnat
-          if (match.encounterId) {
-            if (match.defaultLegsToWin) this.config.legsToWin = match.defaultLegsToWin;
-            if (match.defaultGameMode && this.features.isGameModeEnabled(match.defaultGameMode)) {
-              this.config.gameMode = match.defaultGameMode;
-            }
-            if (match.defaultDoubleOut !== undefined && match.defaultDoubleOut !== null) {
-              this.config.doubleOut = match.defaultDoubleOut;
-            }
+          // Préremplir la config : championnat interclubs ou saison (501 DO imposé en saison)
+          if (match.defaultLegsToWin) this.config.legsToWin = match.defaultLegsToWin;
+          if (match.defaultGameMode && (match.seasonRulesLocked || this.features.isGameModeEnabled(match.defaultGameMode))) {
+            this.config.gameMode = match.defaultGameMode;
+          }
+          if (match.defaultDoubleOut !== undefined && match.defaultDoubleOut !== null) {
+            this.config.doubleOut = match.defaultDoubleOut;
           }
           this.checkForExistingSession();
         },

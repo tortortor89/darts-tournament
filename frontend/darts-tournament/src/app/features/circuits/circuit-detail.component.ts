@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, TournamentFormat, TournamentStatus } from '../../core/models';
 
 @Component({
@@ -23,6 +24,9 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
           <h2>{{ circuit.name }}</h2>
           @if (circuit.description) {
             <p class="description">{{ circuit.description }}</p>
+          }
+          @if (circuit.seasonName && features.isEnabled('seasons')) {
+            <p>Saison: <a [routerLink]="['/seasons', circuit.seasonId]">{{ circuit.seasonName }}</a> (501 double out)</p>
           }
         </div>
 
@@ -351,6 +355,7 @@ export class CircuitDetailComponent implements OnInit {
 
   TournamentStatus = TournamentStatus;
 
+  features = inject(FeatureService);
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
   private circuitId = 0;
@@ -371,7 +376,8 @@ export class CircuitDetailComponent implements OnInit {
   }
 
   get attachableTournaments(): Tournament[] {
-    return this.allTournaments.filter(t => !t.circuitId);
+    // Un tournoi déjà rattaché à une saison doit d'abord en être détaché
+    return this.allTournaments.filter(t => !t.circuitId && !t.seasonId);
   }
 
   loadCircuit() {

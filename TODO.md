@@ -75,8 +75,13 @@ Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant 
   - [x] Backend : endpoint `GET /api/config/features` + filtre `[RequiresFeature(Feature.X)]` (404 si désactivé, données conservées)
   - [x] Front : `FeatureService` (signal) chargé via `APP_INITIALIZER`, `featureGuard` sur les routes, `@if` dans la nav et les formulaires
   - Modules : Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration (Exploits à ajouter avec B)
-- [ ] Entité `Season` (mode Ligue) : regroupe circuits, championnats interclubs, tournois ; porte le règlement (501 DO, legs par défaut) appliqué aux tournois/sessions rattachés
-- Pas de multi-tenant (une instance Docker par client), sauf réponse contraire à A2
+- [x] Entité `Season` (mode Ligue) : regroupe circuits, championnats interclubs, tournois ; porte le règlement (501 DO, legs par défaut) appliqué aux tournois/sessions rattachés (2026-10-20)
+  - Statut En cours / Clôturée (clôturée = plus aucun rattachement), module `Seasons`
+  - Tournoi de circuit = saison du circuit ; championnat de saison forcé en 501 DO (garde son nombre de legs)
+  - Session refusée hors 501 DO pour un match de saison ; écran de config verrouillé (`SeasonRulesLocked`)
+  - Pages /seasons et /seasons/:id (rattacher / détacher), choix de la saison à la création tournoi / circuit / championnat
+  - [ ] Tests manuels (admin) : créer une saison, rattacher, clôturer, démarrer un match de saison
+- Pas de multi-tenant (une instance Docker par client)
 - ❓ En attente de réponse :
   - [x] A1. Flags en config de déploiement (appsettings/env), pas d'écran d'admin pour l'instant
   - [x] A2. Une instance par client, pas de multi-tenant

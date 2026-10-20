@@ -25,7 +25,9 @@ public record CreateCircuitRequest(
     int ParticipationPoints = 10,
 
     // null => barème par défaut
-    List<PointsRuleDto>? PointsRules = null
+    List<PointsRuleDto>? PointsRules = null,
+
+    int? SeasonId = null
 );
 
 public record UpdateCircuitRequest(
@@ -56,7 +58,9 @@ public record CircuitResponse(
     DateTime CreatedAt,
     int TournamentCount,
     int CompletedTournamentCount,
-    List<PointsRuleDto> PointsRules
+    List<PointsRuleDto> PointsRules,
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record CircuitDetailResponse(
@@ -66,7 +70,9 @@ public record CircuitDetailResponse(
     int ParticipationPoints,
     DateTime CreatedAt,
     List<PointsRuleDto> PointsRules,
-    List<TournamentResponse> Tournaments
+    List<TournamentResponse> Tournaments,
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record CircuitTournamentPointsResponse(

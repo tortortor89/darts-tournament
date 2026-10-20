@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode } from '../models';
+import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode, Season, SeasonDetail, SeasonRequest, SeasonStatus, SeasonItemKind } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -98,6 +98,7 @@ export class ApiService {
     hasKnockoutPhase?: boolean;
     circuitId?: number;
     isDoubles?: boolean;
+    seasonId?: number;
   }): Observable<Tournament> {
     return this.http.post<Tournament>(`${this.API_URL}/tournaments`, tournament);
   }
@@ -165,7 +166,7 @@ export class ApiService {
     return this.http.get<CircuitStanding[]>(`${this.API_URL}/circuits/${id}/ranking`);
   }
 
-  createCircuit(circuit: { name: string; description?: string; participationPoints?: number; pointsRules?: CircuitPointsRule[] }): Observable<Circuit> {
+  createCircuit(circuit: { name: string; description?: string; participationPoints?: number; pointsRules?: CircuitPointsRule[]; seasonId?: number }): Observable<Circuit> {
     return this.http.post<Circuit>(`${this.API_URL}/circuits`, circuit);
   }
 
@@ -183,6 +184,35 @@ export class ApiService {
 
   detachTournamentFromCircuit(circuitId: number, tournamentId: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/circuits/${circuitId}/tournaments/${tournamentId}`);
+  }
+
+  // Saisons
+  getSeasons(): Observable<Season[]> {
+    return this.http.get<Season[]>(`${this.API_URL}/seasons`);
+  }
+
+  getSeason(id: number): Observable<SeasonDetail> {
+    return this.http.get<SeasonDetail>(`${this.API_URL}/seasons/${id}`);
+  }
+
+  createSeason(season: SeasonRequest): Observable<Season> {
+    return this.http.post<Season>(`${this.API_URL}/seasons`, season);
+  }
+
+  updateSeason(id: number, season: SeasonRequest & { status: SeasonStatus }): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/seasons/${id}`, season);
+  }
+
+  deleteSeason(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/seasons/${id}`);
+  }
+
+  attachToSeason(seasonId: number, kind: SeasonItemKind, id: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/seasons/${seasonId}/${kind}`, { id });
+  }
+
+  detachFromSeason(seasonId: number, kind: SeasonItemKind, id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/seasons/${seasonId}/${kind}/${id}`);
   }
 
   // Clubs
@@ -226,6 +256,7 @@ export class ApiService {
     legsToWin: number;
     gameMode: GameMode;
     doubleOut: boolean;
+    seasonId?: number;
   }): Observable<InterclubChampionship> {
     return this.http.post<InterclubChampionship>(`${this.API_URL}/interclubs`, championship);
   }

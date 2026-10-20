@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FeatureService } from '../../core/services/feature.service';
-import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../core/models';
+import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, SeasonStatus } from '../../core/models';
 
 @Component({
   selector: 'app-tournament-list',
@@ -39,6 +39,15 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
                   <option [ngValue]="null">Aucun circuit</option>
                   @for (circuit of circuits; track circuit.id) {
                     <option [ngValue]="circuit.id">{{ circuit.name }}</option>
+                  }
+                </select>
+              }
+              <!-- Un tournoi de circuit suit la saison du circuit -->
+              @if (form.circuitId === null && openSeasons.length > 0) {
+                <select [(ngModel)]="form.seasonId" name="seasonId">
+                  <option [ngValue]="null">Hors saison</option>
+                  @for (season of openSeasons; track season.id) {
+                    <option [ngValue]="season.id">{{ season.name }} (501 DO)</option>
                   }
                 </select>
               }
@@ -89,6 +98,9 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
             <p>Joueurs: {{ tournament.playerCount }}</p>
             @if (tournament.circuitName && features.isEnabled('circuits')) {
               <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
+            }
+            @if (tournament.seasonName && features.isEnabled('seasons')) {
+              <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a></p>
             }
             @if (tournament.format === TournamentFormat.GroupStage && tournament.numberOfGroups) {
               <p>{{ tournament.numberOfGroups }} groupes, {{ tournament.qualifiersPerGroup || 2 }} qualifiés/groupe</p>
@@ -214,6 +226,7 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit } from '../../c
 export class TournamentListComponent implements OnInit {
   tournaments: Tournament[] = [];
   circuits: Circuit[] = [];
+  openSeasons: Season[] = [];
   form = {
     name: '',
     format: TournamentFormat.SingleElimination,
@@ -222,6 +235,7 @@ export class TournamentListComponent implements OnInit {
     qualifiersPerGroup: 2,
     hasKnockoutPhase: true,
     circuitId: null as number | null,
+    seasonId: null as number | null,
     isDoubles: false
   };
   loading = false;
@@ -240,6 +254,11 @@ export class TournamentListComponent implements OnInit {
     this.loadTournaments();
     if (this.authService.isAdmin() && this.features.isEnabled('circuits')) {
       this.loadCircuits();
+    }
+    if (this.authService.isAdmin() && this.features.isEnabled('seasons')) {
+      this.apiService.getSeasons().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(seasons => {
+        this.openSeasons = seasons.filter(s => s.status === SeasonStatus.InProgress);
+      });
     }
   }
 
@@ -274,6 +293,8 @@ export class TournamentListComponent implements OnInit {
 
     if (this.form.circuitId !== null) {
       data.circuitId = this.form.circuitId;
+    } else if (this.form.seasonId !== null) {
+      data.seasonId = this.form.seasonId;
     }
 
     if (this.form.isDoubles) {
@@ -299,6 +320,7 @@ export class TournamentListComponent implements OnInit {
         qualifiersPerGroup: 2,
         hasKnockoutPhase: true,
         circuitId: null,
+        seasonId: null,
         isDoubles: false
       };
     });

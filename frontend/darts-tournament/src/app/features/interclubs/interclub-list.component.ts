@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FeatureService } from '../../core/services/feature.service';
-import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, GameMode } from '../../core/models';
+import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, GameMode, Season, SeasonStatus } from '../../core/models';
 
 @Component({
   selector: 'app-interclub-list',
@@ -27,6 +27,14 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
           <form (ngSubmit)="createChampionship()">
             <div class="form-row">
               <input type="text" [(ngModel)]="form.name" name="name" placeholder="Nom du championnat" required>
+              @if (openSeasons.length > 0) {
+                <select [(ngModel)]="form.seasonId" name="seasonId" (ngModelChange)="onSeasonChange()">
+                  <option [ngValue]="null">Hors saison</option>
+                  @for (season of openSeasons; track season.id) {
+                    <option [ngValue]="season.id">{{ season.name }} (501 DO)</option>
+                  }
+                </select>
+              }
             </div>
             <div class="form-row config">
               <label>
@@ -43,7 +51,7 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
               </label>
               <label>
                 Mode
-                <select [(ngModel)]="form.gameMode" name="gameMode">
+                <select [(ngModel)]="form.gameMode" name="gameMode" [disabled]="form.seasonId !== null">
                   <option [ngValue]="GameMode.FiveOhOne">501</option>
                   @if (features.isGameModeEnabled(GameMode.ThreeOhOne)) {
                     <option [ngValue]="GameMode.ThreeOhOne">301</option>
@@ -54,7 +62,7 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
                 </select>
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" [(ngModel)]="form.doubleOut" name="doubleOut">
+                <input type="checkbox" [(ngModel)]="form.doubleOut" name="doubleOut" [disabled]="form.seasonId !== null">
                 Double Out
               </label>
             </div>
@@ -70,6 +78,9 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
               <a [routerLink]="['/interclubs', championship.id]">{{ championship.name }}</a>
             </h3>
             <p>Statut: <span [class]="'status-' + championship.status">{{ getStatusLabel(championship.status) }}</span></p>
+            @if (championship.seasonName && features.isEnabled('seasons')) {
+              <p>Saison: <a [routerLink]="['/seasons', championship.seasonId]">{{ championship.seasonName }}</a></p>
+            }
             <p>{{ championship.clubCount }} clubs</p>
             <p>{{ championship.singlesPerEncounter }} simples + {{ championship.doublesPerEncounter }} doubles par rencontre</p>
             @if (authService.isAdmin() && championship.status === ChampionshipStatus.Draft) {
@@ -315,14 +326,8 @@ export class InterclubListComponent implements OnInit {
   newClubName = '';
   loading = false;
 
-  form = {
-    name: '',
-    singlesPerEncounter: 4,
-    doublesPerEncounter: 2,
-    legsToWin: 3,
-    gameMode: GameMode.FiveOhOne,
-    doubleOut: true
-  };
+  openSeasons: Season[] = [];
+  form = this.emptyForm();
 
   ChampionshipStatus = ChampionshipStatus;
   GameMode = GameMode;
@@ -345,6 +350,19 @@ export class InterclubListComponent implements OnInit {
         this.allPlayers = players;
       });
     }
+    if (this.authService.isAdmin() && this.features.isEnabled('seasons')) {
+      this.apiService.getSeasons().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(seasons => {
+        this.openSeasons = seasons.filter(s => s.status === SeasonStatus.InProgress);
+      });
+    }
+  }
+
+  // Saison : 501 double out imposé
+  onSeasonChange() {
+    if (this.form.seasonId !== null) {
+      this.form.gameMode = GameMode.FiveOhOne;
+      this.form.doubleOut = true;
+    }
   }
 
   loadClubs() {
@@ -360,15 +378,28 @@ export class InterclubListComponent implements OnInit {
       doublesPerEncounter: Number(this.form.doublesPerEncounter),
       legsToWin: Number(this.form.legsToWin),
       gameMode: this.form.gameMode,
-      doubleOut: this.form.doubleOut
+      doubleOut: this.form.doubleOut,
+      seasonId: this.form.seasonId ?? undefined
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (championship) => {
         this.notificationService.showSuccess('Championnat créé');
         this.championships = [championship, ...this.championships];
-        this.form = { name: '', singlesPerEncounter: 4, doublesPerEncounter: 2, legsToWin: 3, gameMode: GameMode.FiveOhOne, doubleOut: true };
+        this.form = this.emptyForm();
       },
       error: (err) => this.showError(err)
     });
+  }
+
+  private emptyForm() {
+    return {
+      name: '',
+      singlesPerEncounter: 4,
+      doublesPerEncounter: 2,
+      legsToWin: 3,
+      gameMode: GameMode.FiveOhOne,
+      doubleOut: true,
+      seasonId: null as number | null
+    };
   }
 
   deleteChampionship(id: number) {

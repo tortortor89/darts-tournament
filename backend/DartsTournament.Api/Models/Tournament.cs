@@ -22,6 +22,11 @@ public class Tournament
     public int? CircuitId { get; set; }
     public Circuit? Circuit { get; set; }
 
+    // Saison (optionnelle, mode Ligue) : nulle si le tournoi est dans un circuit,
+    // la saison est alors celle du circuit
+    public int? SeasonId { get; set; }
+    public Season? Season { get; set; }
+
     // Taille d'un côté : 1 = simple, 2 = double (paires)
     public int TeamSize { get; set; } = 1;
 

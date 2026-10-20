@@ -18,6 +18,7 @@ public class MatchSessionService
     private readonly MatchStatsService _statsService;
     private readonly CricketService _cricketService;
     private readonly IOptionsMonitor<FeatureOptions> _features;
+    private readonly SeasonService _seasonService;
 
     public MatchSessionService(
         AppDbContext context,
@@ -26,9 +27,11 @@ public class MatchSessionService
         IHubContext<MatchHub, IMatchHubClient> matchHub,
         MatchStatsService statsService,
         CricketService cricketService,
-        IOptionsMonitor<FeatureOptions> features)
+        IOptionsMonitor<FeatureOptions> features,
+        SeasonService seasonService)
     {
         _features = features;
+        _seasonService = seasonService;
         _context = context;
         _tournamentService = tournamentService;
         _interclubService = interclubService;
@@ -154,6 +157,11 @@ public class MatchSessionService
     {
         if (!_features.CurrentValue.IsGameModeEnabled(request.GameMode))
             throw new InvalidOperationException("Ce mode de jeu n'est pas activé");
+
+        // Règlement de saison (mode Ligue) : 501 double out obligatoire
+        if (await _seasonService.GetSeasonForMatchAsync(matchId) != null
+            && (request.GameMode != GameMode.FiveOhOne || !request.DoubleOut))
+            throw new InvalidOperationException("Les matchs de saison se jouent en 501 double out");
 
         var match = await _context.Matches
             .Include(m => m.Tournament)

@@ -53,7 +53,7 @@ dotnet ef database update --project DartsTournament.Api
 
 ### Backend
 - `appsettings.json` is committed and holds **no secrets** (Jwt Issuer/Audience, `Cors:Origins` comma-separated, default `http://localhost:4200`)
-- `Features` section: per-instance modules (Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration), all `true` by default, override with env `Features__Interclubs=false`. Backend: `[RequiresFeature(Feature.X)]` returns 404; frontend: `FeatureService` (loaded by `APP_INITIALIZER`) + `featureGuard`
+- `Features` section: per-instance modules (Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration, Seasons), all `true` by default, override with env `Features__Interclubs=false`. Backend: `[RequiresFeature(Feature.X)]` returns 404; frontend: `FeatureService` (loaded by `APP_INITIALIZER`) + `featureGuard`
 - Secrets: `ConnectionStrings:DefaultConnection` and `Jwt:Key` (>= 32 bytes). The API refuses to start without them.
   - Dev: `dotnet user-secrets set "Jwt:Key" "..." --project DartsTournament.Api` (loaded in every non-Production environment)
   - Prod/Docker: env vars `ConnectionStrings__DefaultConnection`, `Jwt__Key`, `CORS__Origins` (see `.env.example`)
@@ -68,6 +68,7 @@ dotnet ef database update --project DartsTournament.Api
 - **Match**: Player scores, winner, optional group assignment
 - **Group**: For group stage tournaments
 - **TournamentPlayer**: Join table with optional seeding
+- **Season** (league mode): groups tournaments, circuits and interclub championships; status InProgress / Closed (closed = no new attachments); enforces 501 double out. A tournament in a circuit has no own `SeasonId`, it inherits the circuit's season (`SeasonService.GetSeasonForMatchAsync` resolves it)
 
 ## UI Language
 

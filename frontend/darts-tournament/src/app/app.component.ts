@@ -13,6 +13,9 @@ import { ToastComponent } from './shared/components/toast/toast.component';
     <nav>
       <div class="nav-brand">Darts Tournament</div>
       <div class="nav-links">
+        @if (featureService.isEnabled('seasons')) {
+          <a routerLink="/seasons" routerLinkActive="active">Saisons</a>
+        }
         <a routerLink="/tournaments" routerLinkActive="active">Tournois</a>
         @if (featureService.isEnabled('circuits')) {
           <a routerLink="/circuits" routerLinkActive="active">Circuits</a>

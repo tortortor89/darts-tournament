@@ -17,10 +17,12 @@ public class CircuitService
     };
 
     private readonly AppDbContext _context;
+    private readonly SeasonService _seasonService;
 
-    public CircuitService(AppDbContext context)
+    public CircuitService(AppDbContext context, SeasonService seasonService)
     {
         _context = context;
+        _seasonService = seasonService;
     }
 
     public async Task<List<CircuitResponse>> GetCircuitsAsync()
@@ -28,6 +30,7 @@ public class CircuitService
         var circuits = await _context.Circuits
             .Include(c => c.PointsRules)
             .Include(c => c.Tournaments)
+            .Include(c => c.Season)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
 
@@ -40,6 +43,7 @@ public class CircuitService
             .Include(c => c.PointsRules)
             .Include(c => c.Tournaments)
             .ThenInclude(t => t.TournamentPlayers)
+            .Include(c => c.Season)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (circuit == null)
@@ -60,8 +64,11 @@ public class CircuitService
                     t.NumberOfGroups, t.PlayersPerGroup, t.QualifiersPerGroup,
                     t.HasKnockoutPhase, t.AllowBracketReset,
                     circuit.Id, circuit.Name,
-                    t.TeamSize == 2))
-                .ToList());
+                    t.TeamSize == 2,
+                    circuit.SeasonId, circuit.Season?.Name))
+                .ToList(),
+            circuit.SeasonId,
+            circuit.Season?.Name);
     }
 
     public async Task<CircuitResponse> CreateCircuitAsync(CreateCircuitRequest request)
@@ -70,11 +77,16 @@ public class CircuitService
             ? ValidateRules(request.PointsRules)
             : DefaultPointsRules.Select(r => new PointsRuleDto(r.MinRank, r.MaxRank, r.Points)).ToList();
 
+        var season = request.SeasonId != null
+            ? await _seasonService.GetOpenSeasonAsync(request.SeasonId.Value)
+            : null;
+
         var circuit = new Circuit
         {
             Name = request.Name,
             Description = request.Description,
-            ParticipationPoints = request.ParticipationPoints
+            ParticipationPoints = request.ParticipationPoints,
+            Season = season
         };
 
         foreach (var rule in rules)
@@ -140,9 +152,13 @@ public class CircuitService
 
     public async Task AttachTournamentAsync(int circuitId, int tournamentId)
     {
-        var circuitExists = await _context.Circuits.AnyAsync(c => c.Id == circuitId);
-        if (!circuitExists)
-            throw new InvalidOperationException("Circuit introuvable");
+        var circuit = await _context.Circuits
+            .Include(c => c.Season)
+            .FirstOrDefaultAsync(c => c.Id == circuitId)
+            ?? throw new InvalidOperationException("Circuit introuvable");
+
+        if (circuit.Season?.Status == SeasonStatus.Closed)
+            throw new InvalidOperationException("La saison de ce circuit est clôturée");
 
         var tournament = await _context.Tournaments.FindAsync(tournamentId);
         if (tournament == null)
@@ -150,6 +166,10 @@ public class CircuitService
 
         if (tournament.CircuitId != null && tournament.CircuitId != circuitId)
             throw new InvalidOperationException("Ce tournoi est déjà rattaché à un autre circuit");
+
+        // Un tournoi de circuit prend la saison du circuit : pas de double rattachement
+        if (tournament.SeasonId != null)
+            throw new InvalidOperationException("Ce tournoi est rattaché à une saison : détachez-le d'abord de la saison");
 
         tournament.CircuitId = circuitId;
         await _context.SaveChangesAsync();
@@ -206,7 +226,9 @@ public class CircuitService
         circuit.CreatedAt,
         circuit.Tournaments.Count,
         circuit.Tournaments.Count(t => t.Status == TournamentStatus.Completed),
-        SortedRules(circuit));
+        SortedRules(circuit),
+        circuit.SeasonId,
+        circuit.Season?.Name);
 
     private static List<PointsRuleDto> SortedRules(Circuit circuit) =>
         circuit.PointsRules

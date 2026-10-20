@@ -22,14 +22,17 @@ public class MatchesController : ControllerBase
     private readonly MatchSessionService _matchSessionService;
     private readonly MatchStatsService _statsService;
     private readonly InterclubService _interclubService;
+    private readonly SeasonService _seasonService;
 
     public MatchesController(
         AppDbContext context,
         TournamentService tournamentService,
         MatchSessionService matchSessionService,
         MatchStatsService statsService,
-        InterclubService interclubService)
+        InterclubService interclubService,
+        SeasonService seasonService)
     {
+        _seasonService = seasonService;
         _context = context;
         _tournamentService = tournamentService;
         _matchSessionService = matchSessionService;
@@ -76,6 +79,14 @@ public class MatchesController : ControllerBase
 
         bool isDoubles = MatchSideAccessor.IsDoublesMatch(match);
 
+        // Valeurs par défaut de la config : championnat interclubs, sinon saison du tournoi.
+        // En saison, 501 double out imposé (le championnat garde son nombre de legs).
+        var season = await _seasonService.GetSeasonForMatchAsync(match.Id);
+        var championship = match.Encounter?.Championship;
+        int? defaultLegsToWin = championship?.LegsToWin ?? season?.LegsToWin;
+        GameMode? defaultGameMode = season != null ? GameMode.FiveOhOne : championship?.GameMode;
+        bool? defaultDoubleOut = season != null ? true : championship?.DoubleOut;
+
         // En double : ids/noms de côté aliasés sur les champs joueur (cf. MatchResponse)
         var response = new MatchResponse(
             match.Id,
@@ -118,9 +129,10 @@ public class MatchesController : ControllerBase
             match.Encounter != null
                 ? $"{match.Encounter.HomeClub.Name} vs {match.Encounter.AwayClub.Name}"
                 : null,
-            match.Encounter?.Championship.LegsToWin,
-            match.Encounter?.Championship.GameMode,
-            match.Encounter?.Championship.DoubleOut
+            defaultLegsToWin,
+            defaultGameMode,
+            defaultDoubleOut,
+            season != null
         );
 
         return Ok(response);

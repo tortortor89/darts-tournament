@@ -58,7 +58,10 @@ public record CreateChampionshipRequest(
     int PointsForDraw = 1,
 
     [Range(0, 10, ErrorMessage = "Les points de défaite doivent être entre 0 et 10")]
-    int PointsForLoss = 0
+    int PointsForLoss = 0,
+
+    // Saison : impose 501 double out
+    int? SeasonId = null
 );
 
 public record ChampionshipResponse(
@@ -74,7 +77,9 @@ public record ChampionshipResponse(
     int PointsForDraw,
     int PointsForLoss,
     DateTime CreatedAt,
-    int ClubCount
+    int ClubCount,
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record ChampionshipDetailResponse(
@@ -90,7 +95,9 @@ public record ChampionshipDetailResponse(
     int PointsForDraw,
     int PointsForLoss,
     DateTime CreatedAt,
-    List<ChampionshipClubResponse> Clubs
+    List<ChampionshipClubResponse> Clubs,
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record ChampionshipClubResponse(

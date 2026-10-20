@@ -14,6 +14,8 @@ import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { TvLobbyComponent } from './features/tv/tv-lobby.component';
+import { SeasonListComponent } from './features/seasons/season-list.component';
+import { SeasonDetailComponent } from './features/seasons/season-detail.component';
 import { featureGuard } from './core/guards/feature.guard';
 
 export const routes: Routes = [
@@ -25,6 +27,8 @@ export const routes: Routes = [
   { path: 'players/:id/stats', component: PlayerStatsComponent },
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },
+  { path: 'seasons', component: SeasonListComponent, canActivate: [featureGuard('seasons')] },
+  { path: 'seasons/:id', component: SeasonDetailComponent, canActivate: [featureGuard('seasons')] },
   { path: 'circuits', component: CircuitListComponent, canActivate: [featureGuard('circuits')] },
   { path: 'circuits/:id', component: CircuitDetailComponent, canActivate: [featureGuard('circuits')] },
   { path: 'interclubs', component: InterclubListComponent, canActivate: [featureGuard('interclubs')] },

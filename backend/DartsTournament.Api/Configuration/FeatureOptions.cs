@@ -32,6 +32,9 @@ public class FeatureOptions
     /// <summary>Auto-inscription des joueurs aux tournois</summary>
     public bool OnlineRegistration { get; set; } = true;
 
+    /// <summary>Saisons (mode Ligue : règlement 501 double out commun)</summary>
+    public bool Seasons { get; set; } = true;
+
     public bool IsEnabled(Feature feature) => feature switch
     {
         Feature.Circuits => Circuits,
@@ -41,6 +44,7 @@ public class FeatureOptions
         Feature.Cricket => Cricket,
         Feature.ThreeOhOne => ThreeOhOne,
         Feature.OnlineRegistration => OnlineRegistration,
+        Feature.Seasons => Seasons,
         _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, null)
     };
 
@@ -63,5 +67,6 @@ public enum Feature
     Tv,
     Cricket,
     ThreeOhOne,
-    OnlineRegistration
+    OnlineRegistration,
+    Seasons
 }

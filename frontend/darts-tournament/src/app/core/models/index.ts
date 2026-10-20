@@ -44,6 +44,9 @@ export interface Tournament {
   circuitId?: number;
   circuitName?: string;
   isDoubles: boolean;
+  // Saison effective (propre ou héritée du circuit)
+  seasonId?: number;
+  seasonName?: string;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -105,6 +108,8 @@ export interface Match {
   defaultLegsToWin?: number;
   defaultGameMode?: GameMode;
   defaultDoubleOut?: boolean;
+  // Match de saison : 501 double out imposé
+  seasonRulesLocked?: boolean;
   groupId?: number;
   round: number;
   position: number;
@@ -160,6 +165,8 @@ export interface Circuit {
   tournamentCount: number;
   completedTournamentCount: number;
   pointsRules: CircuitPointsRule[];
+  seasonId?: number;
+  seasonName?: string;
 }
 
 export interface CircuitDetail {
@@ -170,6 +177,8 @@ export interface CircuitDetail {
   createdAt: Date;
   pointsRules: CircuitPointsRule[];
   tournaments: Tournament[];
+  seasonId?: number;
+  seasonName?: string;
 }
 
 export interface CircuitTournamentPoints {
@@ -235,6 +244,8 @@ export interface InterclubChampionship {
   pointsForLoss: number;
   createdAt: Date;
   clubCount: number;
+  seasonId?: number;
+  seasonName?: string;
 }
 
 export interface InterclubChampionshipDetail extends Omit<InterclubChampionship, 'clubCount'> {
@@ -659,4 +670,47 @@ export interface FeatureFlags {
   cricket: boolean;
   threeOhOne: boolean;
   onlineRegistration: boolean;
+  seasons: boolean;
+}
+
+// Saisons (mode Ligue : 501 double out imposé)
+export enum SeasonStatus {
+  InProgress = 0,
+  Closed = 1
+}
+
+export interface Season {
+  id: number;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  status: SeasonStatus;
+  legsToWin: number;
+  createdAt: Date;
+  tournamentCount: number;
+  circuitCount: number;
+  championshipCount: number;
+}
+
+export interface SeasonDetail {
+  id: number;
+  name: string;
+  startDate?: string;
+  endDate?: string;
+  status: SeasonStatus;
+  legsToWin: number;
+  createdAt: Date;
+  // Tournois rattachés directement (hors circuit)
+  tournaments: Tournament[];
+  circuits: Circuit[];
+  championships: InterclubChampionship[];
+}
+
+export type SeasonItemKind = 'tournaments' | 'circuits' | 'championships';
+
+export interface SeasonRequest {
+  name: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  legsToWin: number;
 }

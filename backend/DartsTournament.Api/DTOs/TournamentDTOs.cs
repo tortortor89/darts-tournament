@@ -28,7 +28,10 @@ public record CreateTournamentRequest(
     int? CircuitId = null,
 
     // Tournoi en double : les inscriptions se font par paires (TeamSize = 2)
-    bool IsDoubles = false
+    bool IsDoubles = false,
+
+    // Saison (hors circuit : un tournoi de circuit prend la saison du circuit)
+    int? SeasonId = null
 );
 
 public record UpdateTournamentRequest(
@@ -62,7 +65,10 @@ public record TournamentResponse(
     bool AllowBracketReset,
     int? CircuitId = null,
     string? CircuitName = null,
-    bool IsDoubles = false
+    bool IsDoubles = false,
+    // Saison effective (propre ou héritée du circuit)
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record TournamentDetailResponse(
@@ -83,7 +89,9 @@ public record TournamentDetailResponse(
     int? CircuitId = null,
     string? CircuitName = null,
     bool IsDoubles = false,
-    List<TournamentTeamResponse>? Teams = null
+    List<TournamentTeamResponse>? Teams = null,
+    int? SeasonId = null,
+    string? SeasonName = null
 );
 
 public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);

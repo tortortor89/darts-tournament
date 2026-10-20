@@ -80,6 +80,12 @@ public enum ChampionshipStatus
     Completed
 }
 
+public enum SeasonStatus
+{
+    InProgress,
+    Closed
+}
+
 public enum EncounterStatus
 {
     Pending,

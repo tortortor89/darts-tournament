@@ -23,6 +23,10 @@ public class InterclubChampionship
     public int PointsForDraw { get; set; } = 1;
     public int PointsForLoss { get; set; } = 0;
 
+    // Saison (optionnelle) : impose 501 double out
+    public int? SeasonId { get; set; }
+    public Season? Season { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<ChampionshipClub> Clubs { get; set; } = new List<ChampionshipClub>();

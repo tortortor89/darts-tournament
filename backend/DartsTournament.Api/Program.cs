@@ -111,6 +111,7 @@ builder.Services.AddScoped<PlayerStatsService>();
 builder.Services.AddScoped<CricketService>();
 builder.Services.AddScoped<CircuitService>();
 builder.Services.AddScoped<InterclubService>();
+builder.Services.AddScoped<SeasonService>();
 
 // SignalR
 builder.Services.AddSignalR();

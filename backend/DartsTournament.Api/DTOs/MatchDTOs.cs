@@ -43,5 +43,7 @@ public record MatchResponse(
     string? EncounterLabel = null,
     int? DefaultLegsToWin = null,
     GameMode? DefaultGameMode = null,
-    bool? DefaultDoubleOut = null
+    bool? DefaultDoubleOut = null,
+    // Match d'une saison : 501 double out imposé, non modifiable
+    bool SeasonRulesLocked = false
 );

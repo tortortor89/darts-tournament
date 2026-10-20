@@ -11,11 +11,13 @@ public class InterclubService
 {
     private readonly AppDbContext _context;
     private readonly IOptionsMonitor<FeatureOptions> _features;
+    private readonly SeasonService _seasonService;
 
-    public InterclubService(AppDbContext context, IOptionsMonitor<FeatureOptions> features)
+    public InterclubService(AppDbContext context, IOptionsMonitor<FeatureOptions> features, SeasonService seasonService)
     {
         _context = context;
         _features = features;
+        _seasonService = seasonService;
     }
 
     // ----- Championnats -----
@@ -24,6 +26,7 @@ public class InterclubService
     {
         var championships = await _context.InterclubChampionships
             .Include(c => c.Clubs)
+            .Include(c => c.Season)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
 
@@ -37,6 +40,7 @@ public class InterclubService
             .ThenInclude(cc => cc.Club)
             .Include(c => c.Roster)
             .ThenInclude(r => r.Player)
+            .Include(c => c.Season)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (championship == null)
@@ -65,7 +69,9 @@ public class InterclubService
                         .OrderBy(r => r.Player.LastName)
                         .Select(r => new ClubPlayerResponse(r.PlayerId, $"{r.Player.FirstName} {r.Player.LastName}", r.Player.Nickname))
                         .ToList()))
-                .ToList());
+                .ToList(),
+            championship.SeasonId,
+            championship.Season?.Name);
     }
 
     public async Task<ChampionshipResponse> CreateChampionshipAsync(CreateChampionshipRequest request)
@@ -74,6 +80,14 @@ public class InterclubService
             throw new InvalidOperationException("Une rencontre doit comporter au moins un match");
         if (!_features.CurrentValue.IsGameModeEnabled(request.GameMode))
             throw new InvalidOperationException("Ce mode de jeu n'est pas activé");
+
+        Season? season = null;
+        if (request.SeasonId != null)
+        {
+            season = await _seasonService.GetOpenSeasonAsync(request.SeasonId.Value);
+            if (request.GameMode != GameMode.FiveOhOne || !request.DoubleOut)
+                throw new InvalidOperationException("Un championnat de saison se joue en 501 double out");
+        }
 
         var championship = new InterclubChampionship
         {
@@ -85,7 +99,8 @@ public class InterclubService
             DoubleOut = request.DoubleOut,
             PointsForWin = request.PointsForWin,
             PointsForDraw = request.PointsForDraw,
-            PointsForLoss = request.PointsForLoss
+            PointsForLoss = request.PointsForLoss,
+            Season = season
         };
 
         _context.InterclubChampionships.Add(championship);
@@ -565,7 +580,8 @@ public class InterclubService
         c.Id, c.Name, c.Status,
         c.SinglesPerEncounter, c.DoublesPerEncounter, c.LegsToWin, c.GameMode, c.DoubleOut,
         c.PointsForWin, c.PointsForDraw, c.PointsForLoss,
-        c.CreatedAt, c.Clubs.Count);
+        c.CreatedAt, c.Clubs.Count,
+        c.SeasonId, c.Season?.Name);
 
     private static EncounterSummaryResponse ToSummary(InterclubEncounter e) => new(
         e.Id, e.Round,
