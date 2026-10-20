@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { Match, MatchSession, MatchSessionStatus, PlayerSessionInfo, MatchStats, GameMode, CricketHit, isX01, StartMatchSessionRequest } from '../../core/models';
 import { ScoreInputComponent, ThrowData } from './components/score-input.component';
 import { CricketDisplayComponent } from './components/cricket-display.component';
@@ -108,18 +109,22 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
                   (click)="config.gameMode = GameMode.FiveOhOne">
                   501
                 </button>
-                <button
-                  type="button"
-                  [class.selected]="config.gameMode === GameMode.ThreeOhOne"
-                  (click)="config.gameMode = GameMode.ThreeOhOne">
-                  301
-                </button>
-                <button
-                  type="button"
-                  [class.selected]="config.gameMode === GameMode.Cricket"
-                  (click)="config.gameMode = GameMode.Cricket">
-                  Cricket
-                </button>
+                @if (features.isGameModeEnabled(GameMode.ThreeOhOne)) {
+                  <button
+                    type="button"
+                    [class.selected]="config.gameMode === GameMode.ThreeOhOne"
+                    (click)="config.gameMode = GameMode.ThreeOhOne">
+                    301
+                  </button>
+                }
+                @if (features.isGameModeEnabled(GameMode.Cricket)) {
+                  <button
+                    type="button"
+                    [class.selected]="config.gameMode === GameMode.Cricket"
+                    (click)="config.gameMode = GameMode.Cricket">
+                    Cricket
+                  </button>
+                }
               </div>
               <span class="hint" *ngIf="isX01Config()">Straight In, {{ config.doubleOut ? 'Double Out' : 'Straight Out' }}</span>
               <span class="hint" *ngIf="config.gameMode === GameMode.Cricket">Cibles 15-20 + Bull, 3 hits pour fermer</span>
@@ -856,6 +861,7 @@ export class MatchPlayComponent implements OnInit {
   private router = inject(Router);
   private apiService = inject(ApiService);
   private notificationService = inject(NotificationService);
+  features = inject(FeatureService);
 
   matchId: number = 0;
   match: Match | null = null;
@@ -911,7 +917,9 @@ export class MatchPlayComponent implements OnInit {
           // Match de rencontre interclubs : préremplir la config du championnat
           if (match.encounterId) {
             if (match.defaultLegsToWin) this.config.legsToWin = match.defaultLegsToWin;
-            if (match.defaultGameMode) this.config.gameMode = match.defaultGameMode;
+            if (match.defaultGameMode && this.features.isGameModeEnabled(match.defaultGameMode)) {
+              this.config.gameMode = match.defaultGameMode;
+            }
             if (match.defaultDoubleOut !== undefined && match.defaultDoubleOut !== null) {
               this.config.doubleOut = match.defaultDoubleOut;
             }

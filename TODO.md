@@ -71,15 +71,15 @@ Ordre de réalisation : **A** (cadre) → **B** (s'appuie sur la saison) → **C
 
 ### A. Deux usages : mode « Bar » (one-shot) / mode « Ligue » (compétitions liées)
 Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant tournois, circuits, interclubs, exploits, toujours en 501 double out.
-- [ ] Modules activables par instance : section `Features` dans appsettings (surchargeable par env `Features__Interclubs=false`)
-  - [ ] Backend : endpoint `GET /api/config/features` + filtre `[RequiresFeature("...")]` (404 si désactivé, données conservées)
-  - [ ] Front : `FeatureService` (signal) chargé via `APP_INITIALIZER`, `featureGuard` sur les routes, `@if` dans la nav
-  - Modules envisagés : Circuits, Interclubs, Exploits, Inscription en ligne, Doubles, TV, Cricket/301
+- [x] Modules activables par instance : section `Features` dans appsettings (surchargeable par env `Features__Interclubs=false`) (2026-10-20)
+  - [x] Backend : endpoint `GET /api/config/features` + filtre `[RequiresFeature(Feature.X)]` (404 si désactivé, données conservées)
+  - [x] Front : `FeatureService` (signal) chargé via `APP_INITIALIZER`, `featureGuard` sur les routes, `@if` dans la nav et les formulaires
+  - Modules : Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration (Exploits à ajouter avec B)
 - [ ] Entité `Season` (mode Ligue) : regroupe circuits, championnats interclubs, tournois ; porte le règlement (501 DO, legs par défaut) appliqué aux tournois/sessions rattachés
 - Pas de multi-tenant (une instance Docker par client), sauf réponse contraire à A2
 - ❓ En attente de réponse :
-  - [ ] A1. Flags en config de déploiement (appsettings/env) suffisent, ou écran d'admin pour activer sans redéployer ?
-  - [ ] A2. Une instance par client (bar X, ligue Y), ou un seul déploiement pour plusieurs structures un jour ?
+  - [x] A1. Flags en config de déploiement (appsettings/env), pas d'écran d'admin pour l'instant
+  - [x] A2. Une instance par client, pas de multi-tenant
 
 ### B. Exploits (mode Ligue)
 Exploit = manche en ≤ 15 fléchettes, checkout ≥ 100, 180, 171. Uniquement en 501 double out.

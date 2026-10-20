@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Models;
@@ -8,10 +10,12 @@ namespace DartsTournament.Api.Services;
 public class InterclubService
 {
     private readonly AppDbContext _context;
+    private readonly IOptionsMonitor<FeatureOptions> _features;
 
-    public InterclubService(AppDbContext context)
+    public InterclubService(AppDbContext context, IOptionsMonitor<FeatureOptions> features)
     {
         _context = context;
+        _features = features;
     }
 
     // ----- Championnats -----
@@ -68,6 +72,8 @@ public class InterclubService
     {
         if (request.SinglesPerEncounter + request.DoublesPerEncounter < 1)
             throw new InvalidOperationException("Une rencontre doit comporter au moins un match");
+        if (!_features.CurrentValue.IsGameModeEnabled(request.GameMode))
+            throw new InvalidOperationException("Ce mode de jeu n'est pas activé");
 
         var championship = new InterclubChampionship
         {

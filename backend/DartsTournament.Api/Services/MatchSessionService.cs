@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Hubs;
@@ -15,6 +17,7 @@ public class MatchSessionService
     private readonly IHubContext<MatchHub, IMatchHubClient> _matchHub;
     private readonly MatchStatsService _statsService;
     private readonly CricketService _cricketService;
+    private readonly IOptionsMonitor<FeatureOptions> _features;
 
     public MatchSessionService(
         AppDbContext context,
@@ -22,8 +25,10 @@ public class MatchSessionService
         InterclubService interclubService,
         IHubContext<MatchHub, IMatchHubClient> matchHub,
         MatchStatsService statsService,
-        CricketService cricketService)
+        CricketService cricketService,
+        IOptionsMonitor<FeatureOptions> features)
     {
+        _features = features;
         _context = context;
         _tournamentService = tournamentService;
         _interclubService = interclubService;
@@ -147,6 +152,9 @@ public class MatchSessionService
     /// </summary>
     public async Task<MatchSession> StartSessionAsync(int matchId, StartMatchSessionRequest request)
     {
+        if (!_features.CurrentValue.IsGameModeEnabled(request.GameMode))
+            throw new InvalidOperationException("Ce mode de jeu n'est pas activé");
+
         var match = await _context.Matches
             .Include(m => m.Tournament)
             .Include(m => m.Player1)

@@ -14,6 +14,7 @@ import { MatchPlayComponent } from './features/matches/match-play.component';
 import { MatchSpectateComponent } from './features/matches/match-spectate.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { TvLobbyComponent } from './features/tv/tv-lobby.component';
+import { featureGuard } from './core/guards/feature.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/tournaments', pathMatch: 'full' },
@@ -24,12 +25,12 @@ export const routes: Routes = [
   { path: 'players/:id/stats', component: PlayerStatsComponent },
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },
-  { path: 'circuits', component: CircuitListComponent },
-  { path: 'circuits/:id', component: CircuitDetailComponent },
-  { path: 'interclubs', component: InterclubListComponent },
-  { path: 'interclubs/encounters/:id', component: EncounterDetailComponent },
-  { path: 'interclubs/:id', component: InterclubDetailComponent },
+  { path: 'circuits', component: CircuitListComponent, canActivate: [featureGuard('circuits')] },
+  { path: 'circuits/:id', component: CircuitDetailComponent, canActivate: [featureGuard('circuits')] },
+  { path: 'interclubs', component: InterclubListComponent, canActivate: [featureGuard('interclubs')] },
+  { path: 'interclubs/encounters/:id', component: EncounterDetailComponent, canActivate: [featureGuard('interclubs')] },
+  { path: 'interclubs/:id', component: InterclubDetailComponent, canActivate: [featureGuard('interclubs')] },
   { path: 'matches/:id/play', component: MatchPlayComponent },
   { path: 'matches/:id/spectate', component: MatchSpectateComponent },
-  { path: 'tv', component: TvLobbyComponent }
+  { path: 'tv', component: TvLobbyComponent, canActivate: [featureGuard('tv')] }
 ];

@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, GameMode } from '../../core/models';
 
 @Component({
@@ -44,8 +45,12 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
                 Mode
                 <select [(ngModel)]="form.gameMode" name="gameMode">
                   <option [ngValue]="GameMode.FiveOhOne">501</option>
-                  <option [ngValue]="GameMode.ThreeOhOne">301</option>
-                  <option [ngValue]="GameMode.Cricket">Cricket</option>
+                  @if (features.isGameModeEnabled(GameMode.ThreeOhOne)) {
+                    <option [ngValue]="GameMode.ThreeOhOne">301</option>
+                  }
+                  @if (features.isGameModeEnabled(GameMode.Cricket)) {
+                    <option [ngValue]="GameMode.Cricket">Cricket</option>
+                  }
                 </select>
               </label>
               <label class="checkbox-label">
@@ -324,6 +329,7 @@ export class InterclubListComponent implements OnInit {
 
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
+  features = inject(FeatureService);
 
   constructor(public authService: AuthService, private apiService: ApiService) {}
 

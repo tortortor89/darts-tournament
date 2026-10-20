@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.Services;
 using DartsTournament.Api.Middleware;
@@ -96,6 +97,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
+// Modules activables (section Features, surchargeable par env : Features__Interclubs=false)
+builder.Services.Configure<FeatureOptions>(builder.Configuration.GetSection(FeatureOptions.SectionName));
 
 // Services
 builder.Services.AddScoped<AuthService>();

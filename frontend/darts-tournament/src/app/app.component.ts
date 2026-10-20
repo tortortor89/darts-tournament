@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
+import { FeatureService } from './core/services/feature.service';
 import { ToastComponent } from './shared/components/toast/toast.component';
 
 @Component({
@@ -13,8 +14,12 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       <div class="nav-brand">Darts Tournament</div>
       <div class="nav-links">
         <a routerLink="/tournaments" routerLinkActive="active">Tournois</a>
-        <a routerLink="/circuits" routerLinkActive="active">Circuits</a>
-        <a routerLink="/interclubs" routerLinkActive="active">Interclubs</a>
+        @if (featureService.isEnabled('circuits')) {
+          <a routerLink="/circuits" routerLinkActive="active">Circuits</a>
+        }
+        @if (featureService.isEnabled('interclubs')) {
+          <a routerLink="/interclubs" routerLinkActive="active">Interclubs</a>
+        }
         <a routerLink="/players" routerLinkActive="active">Joueurs</a>
       </div>
       <div class="nav-auth">
@@ -86,7 +91,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
   `]
 })
 export class AppComponent {
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService, public featureService: FeatureService) {}
 
   logout() {
     this.authService.logout();

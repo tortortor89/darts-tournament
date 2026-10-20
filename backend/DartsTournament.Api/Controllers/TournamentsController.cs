@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.Data;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Models;
@@ -20,9 +22,12 @@ public class TournamentsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly TournamentService _tournamentService;
     private readonly PlayerService _playerService;
+    private readonly IOptionsMonitor<FeatureOptions> _features;
 
-    public TournamentsController(AppDbContext context, TournamentService tournamentService, PlayerService playerService)
+    public TournamentsController(AppDbContext context, TournamentService tournamentService, PlayerService playerService,
+        IOptionsMonitor<FeatureOptions> features)
     {
+        _features = features;
         _context = context;
         _tournamentService = tournamentService;
         _playerService = playerService;
@@ -173,9 +178,20 @@ public class TournamentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<TournamentResponse>> CreateTournament(CreateTournamentRequest request)
     {
+        var features = _features.CurrentValue;
+        if (request.IsDoubles && !features.Doubles)
+        {
+            return BadRequest(new { message = "Les tournois en double ne sont pas activés" });
+        }
+
         string? circuitName = null;
         if (request.CircuitId != null)
         {
+            if (!features.Circuits)
+            {
+                return BadRequest(new { message = "Les circuits ne sont pas activés" });
+            }
+
             var circuit = await _context.Circuits.FindAsync(request.CircuitId.Value);
             if (circuit == null)
             {
@@ -392,6 +408,7 @@ public class TournamentsController : ControllerBase
     /// <response code="400">Tournoi non double, déjà démarré, joueurs invalides ou déjà en paire</response>
     /// <response code="404">Tournoi ou joueur non trouvé</response>
     [HttpPost("{id}/teams")]
+    [RequiresFeature(Feature.Doubles)]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(TournamentTeamResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -461,6 +478,7 @@ public class TournamentsController : ControllerBase
     /// <response code="400">Tournoi déjà démarré</response>
     /// <response code="404">Paire non trouvée</response>
     [HttpDelete("{id}/teams/{teamId}")]
+    [RequiresFeature(Feature.Doubles)]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -500,6 +518,7 @@ public class TournamentsController : ControllerBase
     /// <response code="400">Impossible de s'inscrire (déjà inscrit, tournoi démarré, pas de profil joueur)</response>
     /// <response code="404">Tournoi non trouvé</response>
     [HttpPost("{id}/register")]
+    [RequiresFeature(Feature.OnlineRegistration)]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -570,6 +589,7 @@ public class TournamentsController : ControllerBase
     /// <response code="400">Impossible de se désinscrire (tournoi démarré, pas inscrit)</response>
     /// <response code="404">Tournoi non trouvé</response>
     [HttpDelete("{id}/unregister")]
+    [RequiresFeature(Feature.OnlineRegistration)]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

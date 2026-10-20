@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType, RegistrationStatus } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
 import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
@@ -25,7 +26,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
       <div class="info">
         <p>Format: {{ getFormatLabel(tournament.format) }}</p>
         <p>Status: {{ getStatusLabel(tournament.status) }}</p>
-        @if (tournament.circuitName) {
+        @if (tournament.circuitName && features.isEnabled('circuits')) {
           <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
         }
         @if (tournament.format === TournamentFormat.GroupStage) {
@@ -39,7 +40,7 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
 
       <!-- Self-registration section (for authenticated users with player profile) -->
       <!-- Masquée en double : les paires sont composées par l'administrateur -->
-      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated() && !authService.isAdmin() && !tournament.isDoubles) {
+      @if (tournament.status === TournamentStatus.Draft && authService.isAuthenticated() && !authService.isAdmin() && !tournament.isDoubles && features.isEnabled('onlineRegistration')) {
         <div class="self-registration-section">
           @if (authService.hasLinkedPlayer()) {
             @if (isUserRegistered()) {
@@ -1146,6 +1147,7 @@ export class TournamentDetailComponent implements OnInit {
 
   private destroyRef = inject(DestroyRef);
   private notificationService = inject(NotificationService);
+  features = inject(FeatureService);
 
   constructor(
     private route: ActivatedRoute,

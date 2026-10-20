@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Services;
 
@@ -9,6 +10,7 @@ namespace DartsTournament.Api.Controllers;
 /// Championnats interclubs : clubs, effectifs, calendrier, rencontres, classement
 /// </summary>
 [ApiController]
+[RequiresFeature(Feature.Interclubs)]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class InterclubsController : ControllerBase

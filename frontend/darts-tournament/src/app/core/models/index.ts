@@ -649,3 +649,14 @@ export interface CricketTurnResponse {
   totalPointsScored: number;
   currentState: CricketDisplayState;
 }
+
+// Modules activés sur l'instance (GET /config/features)
+export interface FeatureFlags {
+  circuits: boolean;
+  interclubs: boolean;
+  doubles: boolean;
+  tv: boolean;
+  cricket: boolean;
+  threeOhOne: boolean;
+  onlineRegistration: boolean;
+}

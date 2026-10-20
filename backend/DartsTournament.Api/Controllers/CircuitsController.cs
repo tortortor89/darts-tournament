@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Services;
 
@@ -9,6 +10,7 @@ namespace DartsTournament.Api.Controllers;
 /// Gestion des circuits de tournois (regroupement de tournois avec classement à points)
 /// </summary>
 [ApiController]
+[RequiresFeature(Feature.Circuits)]
 [Route("api/[controller]")]
 [Produces("application/json")]
 public class CircuitsController : ControllerBase

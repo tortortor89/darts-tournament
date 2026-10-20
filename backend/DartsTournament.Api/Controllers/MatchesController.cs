@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DartsTournament.Api.Data;
+using DartsTournament.Api.Configuration;
 using DartsTournament.Api.DTOs;
 using DartsTournament.Api.Models;
 using DartsTournament.Api.Services;
@@ -175,6 +176,7 @@ public class MatchesController : ControllerBase
     /// </summary>
     /// <returns>Liste des matchs actifs avec scores et noms</returns>
     [HttpGet("active-sessions")]
+    [RequiresFeature(Feature.Tv)]
     [ProducesResponseType(typeof(List<ActiveSessionSummaryResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ActiveSessionSummaryResponse>>> GetActiveSessions()
     {
