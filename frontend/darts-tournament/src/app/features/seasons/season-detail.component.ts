@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FeatureService } from '../../core/services/feature.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, InterclubChampionship, TournamentStatus } from '../../core/models';
+import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, InterclubChampionship, TournamentStatus, SeasonExploitRankings, ExploitStanding } from '../../core/models';
 
 @Component({
   selector: 'app-season-detail',
@@ -136,6 +136,61 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
                   }
                 </select>
                 <button (click)="attach('championships')" [disabled]="toAttach.championships === null">Rattacher</button>
+              </div>
+            }
+          </div>
+        }
+
+        @if (features.isEnabled('exploits')) {
+          <div class="section">
+            <div class="section-header">
+              <h3>Exploits</h3>
+              @if (authService.isAdmin()) {
+                <button class="recompute" (click)="recomputeExploits()" [disabled]="recomputing"
+                  title="Recalcule les exploits des matchs déjà joués dans l'application">
+                  {{ recomputing ? 'Recalcul...' : 'Recalculer' }}
+                </button>
+              }
+            </div>
+            <p class="hint">
+              Détectés automatiquement en 501 double out, ou saisis sur les matchs (bouton « Exploits »).
+              En double, la manche est attribuée à la paire, le checkout au finisseur.
+            </p>
+            @if (exploits) {
+              <div class="rankings">
+                @for (ranking of exploitRankings; track ranking.title) {
+                  <div class="ranking">
+                    <h4>{{ ranking.title }}</h4>
+                    @if (ranking.rows.length > 0) {
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Joueur</th>
+                            @if (ranking.bestLabel) {
+                              <th>{{ ranking.bestLabel }}</th>
+                            }
+                            <th>Nb</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (row of ranking.rows; track row.playerIds.join('-')) {
+                            <tr>
+                              <td>{{ row.rank }}</td>
+                              <td>{{ row.name }}</td>
+                              @if (ranking.bestLabel) {
+                                <td class="best">{{ row.best }}</td>
+                              }
+                              <td>{{ row.count }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    } @else {
+                      <p class="empty">Aucun pour l'instant.</p>
+                    }
+                  </div>
+                }
               </div>
             }
           </div>
@@ -277,6 +332,50 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     .save {
       background: #28a745;
     }
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .recompute {
+      padding: 6px 14px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .recompute:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .rankings {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .ranking {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      padding: 10px;
+    }
+    .ranking h4 {
+      margin: 0 0 8px 0;
+    }
+    .ranking table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+    .ranking th, .ranking td {
+      text-align: left;
+      padding: 4px 6px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .ranking .best {
+      font-weight: 600;
+    }
     .loading, .empty {
       text-align: center;
       padding: 20px;
@@ -294,6 +393,8 @@ export class SeasonDetailComponent implements OnInit {
   allCircuits: Circuit[] = [];
   allChampionships: InterclubChampionship[] = [];
   toAttach: Record<SeasonItemKind, number | null> = { tournaments: null, circuits: null, championships: null };
+  exploits: SeasonExploitRankings | null = null;
+  recomputing = false;
 
   features = inject(FeatureService);
   private destroyRef = inject(DestroyRef);
@@ -309,6 +410,7 @@ export class SeasonDetailComponent implements OnInit {
   ngOnInit() {
     this.seasonId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadSeason();
+    this.loadExploits();
     if (this.authService.isAdmin()) {
       this.loadAttachables();
     }
@@ -343,6 +445,35 @@ export class SeasonDetailComponent implements OnInit {
     });
   }
 
+  // Quatre classements : 180 et 171 au nombre, checkouts et manches à la performance
+  get exploitRankings(): { title: string; bestLabel?: string; rows: ExploitStanding[] }[] {
+    if (!this.exploits) return [];
+    return [
+      { title: '180', rows: this.exploits.oneEighties },
+      { title: '171', rows: this.exploits.oneSeventyOnes },
+      { title: 'Checkouts 100+', bestLabel: 'Meilleur', rows: this.exploits.highCheckouts },
+      { title: 'Manches en 15 fléchettes ou moins', bestLabel: 'Fléchettes', rows: this.exploits.shortLegs }
+    ];
+  }
+
+  loadExploits() {
+    if (!this.features.isEnabled('exploits')) return;
+    this.apiService.getSeasonExploits(this.seasonId).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(exploits => this.exploits = exploits);
+  }
+
+  recomputeExploits() {
+    this.recomputing = true;
+    this.apiService.recomputeSeasonExploits(this.seasonId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: ({ matchCount }) => {
+        this.recomputing = false;
+        this.notificationService.showSuccess(`Exploits recalculés sur ${matchCount} match${matchCount > 1 ? 's' : ''}`);
+        this.loadExploits();
+      },
+      error: () => this.recomputing = false
+    });
+  }
+
   loadAttachables() {
     this.apiService.getTournaments().pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(tournaments => this.allTournaments = tournaments);
@@ -365,6 +496,7 @@ export class SeasonDetailComponent implements OnInit {
         this.toAttach[kind] = null;
         this.loadSeason();
         this.loadAttachables();
+        this.loadExploits();
       });
   }
 
@@ -375,6 +507,7 @@ export class SeasonDetailComponent implements OnInit {
           this.notificationService.showSuccess('Détaché de la saison');
           this.loadSeason();
           this.loadAttachables();
+          this.loadExploits();
         });
     }
   }

@@ -338,7 +338,8 @@ public class InterclubService
             championship.DoublesPerEncounter,
             RosterOf(roster, encounter.HomeClubId),
             RosterOf(roster, encounter.AwayClubId),
-            boards);
+            boards,
+            championship.SeasonId);
     }
 
     // ----- Composition -----

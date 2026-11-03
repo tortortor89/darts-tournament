@@ -16,10 +16,12 @@ namespace DartsTournament.Api.Controllers;
 public class SeasonsController : ControllerBase
 {
     private readonly SeasonService _seasonService;
+    private readonly ExploitService _exploitService;
 
-    public SeasonsController(SeasonService seasonService)
+    public SeasonsController(SeasonService seasonService, ExploitService exploitService)
     {
         _seasonService = seasonService;
+        _exploitService = exploitService;
     }
 
     /// <summary>
@@ -120,6 +122,41 @@ public class SeasonsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Classements d'exploits de la saison : 180 et 171 au nombre,
+    /// checkouts et manches à la meilleure performance (ex-aequo au même rang)
+    /// </summary>
+    [HttpGet("{id}/exploits")]
+    [RequiresFeature(Feature.Exploits)]
+    [ProducesResponseType(typeof(SeasonExploitRankingsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<SeasonExploitRankingsResponse>> GetExploitRankings(int id)
+    {
+        var rankings = await _exploitService.GetSeasonRankingsAsync(id);
+        return rankings == null ? NotFound() : Ok(rankings);
+    }
+
+    /// <summary>
+    /// Recalculer les exploits détectés automatiquement sur les matchs validés de la saison
+    /// </summary>
+    [HttpPost("{id}/exploits/recompute")]
+    [Authorize(Roles = "Admin")]
+    [RequiresFeature(Feature.Exploits)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RecomputeExploits(int id)
+    {
+        try
+        {
+            int matchCount = await _exploitService.RecomputeSeasonAsync(id);
+            return Ok(new { matchCount });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>

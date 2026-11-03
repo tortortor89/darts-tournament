@@ -6,7 +6,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { FeatureService } from '../../core/services/feature.service';
 import { EncounterDetail, EncounterStatus, MatchStatus, BoardLineup, ClubPlayer, Match } from '../../core/models';
+import { MatchExploitsDialogComponent } from '../matches/components/match-exploits-dialog.component';
 
 interface BoardEdit {
   position: number;
@@ -18,7 +20,7 @@ interface BoardEdit {
 @Component({
   selector: 'app-encounter-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, MatchExploitsDialogComponent],
   template: `
     <div class="container">
       @if (loading) {
@@ -109,6 +111,9 @@ interface BoardEdit {
                         </div>
                       } @else {
                         <button class="correct-btn" (click)="startCorrection(board.match)">Corriger</button>
+                        @if (canTrackExploits) {
+                          <button class="exploits-btn" (click)="exploitsMatchId = board.match.id">Exploits</button>
+                        }
                       }
                     }
                   </div>
@@ -175,6 +180,10 @@ interface BoardEdit {
             }
           </div>
         }
+      }
+
+      @if (exploitsMatchId !== null) {
+        <app-match-exploits-dialog [matchId]="exploitsMatchId" (closed)="exploitsMatchId = null" />
       }
     </div>
   `,
@@ -403,12 +412,23 @@ interface BoardEdit {
       cursor: pointer;
     }
     .loading { text-align: center; color: #666; padding: 20px; }
+    .exploits-btn {
+      padding: 4px 10px;
+      background: transparent;
+      color: #6f42c1;
+      border: 1px solid #6f42c1;
+      border-radius: 4px;
+      cursor: pointer;
+    }
   `]
 })
 export class EncounterDetailComponent implements OnInit {
   encounter: EncounterDetail | null = null;
   scoreInputs: { [matchId: number]: { player1: number; player2: number } } = {};
   correctingMatchId: number | null = null;
+  // Match dont le dialogue des exploits est ouvert
+  exploitsMatchId: number | null = null;
+  features = inject(FeatureService);
   editing = false;
   boardEdits: BoardEdit[] = [];
   quickHomeOrder: (number | null)[] = [];
@@ -427,6 +447,11 @@ export class EncounterDetailComponent implements OnInit {
     private apiService: ApiService,
     private route: ActivatedRoute
   ) {}
+
+  // Exploits suivis sur les rencontres d'un championnat de saison
+  get canTrackExploits(): boolean {
+    return !!this.encounter?.seasonId && this.features.isEnabled('seasons') && this.features.isEnabled('exploits');
+  }
 
   ngOnInit() {
     this.encounterId = Number(this.route.snapshot.paramMap.get('id'));

@@ -12,7 +12,8 @@ const ALL_ENABLED: FeatureFlags = {
   cricket: true,
   threeOhOne: true,
   onlineRegistration: true,
-  seasons: true
+  seasons: true,
+  exploits: true
 };
 
 /**

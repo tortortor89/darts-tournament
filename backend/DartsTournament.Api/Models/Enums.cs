@@ -92,3 +92,17 @@ public enum EncounterStatus
     InProgress,
     Completed
 }
+
+public enum ExploitType
+{
+    ShortLeg,      // Manche en 15 fléchettes ou moins
+    HighCheckout,  // Checkout >= 100
+    OneEighty,     // 180
+    OneSeventyOne  // 171
+}
+
+public enum ExploitSource
+{
+    Auto,
+    Manual
+}

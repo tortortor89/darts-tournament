@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<ChampionshipRosterEntry> ChampionshipRosterEntries => Set<ChampionshipRosterEntry>();
     public DbSet<InterclubEncounter> InterclubEncounters => Set<InterclubEncounter>();
     public DbSet<Season> Seasons => Set<Season>();
+    public DbSet<Exploit> Exploits => Set<Exploit>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -280,6 +281,27 @@ public class AppDbContext : DbContext
                 .WithOne(c => c.Season)
                 .HasForeignKey(c => c.SeasonId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Exploit : supprimé avec son match ou ses joueurs
+        modelBuilder.Entity<Exploit>(entity =>
+        {
+            entity.HasOne(e => e.Match)
+                .WithMany()
+                .HasForeignKey(e => e.MatchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Partner)
+                .WithMany()
+                .HasForeignKey(e => e.PartnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.MatchId, e.Source });
         });
 
         // Throw

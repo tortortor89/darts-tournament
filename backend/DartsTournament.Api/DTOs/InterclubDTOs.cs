@@ -153,7 +153,9 @@ public record EncounterDetailResponse(
     int DoublesPerEncounter,
     List<ClubPlayerResponse> HomeRoster,
     List<ClubPlayerResponse> AwayRoster,
-    List<EncounterBoardResponse> Boards
+    List<EncounterBoardResponse> Boards,
+    // Championnat rattaché à une saison (exploits suivis)
+    int? SeasonId = null
 );
 
 // Un board = un match de la rencontre (Position 1..S = simples, S+1..S+D = doubles)

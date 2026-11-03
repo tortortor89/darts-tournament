@@ -19,6 +19,7 @@ public class MatchSessionService
     private readonly CricketService _cricketService;
     private readonly IOptionsMonitor<FeatureOptions> _features;
     private readonly SeasonService _seasonService;
+    private readonly ExploitService _exploitService;
 
     public MatchSessionService(
         AppDbContext context,
@@ -28,10 +29,12 @@ public class MatchSessionService
         MatchStatsService statsService,
         CricketService cricketService,
         IOptionsMonitor<FeatureOptions> features,
-        SeasonService seasonService)
+        SeasonService seasonService,
+        ExploitService exploitService)
     {
         _features = features;
         _seasonService = seasonService;
+        _exploitService = exploitService;
         _context = context;
         _tournamentService = tournamentService;
         _interclubService = interclubService;
@@ -595,6 +598,9 @@ public class MatchSessionService
                 session.Player2LegsWon
             );
         }
+
+        // Exploits (501 double out) : régénérés depuis les volées de la session
+        await _exploitService.RegenerateAutoExploitsAsync(session);
     }
 
     /// <summary>

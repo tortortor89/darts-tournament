@@ -35,6 +35,9 @@ public class FeatureOptions
     /// <summary>Saisons (mode Ligue : règlement 501 double out commun)</summary>
     public bool Seasons { get; set; } = true;
 
+    /// <summary>Exploits (180, 171, checkouts de 100+, manches en 15 fléchettes ou moins) et leur classement de saison</summary>
+    public bool Exploits { get; set; } = true;
+
     public bool IsEnabled(Feature feature) => feature switch
     {
         Feature.Circuits => Circuits,
@@ -45,6 +48,7 @@ public class FeatureOptions
         Feature.ThreeOhOne => ThreeOhOne,
         Feature.OnlineRegistration => OnlineRegistration,
         Feature.Seasons => Seasons,
+        Feature.Exploits => Exploits,
         _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, null)
     };
 
@@ -68,5 +72,6 @@ public enum Feature
     Cricket,
     ThreeOhOne,
     OnlineRegistration,
-    Seasons
+    Seasons,
+    Exploits
 }

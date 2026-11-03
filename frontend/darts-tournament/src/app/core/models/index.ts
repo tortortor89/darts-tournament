@@ -294,6 +294,8 @@ export interface EncounterDetail {
   homeRoster: ClubPlayer[];
   awayRoster: ClubPlayer[];
   boards: EncounterBoard[];
+  // Championnat rattaché à une saison (exploits suivis)
+  seasonId?: number;
 }
 
 export interface EncounterBoard {
@@ -671,6 +673,7 @@ export interface FeatureFlags {
   threeOhOne: boolean;
   onlineRegistration: boolean;
   seasons: boolean;
+  exploits: boolean;
 }
 
 // Saisons (mode Ligue : 501 double out imposé)
@@ -713,4 +716,56 @@ export interface SeasonRequest {
   startDate?: string | null;
   endDate?: string | null;
   legsToWin: number;
+}
+
+// Exploits (mode Ligue, 501 double out)
+export enum ExploitType {
+  ShortLeg = 0,      // Manche en 15 fléchettes ou moins
+  HighCheckout = 1,  // Checkout >= 100
+  OneEighty = 2,
+  OneSeventyOne = 3
+}
+
+export enum ExploitSource {
+  Auto = 0,
+  Manual = 1
+}
+
+export interface Exploit {
+  id: number;
+  matchId: number;
+  type: ExploitType;
+  playerId: number;
+  playerName: string;
+  // Manche en double : partenaire du finisseur
+  partnerId?: number;
+  partnerName?: string;
+  // Manche : fléchettes ; checkout : montant ; 180/171 : score
+  value: number;
+  legNumber?: number;
+  source: ExploitSource;
+}
+
+export interface CreateExploitRequest {
+  playerId: number;
+  type: ExploitType;
+  value?: number | null;
+  legNumber?: number | null;
+}
+
+// Ligne de classement : un joueur, ou une paire (manches en double)
+export interface ExploitStanding {
+  rank: number;
+  playerIds: number[];
+  name: string;
+  count: number;
+  // Meilleur checkout / manche la plus courte (absent pour 180 et 171)
+  best?: number;
+}
+
+export interface SeasonExploitRankings {
+  oneEighties: ExploitStanding[];
+  oneSeventyOnes: ExploitStanding[];
+  highCheckouts: ExploitStanding[];
+  shortLegs: ExploitStanding[];
 }

@@ -65,7 +65,7 @@
   - Interclubs : championnat → rencontres → classement
   - TV Lobby : affichage sur l'écran du bar
 
-## 🧭 Prochaines grosses fonctionnalités (analyse du 2026-10-19, plan validé, rien de codé)
+## 🧭 Prochaines grosses fonctionnalités (analyse du 2026-10-19, plan validé ; A et B codées)
 
 Ordre de réalisation : **A** (cadre) → **B** (s'appuie sur la saison) → **C** (indépendante, peut être décalée).
 
@@ -74,7 +74,7 @@ Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant 
 - [x] Modules activables par instance : section `Features` dans appsettings (surchargeable par env `Features__Interclubs=false`) (2026-10-20)
   - [x] Backend : endpoint `GET /api/config/features` + filtre `[RequiresFeature(Feature.X)]` (404 si désactivé, données conservées)
   - [x] Front : `FeatureService` (signal) chargé via `APP_INITIALIZER`, `featureGuard` sur les routes, `@if` dans la nav et les formulaires
-  - Modules : Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration (Exploits à ajouter avec B)
+  - Modules : Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration, Seasons, Exploits
 - [x] Entité `Season` (mode Ligue) : regroupe circuits, championnats interclubs, tournois ; porte le règlement (501 DO, legs par défaut) appliqué aux tournois/sessions rattachés (2026-10-20)
   - Statut En cours / Clôturée (clôturée = plus aucun rattachement), module `Seasons`
   - Tournoi de circuit = saison du circuit ; championnat de saison forcé en 501 DO (garde son nombre de legs)
@@ -88,22 +88,21 @@ Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant 
 
 ### B. Exploits (mode Ligue)
 Exploit = manche en ≤ 15 fléchettes, checkout ≥ 100, 180, 171. Uniquement en 501 double out.
-- [ ] Modèle `Exploit` : MatchId, PlayerId, Type (Leg15Darts / Checkout100 / Score180 / Score171), Value (nb fléchettes ou montant), LegNumber?, Source (Auto/Manual)
-  - Rattaché au match ; la saison est résolue au calcul (match → tournoi ou rencontre → championnat → saison)
-- [ ] Flag « suivre les exploits » (sur la saison et/ou le tournoi)
-- [ ] Détection auto : fonction pure `ExploitDetector` sur les `Throws`, appelée dans `ValidateMatchAsync` (supprime puis régénère les exploits Auto du match : idempotent, pas de gestion de l'undo)
-  - Manche : 3 fléchettes par volée (busts inclus), dernière volée = `DartsUsed ?? 3` (vérifier que `DartsUsed` est bien toujours demandé au checkout)
-  - 180/171 : volée non bust avec Score == 180/171 ; checkout : IsCheckout && Score >= 100
-- [ ] Saisie manuelle (admin) : `GET/POST/DELETE /matches/{id}/exploits`, validations (joueur du match, checkout 100-170, manche 9-15) ; dialogue séparé `match-exploits-dialog` à côté de la saisie du score
-- [ ] Recalcul des exploits des matchs déjà validés si on active le suivi en cours de route
-- [ ] Classement de saison calculé à la demande (sur le modèle de `CircuitRankingCalculator`) : nb de 180, 171, checkouts ≥ 100 (+ meilleur), manches ≤ 15 (+ meilleure)
-- [ ] Interclubs : exploits aussi sur les matchs de rencontres
-- [ ] Tests unitaires du détecteur
+- [x] Modèle `Exploit` : MatchId, PlayerId, PartnerId? (manche en double), Type (ShortLeg / HighCheckout / OneEighty / OneSeventyOne), Value, LegNumber?, Source (Auto/Manual) ; migration AddExploits (2026-10-23)
+  - Rattaché au match ; la saison est résolue au calcul (match → tournoi / circuit / championnat → saison)
+- [x] Module `Exploits` (flag d'instance) au lieu d'un flag par saison : les exploits sont détectés sur tout match 501 DO, le classement ne prend que les matchs de la saison (rattacher un tournoi après coup suffit)
+- [x] Détection auto : `ExploitDetector` (fonction pure) appelé dans `ValidateMatchAsync`, régénère les exploits Auto du match (idempotent)
+- [x] Saisie manuelle (admin) : `GET/POST/DELETE /matches/{id}/exploits`, réservée aux matchs de saison (joueur du match, checkout 100-170 finissable, manche 9-15) ; dialogue `match-exploits-dialog`, bouton « Exploits » à côté de « Corriger » (tournoi + rencontre interclubs)
+- [x] Recalcul : `POST /seasons/{id}/exploits/recompute` (bouton « Recalculer » sur la page saison) pour les matchs validés avant l'activation
+- [x] Classements de saison `GET /seasons/{id}/exploits` (`ExploitRankingCalculator`), section « Exploits » de /seasons/:id
+- [x] Interclubs : exploits aussi sur les matchs de rencontres
+- [x] Tests unitaires du détecteur et du classement
+- [ ] Tests manuels : jouer un match de saison avec un 180 / checkout 100+ / manche courte, vérifier le classement ; saisie manuelle sur un match en double
 - [ ] Bonus : événement SignalR « 180 ! » sur spectateur / TV
-- ❓ En attente de réponse :
-  - [ ] B1. En double : exploit attribué au finisseur ou aux deux joueurs ? Manche en 15 : fléchettes de la paire ou du joueur ?
-  - [ ] B2. Classement : simple comptage ou points par type (ex. 180 = 2, 171 = 1…) ?
-  - [ ] B3. Départage des ex-aequo ?
+- Réponses :
+  - [x] B1. Checkout → finisseur ; manche ≤ 15 → la paire (fléchettes de la paire) ; 180/171 → le lanceur
+  - [x] B2. 4 classements séparés : 180 et 171 au nombre, checkouts (meilleur) et manches (la plus courte) à la performance
+  - [x] B3. Pas de départage : les ex-aequo partagent le rang
 
 ### C. Événements multi-tableaux + inscription en ligne simple/double
 - [ ] Entité `Event` (nom, date, lieu, ouverture/clôture des inscriptions) + `Tournament.EventId` nullable ; chaque tableau reste un `Tournament` autonome (bracket, matchs inchangés), tournoi sans événement = comportement actuel

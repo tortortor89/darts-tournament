@@ -10,11 +10,12 @@ import { FeatureService } from '../../core/services/feature.service';
 import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType, RegistrationStatus } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
 import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
+import { MatchExploitsDialogComponent } from '../matches/components/match-exploits-dialog.component';
 
 @Component({
   selector: 'app-tournament-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, BracketViewerComponent, DoubleBracketViewerComponent],
+  imports: [CommonModule, FormsModule, RouterLink, BracketViewerComponent, DoubleBracketViewerComponent, MatchExploitsDialogComponent],
   template: `
     @if (loading) {
       <div class="container">
@@ -301,6 +302,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                             </div>
                           } @else {
                             <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                            @if (canTrackExploits) {
+                              <button class="exploits-btn" (click)="exploitsMatchId = match.id">Exploits</button>
+                            }
                           }
                         </div>
                       }
@@ -360,6 +364,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                                 </div>
                               } @else {
                                 <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                                @if (canTrackExploits) {
+                                  <button class="exploits-btn" (click)="exploitsMatchId = match.id">Exploits</button>
+                                }
                               }
                             </div>
                           }
@@ -420,6 +427,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                               </div>
                             } @else {
                               <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                              @if (canTrackExploits) {
+                                <button class="exploits-btn" (click)="exploitsMatchId = match.id">Exploits</button>
+                              }
                             }
                           </div>
                         }
@@ -585,6 +595,9 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
                           </div>
                         } @else {
                           <button class="correct-btn" (click)="startCorrection(match)">Corriger</button>
+                          @if (canTrackExploits) {
+                            <button class="exploits-btn" (click)="exploitsMatchId = match.id">Exploits</button>
+                          }
                         }
                       </div>
                     }
@@ -597,6 +610,10 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
             </div>
           </div>
         }
+      }
+
+      @if (exploitsMatchId !== null) {
+        <app-match-exploits-dialog [matchId]="exploitsMatchId" (closed)="exploitsMatchId = null" />
       }
     </div>
   `,
@@ -981,6 +998,18 @@ import { DoubleBracketViewerComponent } from '../../shared/components/double-bra
     .correct-btn:hover {
       background: #fff3cd;
     }
+    .exploits-btn {
+      padding: 6px 14px;
+      background: transparent;
+      color: #6f42c1;
+      border: 1px solid #6f42c1;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+    .exploits-btn:hover {
+      background: #f3eefc;
+    }
     .cancel-correct {
       padding: 6px 12px;
       background: #6c757d;
@@ -1140,6 +1169,8 @@ export class TournamentDetailComponent implements OnInit {
   Number = Number;
   scoreInputs: { [key: number]: { player1: number; player2: number } } = {};
   correctingMatchId: number | null = null;
+  // Match dont le dialogue des exploits est ouvert
+  exploitsMatchId: number | null = null;
   loading = false;
 
   TournamentFormat = TournamentFormat;
@@ -1157,6 +1188,11 @@ export class TournamentDetailComponent implements OnInit {
     public authService: AuthService,
     private apiService: ApiService
   ) {}
+
+  // Exploits suivis sur les matchs de saison (tournoi rattaché ou circuit de saison)
+  get canTrackExploits(): boolean {
+    return !!this.tournament?.seasonId && this.features.isEnabled('seasons') && this.features.isEnabled('exploits');
+  }
 
   ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));

@@ -23,6 +23,7 @@ public class MatchesController : ControllerBase
     private readonly MatchStatsService _statsService;
     private readonly InterclubService _interclubService;
     private readonly SeasonService _seasonService;
+    private readonly ExploitService _exploitService;
 
     public MatchesController(
         AppDbContext context,
@@ -30,9 +31,11 @@ public class MatchesController : ControllerBase
         MatchSessionService matchSessionService,
         MatchStatsService statsService,
         InterclubService interclubService,
-        SeasonService seasonService)
+        SeasonService seasonService,
+        ExploitService exploitService)
     {
         _seasonService = seasonService;
+        _exploitService = exploitService;
         _context = context;
         _tournamentService = tournamentService;
         _matchSessionService = matchSessionService;
@@ -180,6 +183,57 @@ public class MatchesController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
+    #region Exploits
+
+    /// <summary>
+    /// Exploits d'un match (180, 171, checkouts de 100+, manches en 15 fléchettes ou moins)
+    /// </summary>
+    [HttpGet("{id}/exploits")]
+    [RequiresFeature(Feature.Exploits)]
+    [ProducesResponseType(typeof(List<ExploitResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<ExploitResponse>>> GetExploits(int id)
+    {
+        return Ok(await _exploitService.GetMatchExploitsAsync(id));
+    }
+
+    /// <summary>
+    /// Saisir manuellement un exploit sur un match de saison
+    /// </summary>
+    /// <response code="201">Exploit enregistré</response>
+    /// <response code="400">Match hors saison, joueur absent du match ou valeur invalide</response>
+    [HttpPost("{id}/exploits")]
+    [Authorize(Roles = "Admin")]
+    [RequiresFeature(Feature.Exploits)]
+    [ProducesResponseType(typeof(ExploitResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ExploitResponse>> AddExploit(int id, CreateExploitRequest request)
+    {
+        try
+        {
+            var exploit = await _exploitService.AddManualExploitAsync(id, request);
+            return CreatedAtAction(nameof(GetExploits), new { id }, exploit);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Supprimer un exploit (saisi à tort ou détection à corriger)
+    /// </summary>
+    [HttpDelete("{id}/exploits/{exploitId}")]
+    [Authorize(Roles = "Admin")]
+    [RequiresFeature(Feature.Exploits)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteExploit(int id, int exploitId)
+    {
+        return await _exploitService.DeleteExploitAsync(id, exploitId) ? NoContent() : NotFound();
+    }
+
+    #endregion
 
     #region Match Session (Live Game)
 

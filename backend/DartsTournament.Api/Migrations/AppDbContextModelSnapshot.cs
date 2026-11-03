@@ -137,6 +137,49 @@ namespace DartsTournament.Api.Migrations
                     b.ToTable("Clubs");
                 });
 
+            modelBuilder.Entity("DartsTournament.Api.Models.Exploit", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("LegNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MatchId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PartnerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartnerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.HasIndex("MatchId", "Source");
+
+                    b.ToTable("Exploits");
+                });
+
             modelBuilder.Entity("DartsTournament.Api.Models.Group", b =>
                 {
                     b.Property<int>("Id")
@@ -783,6 +826,32 @@ namespace DartsTournament.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Circuit");
+                });
+
+            modelBuilder.Entity("DartsTournament.Api.Models.Exploit", b =>
+                {
+                    b.HasOne("DartsTournament.Api.Models.Match", "Match")
+                        .WithMany()
+                        .HasForeignKey("MatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DartsTournament.Api.Models.Player", "Partner")
+                        .WithMany()
+                        .HasForeignKey("PartnerId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("DartsTournament.Api.Models.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Match");
+
+                    b.Navigation("Partner");
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("DartsTournament.Api.Models.Group", b =>

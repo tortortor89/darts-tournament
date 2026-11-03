@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode, Season, SeasonDetail, SeasonRequest, SeasonStatus, SeasonItemKind } from '../models';
+import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode, Season, SeasonDetail, SeasonRequest, SeasonStatus, SeasonItemKind, Exploit, CreateExploitRequest, SeasonExploitRankings } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -213,6 +213,27 @@ export class ApiService {
 
   detachFromSeason(seasonId: number, kind: SeasonItemKind, id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/seasons/${seasonId}/${kind}/${id}`);
+  }
+
+  // Exploits
+  getSeasonExploits(seasonId: number): Observable<SeasonExploitRankings> {
+    return this.http.get<SeasonExploitRankings>(`${this.API_URL}/seasons/${seasonId}/exploits`);
+  }
+
+  recomputeSeasonExploits(seasonId: number): Observable<{ matchCount: number }> {
+    return this.http.post<{ matchCount: number }>(`${this.API_URL}/seasons/${seasonId}/exploits/recompute`, {});
+  }
+
+  getMatchExploits(matchId: number): Observable<Exploit[]> {
+    return this.http.get<Exploit[]>(`${this.API_URL}/matches/${matchId}/exploits`);
+  }
+
+  addMatchExploit(matchId: number, request: CreateExploitRequest): Observable<Exploit> {
+    return this.http.post<Exploit>(`${this.API_URL}/matches/${matchId}/exploits`, request);
+  }
+
+  deleteMatchExploit(matchId: number, exploitId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/matches/${matchId}/exploits/${exploitId}`);
   }
 
   // Clubs
