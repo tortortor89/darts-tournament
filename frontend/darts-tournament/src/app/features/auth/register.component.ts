@@ -37,10 +37,12 @@ import { AuthService } from '../../core/services/auth.service';
   styles: [`
     .auth-container {
       max-width: 400px;
-      margin: 50px auto;
-      padding: 20px;
-      border: 1px solid #ddd;
+      margin: 60px auto;
+      padding: 30px;
+      border: 2px solid var(--hd-border);
       border-radius: 8px;
+      background: white;
+      box-shadow: 0 4px 16px rgba(26,60,42,0.1);
     }
     .form-group {
       margin-bottom: 15px;
@@ -48,33 +50,50 @@ import { AuthService } from '../../core/services/auth.service';
     label {
       display: block;
       margin-bottom: 5px;
+      font-weight: 500;
+      color: var(--hd-text-muted);
     }
     input {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 10px;
+      border: 1.5px solid var(--hd-border);
       border-radius: 4px;
       box-sizing: border-box;
+      background: var(--hd-cream);
+      color: var(--hd-text);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--hd-amber);
     }
     button {
       width: 100%;
-      padding: 10px;
-      background: #28a745;
+      padding: 12px;
+      background: var(--hd-green);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
+      font-size: 1em;
+      letter-spacing: 0.03em;
+    }
+    button:hover {
+      background: var(--hd-green-mid);
     }
     button:disabled {
-      background: #ccc;
+      background: var(--hd-border);
+      cursor: not-allowed;
     }
     .error {
-      color: red;
+      color: var(--hd-danger);
       margin-bottom: 15px;
+      font-size: 0.9em;
     }
     p {
       text-align: center;
       margin-top: 15px;
+      color: var(--hd-text-muted);
     }
   `]
 })

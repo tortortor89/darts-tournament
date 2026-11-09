@@ -1,21 +1,42 @@
+:root {
+  --hd-green: #1A3C2A;
+  --hd-green-mid: #2D5A3E;
+  --hd-green-light: #3D7050;
+  --hd-amber: #E8950A;
+  --hd-amber-light: #F5A828;
+  --hd-cream: #F2E8D5;
+  --hd-cream-dark: #E5D4B3;
+  --hd-text: #1A1A1A;
+  --hd-text-muted: #5C4A32;
+  --hd-danger: #C0392B;
+  --hd-danger-dark: #A93226;
+  --hd-success: #27643A;
+  --hd-border: #C8B89A;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
-  color: #333;
-}
-
-a {
-  color: #007bff;
+  color: var(--hd-text);
+  background: var(--hd-cream);
 }
 
 h1, h2, h3, h4 {
   margin-top: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--hd-green);
+}
+
+a {
+  color: var(--hd-amber);
 }
 
 button {

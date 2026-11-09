@@ -77,10 +77,15 @@ import { Player } from '../../core/models';
       padding: 20px;
     }
     .add-form {
-      margin-bottom: 20px;
-      padding: 15px;
-      background: #f5f5f5;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: white;
+      border: 2px solid var(--hd-border);
+      border-top: 4px solid var(--hd-green);
       border-radius: 8px;
+    }
+    .add-form h3 {
+      margin-bottom: 12px;
     }
     .add-form form {
       display: flex;
@@ -88,29 +93,57 @@ import { Player } from '../../core/models';
       flex-wrap: wrap;
     }
     .add-form input {
-      padding: 8px;
-      border: 1px solid #ddd;
+      padding: 8px 10px;
+      border: 1.5px solid var(--hd-border);
       border-radius: 4px;
+      background: var(--hd-cream);
+      color: var(--hd-text);
+    }
+    .add-form input:focus {
+      outline: none;
+      border-color: var(--hd-amber);
     }
     .add-form button {
-      padding: 8px 16px;
-      background: #007bff;
+      padding: 8px 18px;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      font-weight: 600;
+    }
+    .add-form button:hover {
+      background: var(--hd-amber-light);
+    }
+    .add-form button[type="button"] {
+      background: var(--hd-text-muted);
     }
     table {
       width: 100%;
       border-collapse: collapse;
+      background: white;
+      border: 1px solid var(--hd-border);
+      border-radius: 8px;
+      overflow: hidden;
     }
     th, td {
-      padding: 10px;
+      padding: 12px 10px;
       text-align: left;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid var(--hd-border);
     }
     th {
-      background: #f5f5f5;
+      background: var(--hd-green);
+      color: white;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      font-size: 0.95em;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: var(--hd-cream);
     }
     button {
       padding: 5px 10px;
@@ -118,20 +151,29 @@ import { Player } from '../../core/models';
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      background: var(--hd-green-mid);
+      color: white;
+      font-size: 0.85em;
+    }
+    button:hover {
+      background: var(--hd-green);
     }
     button.delete {
-      background: #dc3545;
+      background: var(--hd-danger);
       color: white;
+    }
+    button.delete:hover {
+      background: var(--hd-danger-dark);
     }
     .loading {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--hd-text-muted);
     }
     .btn-stats {
       display: inline-block;
       padding: 6px 12px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--hd-amber);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -140,8 +182,9 @@ import { Player } from '../../core/models';
       transition: all 0.2s;
     }
     .btn-stats:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      background: var(--hd-amber-light);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(232,149,10,0.3);
     }
   `]
 })

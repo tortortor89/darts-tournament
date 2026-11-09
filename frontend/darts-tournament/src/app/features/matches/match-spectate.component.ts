@@ -179,7 +179,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
   styles: [`
     .spectate-container {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
+      background: linear-gradient(160deg, #0D2018 0%, var(--hd-green) 100%);
       color: white;
       display: flex;
       flex-direction: column;
@@ -199,7 +199,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       display: flex;
       align-items: center;
       gap: 8px;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.4);
       z-index: 100;
     }
 
@@ -207,59 +207,54 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #6c757d;
+      background: rgba(255,255,255,0.3);
     }
 
     .connection-status.connected .status-dot {
-      background: #28a745;
-      box-shadow: 0 0 8px #28a745;
+      background: var(--hd-amber);
+      box-shadow: 0 0 8px var(--hd-amber);
     }
 
     .connection-status.connecting .status-dot,
     .connection-status.reconnecting .status-dot {
-      background: #ffc107;
+      background: var(--hd-amber-light);
       animation: pulse 1s infinite;
     }
 
     .connection-status.disconnected .status-dot {
-      background: #dc3545;
+      background: var(--hd-danger);
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+      50% { opacity: 0.4; }
     }
 
-    .loading {
-      text-align: center;
-    }
+    .loading { text-align: center; }
 
     .spinner {
       width: 60px;
       height: 60px;
-      border: 4px solid rgba(255,255,255,0.2);
-      border-top-color: #007bff;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: var(--hd-amber);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 20px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .error {
-      text-align: center;
-    }
+    .error { text-align: center; }
 
     .error button {
       padding: 10px 20px;
-      background: #007bff;
+      background: var(--hd-amber);
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
       margin-top: 15px;
+      font-weight: 600;
     }
 
     .spectate-screen {
@@ -270,8 +265,12 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .tournament-name {
       text-align: center;
       font-size: 1.5em;
-      color: rgba(255,255,255,0.6);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--hd-amber);
       margin-bottom: 30px;
+      text-transform: uppercase;
     }
 
     .main-score {
@@ -282,48 +281,29 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     }
 
     .player-side {
-      background: rgba(255,255,255,0.05);
-      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 16px;
       padding: 40px;
       text-align: center;
       transition: all 0.3s;
     }
 
-    .player-side.left {
-      border-left: 5px solid transparent;
-    }
+    .player-side.left { border-left: 5px solid transparent; }
+    .player-side.right { border-right: 5px solid transparent; }
 
-    .player-side.right {
-      border-right: 5px solid transparent;
-    }
+    .player-side.active { background: rgba(232,149,10,0.15); }
+    .player-side.active.left { border-left-color: var(--hd-amber); }
+    .player-side.active.right { border-right-color: var(--hd-amber); }
 
-    .player-side.active {
-      background: rgba(40, 167, 69, 0.2);
-    }
-
-    .player-side.active.left {
-      border-left-color: #28a745;
-    }
-
-    .player-side.active.right {
-      border-right-color: #28a745;
-    }
-
-    .player-side.winner {
-      background: rgba(255, 193, 7, 0.2);
-    }
-
-    .player-side.winner.left {
-      border-left-color: #ffc107;
-    }
-
-    .player-side.winner.right {
-      border-right-color: #ffc107;
-    }
+    .player-side.winner { background: rgba(232,149,10,0.25); }
+    .player-side.winner.left { border-left-color: var(--hd-amber-light); }
+    .player-side.winner.right { border-right-color: var(--hd-amber-light); }
 
     .player-name {
       font-size: 2em;
-      font-weight: bold;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
       margin-bottom: 20px;
     }
 
@@ -336,21 +316,22 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .remaining {
       font-size: 6em;
-      font-weight: bold;
+      font-weight: 800;
+      font-family: 'Barlow Condensed', sans-serif;
       line-height: 1;
     }
 
     .legs-won {
       font-size: 3em;
-      color: #ffc107;
-      background: rgba(255, 193, 7, 0.2);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700;
+      color: var(--hd-amber);
+      background: rgba(232,149,10,0.2);
       padding: 10px 30px;
       border-radius: 10px;
     }
 
-    .center-info {
-      text-align: center;
-    }
+    .center-info { text-align: center; }
 
     .legs-target {
       font-size: 1em;
@@ -360,7 +341,9 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .vs {
       font-size: 2em;
-      color: rgba(255,255,255,0.3);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
+      color: rgba(255,255,255,0.25);
       margin: 20px 0;
     }
 
@@ -372,14 +355,15 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .match-finished {
       margin-top: 20px;
       padding: 15px 30px;
-      background: #ffc107;
-      color: #000;
-      font-weight: bold;
+      background: var(--hd-amber);
+      color: var(--hd-green);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 800;
       font-size: 1.5em;
+      letter-spacing: 0.06em;
       border-radius: 10px;
     }
 
-    /* Statistics Panel */
     .stats-panel {
       margin-top: 30px;
       background: rgba(255,255,255,0.05);
@@ -389,10 +373,12 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .stats-panel h3 {
       margin: 0 0 15px 0;
-      font-size: 1em;
-      color: rgba(255,255,255,0.5);
+      font-size: 0.85em;
+      color: var(--hd-amber);
       text-transform: uppercase;
       text-align: center;
+      letter-spacing: 0.08em;
+      border-bottom: none;
     }
 
     .stats-grid {
@@ -407,33 +393,23 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       gap: 20px;
       align-items: center;
       padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
-    .stat-row:last-child {
-      border-bottom: none;
-    }
+    .stat-row:last-child { border-bottom: none; }
 
     .stat-value {
       font-size: 1.3em;
-      font-weight: bold;
+      font-weight: 700;
     }
 
-    .stat-value.left {
-      text-align: right;
-    }
-
-    .stat-value.right {
-      text-align: left;
-    }
-
-    .stat-value.highlight {
-      color: #ffc107;
-    }
+    .stat-value.left { text-align: right; }
+    .stat-value.right { text-align: left; }
+    .stat-value.highlight { color: var(--hd-amber); }
 
     .stat-label {
-      color: rgba(255,255,255,0.5);
-      font-size: 0.9em;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.85em;
       text-align: center;
       min-width: 140px;
     }
@@ -447,9 +423,11 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .legs-history h3 {
       margin: 0 0 15px 0;
-      font-size: 1em;
-      color: rgba(255,255,255,0.5);
+      font-size: 0.85em;
+      color: var(--hd-amber);
       text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: none;
     }
 
     .legs-list {
@@ -459,7 +437,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     }
 
     .leg-item {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
       padding: 10px 15px;
       border-radius: 8px;
       display: flex;
@@ -468,29 +446,26 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     }
 
     .leg-number {
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.45);
       font-size: 0.9em;
     }
 
-    .leg-winner {
-      font-weight: bold;
-    }
+    .leg-winner { font-weight: 600; }
 
     .leg-avg {
-      color: #28a745;
+      color: var(--hd-amber);
       font-size: 0.9em;
     }
 
-    /* Responsive */
+    .cricket-section { margin-top: 20px; }
+
     @media (max-width: 768px) {
       .main-score {
         grid-template-columns: 1fr;
         gap: 20px;
       }
 
-      .player-side {
-        padding: 20px;
-      }
+      .player-side { padding: 20px; }
 
       .player-side.left, .player-side.right {
         border-left: none;
@@ -499,37 +474,19 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       }
 
       .player-side.active.left, .player-side.active.right {
-        border-top-color: #28a745;
+        border-top-color: var(--hd-amber);
       }
 
       .player-side.winner.left, .player-side.winner.right {
-        border-top-color: #ffc107;
+        border-top-color: var(--hd-amber-light);
       }
 
-      .remaining {
-        font-size: 4em;
-      }
-
-      .legs-won {
-        font-size: 2em;
-      }
-
-      .center-info {
-        order: -1;
-      }
-
-      .stat-row {
-        gap: 10px;
-      }
-
-      .stat-label {
-        min-width: 100px;
-        font-size: 0.8em;
-      }
-
-      .stat-value {
-        font-size: 1.1em;
-      }
+      .remaining { font-size: 4em; }
+      .legs-won { font-size: 2em; }
+      .center-info { order: -1; }
+      .stat-row { gap: 10px; }
+      .stat-label { min-width: 100px; font-size: 0.8em; }
+      .stat-value { font-size: 1.1em; }
     }
   `]
 })
