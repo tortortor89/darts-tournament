@@ -162,7 +162,7 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
     .add-form {
       margin-bottom: 20px;
       padding: 15px;
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .add-form form {
@@ -192,12 +192,12 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
     }
     .add-form input, .add-form select {
       padding: 8px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
     }
     .add-form button {
       padding: 8px 16px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -212,24 +212,24 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
     }
     .championship-card, .club-card {
       padding: 15px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 8px;
     }
     .championship-card h3 {
       margin-top: 0;
     }
     .championship-card h3 a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
     }
     .championship-card h3 a:hover {
       text-decoration: underline;
     }
-    .status-0 { color: var(--hd-text-muted); }
-    .status-1 { color: var(--hd-amber); }
-    .status-2 { color: var(--hd-success); }
+    .status-0 { color: var(--status-draft); }
+    .status-1 { color: var(--status-active); }
+    .status-2 { color: var(--status-done); }
     button.delete {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 5px 10px;
@@ -254,15 +254,15 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
       gap: 12px;
       padding: 12px 15px;
       cursor: pointer;
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
     }
     .club-header .player-count {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 0.9em;
     }
     .club-header .expand {
       margin-left: auto;
-      color: var(--hd-green);
+      color: var(--link);
     }
     .club-body {
       padding: 12px 15px;
@@ -277,12 +277,12 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
       justify-content: space-between;
       align-items: center;
       padding: 4px 0;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
     }
     button.remove {
       background: transparent;
       border: none;
-      color: var(--hd-danger);
+      color: var(--danger);
       cursor: pointer;
       font-weight: bold;
     }
@@ -293,13 +293,13 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
     }
     .assign-row select {
       padding: 6px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
       min-width: 200px;
     }
     .assign-row button {
       padding: 6px 12px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -312,7 +312,7 @@ import { InterclubChampionship, ChampionshipStatus, Club, ClubDetail, Player, Ga
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
   `]
 })

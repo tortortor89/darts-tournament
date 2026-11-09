@@ -676,6 +676,12 @@ export interface FeatureFlags {
   exploits: boolean;
 }
 
+// Habillage de l'instance (GET /config/branding)
+export interface Branding {
+  skin: string;
+  appName?: string | null;
+}
+
 // Saisons (mode Ligue : 501 double out imposé)
 export enum SeasonStatus {
   InProgress = 0,

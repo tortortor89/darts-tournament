@@ -80,8 +80,8 @@ import { Player } from '../../core/models';
       margin-bottom: 24px;
       padding: 20px;
       background: white;
-      border: 2px solid var(--hd-border);
-      border-top: 4px solid var(--hd-green);
+      border: 2px solid var(--border);
+      border-top: 4px solid var(--border);
       border-radius: 8px;
     }
     .add-form h3 {
@@ -94,18 +94,18 @@ import { Player } from '../../core/models';
     }
     .add-form input {
       padding: 8px 10px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 4px;
-      background: var(--hd-cream);
-      color: var(--hd-text);
+      background: var(--input-bg);
+      color: var(--text);
     }
     .add-form input:focus {
       outline: none;
-      border-color: var(--hd-amber);
+      border-color: var(--primary);
     }
     .add-form button {
       padding: 8px 18px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -113,28 +113,28 @@ import { Player } from '../../core/models';
       font-weight: 600;
     }
     .add-form button:hover {
-      background: var(--hd-amber-light);
+      background: var(--primary-hover);
     }
     .add-form button[type="button"] {
-      background: var(--hd-text-muted);
+      background: var(--secondary);
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: white;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
     }
     th, td {
       padding: 12px 10px;
       text-align: left;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border);
     }
     th {
-      background: var(--hd-green);
-      color: white;
-      font-family: 'Barlow Condensed', sans-serif;
+      background: var(--table-head-bg);
+      color: var(--table-head-text);
+      font-family: var(--font-heading);
       font-weight: 600;
       letter-spacing: 0.03em;
       font-size: 0.95em;
@@ -143,7 +143,7 @@ import { Player } from '../../core/models';
       border-bottom: none;
     }
     tr:hover td {
-      background: var(--hd-cream);
+      background: var(--surface-hover);
     }
     button {
       padding: 5px 10px;
@@ -151,29 +151,29 @@ import { Player } from '../../core/models';
       border: none;
       border-radius: 4px;
       cursor: pointer;
-      background: var(--hd-green-mid);
+      background: var(--secondary);
       color: white;
       font-size: 0.85em;
     }
     button:hover {
-      background: var(--hd-green);
+      background: var(--secondary-hover);
     }
     button.delete {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
     }
     button.delete:hover {
-      background: var(--hd-danger-dark);
+      background: var(--danger-hover);
     }
     .loading {
       text-align: center;
       padding: 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     .btn-stats {
       display: inline-block;
       padding: 6px 12px;
-      background: var(--hd-amber);
+      background: var(--feature-bg);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -182,9 +182,9 @@ import { Player } from '../../core/models';
       transition: all 0.2s;
     }
     .btn-stats:hover {
-      background: var(--hd-amber-light);
+      background: var(--feature-bg-hover);
       transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(232,149,10,0.3);
+      box-shadow: 0 3px 8px color-mix(in srgb, var(--shadow-color) 25%, transparent);
     }
   `]
 })

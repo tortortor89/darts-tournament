@@ -29,6 +29,22 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
+    "ligue": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7228;http://localhost:5092",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Features__Seasons": "true",
+        "Features__Exploits": "true",
+        "Features__Circuits": "true",
+        "Features__Interclubs": "true",
+        "Features__Cricket": "false",
+        "Features__ThreeOhOne": "false"
+      }
+    },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,

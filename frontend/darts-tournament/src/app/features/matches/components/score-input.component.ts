@@ -219,7 +219,7 @@ export interface ThrowData {
     }
 
     .input-mode-toggle button.active {
-      background: #007bff;
+      background: var(--primary);
     }
 
     .score-mode-toggle {
@@ -266,7 +266,7 @@ export interface ThrowData {
     }
 
     .numpad-display.invalid {
-      background: rgba(220, 53, 69, 0.2);
+      background: color-mix(in srgb, var(--danger) 20%, transparent);
     }
 
     .display-value {
@@ -277,7 +277,7 @@ export interface ThrowData {
 
     .calculated-inline {
       font-size: 1.2em;
-      color: #4caf50;
+      color: var(--dark-active);
     }
 
     .numpad {
@@ -308,19 +308,19 @@ export interface ThrowData {
     }
 
     .numpad-clear {
-      background: rgba(220, 53, 69, 0.4);
+      background: color-mix(in srgb, var(--danger) 40%, transparent);
     }
 
     .numpad-clear:hover {
-      background: rgba(220, 53, 69, 0.6);
+      background: color-mix(in srgb, var(--danger) 60%, transparent);
     }
 
     .numpad-back {
-      background: rgba(255, 193, 7, 0.3);
+      background: color-mix(in srgb, var(--dark-highlight) 30%, transparent);
     }
 
     .numpad-back:hover {
-      background: rgba(255, 193, 7, 0.5);
+      background: color-mix(in srgb, var(--dark-highlight) 50%, transparent);
     }
 
     .quick-scores {
@@ -365,11 +365,11 @@ export interface ThrowData {
     }
 
     .dart-slot.filled {
-      background: rgba(0, 123, 255, 0.3);
+      background: color-mix(in srgb, var(--primary) 30%, transparent);
     }
 
     .dart-slot.filled:hover {
-      background: rgba(220, 53, 69, 0.4);
+      background: color-mix(in srgb, var(--danger) 40%, transparent);
     }
 
     .dart-label {
@@ -386,7 +386,7 @@ export interface ThrowData {
 
     .darts-total {
       flex: 1;
-      background: rgba(40, 167, 69, 0.2);
+      background: color-mix(in srgb, var(--dark-active) 20%, transparent);
       border-radius: 8px;
       padding: 10px 5px;
       text-align: center;
@@ -402,7 +402,7 @@ export interface ThrowData {
     .total-value {
       font-size: 1.3em;
       font-weight: bold;
-      color: #4caf50;
+      color: var(--dark-active);
     }
 
     /* Multiplier selector */
@@ -430,15 +430,15 @@ export interface ThrowData {
     }
 
     .multiplier-selector button:first-child.active {
-      background: rgba(108, 117, 125, 0.6);
+      background: color-mix(in srgb, var(--secondary) 60%, transparent);
     }
 
     .multiplier-selector button:nth-child(2).active {
-      background: rgba(0, 123, 255, 0.6);
+      background: color-mix(in srgb, var(--primary) 60%, transparent);
     }
 
     .multiplier-selector button:last-child.active {
-      background: rgba(220, 53, 69, 0.6);
+      background: color-mix(in srgb, var(--danger) 60%, transparent);
     }
 
     /* Number grid */
@@ -481,7 +481,7 @@ export interface ThrowData {
       font-size: 1em;
       border: none;
       border-radius: 8px;
-      background: rgba(40, 167, 69, 0.4);
+      background: color-mix(in srgb, var(--dark-active) 40%, transparent);
       color: white;
       cursor: pointer;
       font-weight: bold;
@@ -489,15 +489,15 @@ export interface ThrowData {
     }
 
     .bull-btn:hover {
-      background: rgba(40, 167, 69, 0.6);
+      background: color-mix(in srgb, var(--dark-active) 60%, transparent);
     }
 
     .bull-btn.db {
-      background: rgba(255, 193, 7, 0.4);
+      background: color-mix(in srgb, var(--dark-highlight) 40%, transparent);
     }
 
     .bull-btn.db:hover {
-      background: rgba(255, 193, 7, 0.6);
+      background: color-mix(in srgb, var(--dark-highlight) 60%, transparent);
     }
 
     .miss-btn {
@@ -506,7 +506,7 @@ export interface ThrowData {
       font-size: 1em;
       border: none;
       border-radius: 8px;
-      background: rgba(108, 117, 125, 0.4);
+      background: color-mix(in srgb, var(--secondary) 40%, transparent);
       color: white;
       cursor: pointer;
       font-weight: bold;
@@ -514,13 +514,13 @@ export interface ThrowData {
     }
 
     .miss-btn:hover {
-      background: rgba(108, 117, 125, 0.6);
+      background: color-mix(in srgb, var(--secondary) 60%, transparent);
     }
 
     .submit-throw {
       width: 100%;
       padding: 15px;
-      background: #28a745;
+      background: var(--dark-active);
       color: white;
       border: none;
       border-radius: 8px;
@@ -537,7 +537,7 @@ export interface ThrowData {
     /* Checkout button */
     .checkout-btn {
       width: 100%;
-      background: #28a745;
+      background: var(--dark-active);
       color: white;
       font-weight: bold;
       padding: 15px;
@@ -551,7 +551,7 @@ export interface ThrowData {
     }
 
     .checkout-btn:hover {
-      background: #218838;
+      background: color-mix(in srgb, var(--dark-active) 85%, black);
     }
 
     @keyframes pulse {
@@ -574,7 +574,7 @@ export interface ThrowData {
     }
 
     .modal-content {
-      background: #1e1e2e;
+      background: var(--dark-surface);
       padding: 30px;
       border-radius: 12px;
       max-width: 400px;
@@ -585,7 +585,7 @@ export interface ThrowData {
     .modal-content h3 {
       margin: 0 0 20px 0;
       text-align: center;
-      color: #4caf50;
+      color: var(--dark-active);
     }
 
     .modal-section {
@@ -609,7 +609,7 @@ export interface ThrowData {
       flex: 1;
       padding: 20px;
       font-size: 1.1em;
-      background: #007bff;
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;
@@ -619,17 +619,17 @@ export interface ThrowData {
     }
 
     .dart-count-buttons button:hover {
-      background: #0056b3;
+      background: var(--primary-hover);
     }
 
     .dart-count-buttons button:active {
-      background: #004085;
+      background: color-mix(in srgb, var(--primary-hover) 80%, black);
     }
 
     .cancel-btn {
       width: 100%;
       padding: 12px;
-      background: rgba(220, 53, 69, 0.3);
+      background: color-mix(in srgb, var(--danger) 30%, transparent);
       color: white;
       border: none;
       border-radius: 8px;
@@ -639,13 +639,13 @@ export interface ThrowData {
     }
 
     .cancel-btn:hover {
-      background: rgba(220, 53, 69, 0.5);
+      background: color-mix(in srgb, var(--danger) 50%, transparent);
     }
 
     .back-btn {
       width: 100%;
       padding: 12px;
-      background: rgba(108, 117, 125, 0.3);
+      background: color-mix(in srgb, var(--secondary) 30%, transparent);
       color: white;
       border: none;
       border-radius: 8px;
@@ -655,12 +655,12 @@ export interface ThrowData {
     }
 
     .back-btn:hover {
-      background: rgba(108, 117, 125, 0.5);
+      background: color-mix(in srgb, var(--secondary) 50%, transparent);
     }
 
     .modal-info {
       text-align: center;
-      color: #4caf50;
+      color: var(--dark-active);
       font-size: 1.1em;
       margin: 0 0 15px 0;
     }

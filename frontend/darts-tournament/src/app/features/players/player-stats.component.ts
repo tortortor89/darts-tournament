@@ -218,7 +218,7 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
       text-align: center;
       padding: 60px 20px;
       font-size: 1.2em;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
 
     .header {
@@ -237,7 +237,7 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
 
     .btn-back {
       padding: 10px 20px;
-      background: var(--hd-text-muted);
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -248,23 +248,24 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
     }
 
     .btn-back:hover {
-      background: var(--hd-green);
+      background: var(--secondary-hover);
       transform: translateY(-1px);
     }
 
     section {
       background: white;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 8px;
       padding: 25px;
       margin-bottom: 25px;
-      box-shadow: 0 2px 8px rgba(26,60,42,0.08);
+      box-shadow: 0 2px 8px color-mix(in srgb, var(--shadow-color) 8%, transparent);
     }
 
     section h3 {
       margin: 0 0 20px 0;
+      color: var(--link);
       font-size: 1.4em;
-      border-bottom: 2px solid var(--hd-amber);
+      border-bottom: 2px solid var(--primary);
       padding-bottom: 10px;
     }
 
@@ -275,36 +276,36 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
     }
 
     .stat-card {
-      background: var(--hd-green);
+      background: var(--hero-gradient);
       padding: 25px;
       border-radius: 8px;
       text-align: center;
       color: white;
-      box-shadow: 0 4px 8px rgba(26,60,42,0.2);
+      box-shadow: 0 4px 8px color-mix(in srgb, var(--shadow-color) 20%, transparent);
       transition: transform 0.2s;
     }
 
     .stat-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 16px rgba(26,60,42,0.25);
+      box-shadow: 0 8px 16px color-mix(in srgb, var(--shadow-color) 25%, transparent);
     }
 
     .stat-card.success {
-      background: var(--hd-success);
+      background: var(--success-gradient);
     }
 
     .stat-card.danger {
-      background: var(--hd-danger);
+      background: var(--danger-gradient);
     }
 
     .stat-card.highlight {
-      background: var(--hd-amber);
+      background: var(--highlight-gradient);
     }
 
     .stat-card .stat-value {
       font-size: 3em;
       font-weight: 800;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       margin-bottom: 8px;
       color: white;
     }
@@ -320,49 +321,49 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
     }
 
     th {
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       padding: 12px;
       text-align: left;
       font-weight: 600;
-      color: var(--hd-green);
-      border-bottom: 2px solid var(--hd-border);
+      color: var(--heading-color);
+      border-bottom: 2px solid var(--border);
       font-size: 0.9em;
     }
 
     td {
       padding: 12px;
-      border-bottom: 1px solid var(--hd-border);
-      color: var(--hd-text);
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
     }
 
-    tbody tr:hover { background: var(--hd-cream); }
+    tbody tr:hover { background: var(--surface-hover); }
 
     .stat-value {
       font-weight: 600;
-      color: var(--hd-amber);
+      color: var(--primary);
     }
 
     .note {
       margin-top: 15px;
       font-size: 0.9em;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-style: italic;
     }
 
     .no-data {
       text-align: center;
       padding: 40px 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     .no-data p { margin: 0 0 8px 0; font-size: 1.1em; }
     .no-data small { font-size: 0.9em; }
 
     .tournament-history a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
       font-weight: 500;
     }
-    .tournament-history a:hover { color: var(--hd-amber); }
+    .tournament-history a:hover { color: var(--link-hover); }
 
     .status-badge {
       padding: 4px 12px;
@@ -370,22 +371,22 @@ import { PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, Tourn
       font-size: 0.85em;
       font-weight: 600;
     }
-    .status-badge.draft { background: rgba(232,149,10,0.2); color: var(--hd-amber); }
-    .status-badge.inprogress { background: var(--hd-green); color: white; }
-    .status-badge.completed { background: var(--hd-success); color: white; }
+    .status-badge.draft { background: var(--accent); color: var(--on-accent); }
+    .status-badge.inprogress { background: var(--status-active); color: white; }
+    .status-badge.completed { background: var(--success); color: white; }
 
     .opponent-name { font-weight: 500; }
-    .win { color: var(--hd-success); font-weight: 600; }
-    .loss { color: var(--hd-danger); font-weight: 600; }
+    .win { color: var(--success); font-weight: 600; }
+    .loss { color: var(--danger); font-weight: 600; }
 
     .win-pct {
       padding: 4px 8px;
       border-radius: 4px;
       font-weight: 600;
     }
-    .win-pct.high { background: rgba(39,100,58,0.12); color: var(--hd-success); }
-    .win-pct.medium { background: rgba(232,149,10,0.12); color: var(--hd-amber); }
-    .win-pct.low { background: rgba(192,57,43,0.12); color: var(--hd-danger); }
+    .win-pct.high { background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
+    .win-pct.medium { background: var(--accent-soft); color: var(--accent-text); }
+    .win-pct.low { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
 
     @media (max-width: 768px) {
       .header { flex-direction: column; align-items: stretch; }

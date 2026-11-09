@@ -179,7 +179,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
   styles: [`
     .spectate-container {
       min-height: 100vh;
-      background: linear-gradient(160deg, #0D2018 0%, var(--hd-green) 100%);
+      background: var(--dark-gradient);
       color: white;
       display: flex;
       flex-direction: column;
@@ -211,18 +211,18 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     }
 
     .connection-status.connected .status-dot {
-      background: var(--hd-amber);
-      box-shadow: 0 0 8px var(--hd-amber);
+      background: var(--dark-active);
+      box-shadow: 0 0 8px var(--dark-active);
     }
 
     .connection-status.connecting .status-dot,
     .connection-status.reconnecting .status-dot {
-      background: var(--hd-amber-light);
+      background: var(--dark-highlight);
       animation: pulse 1s infinite;
     }
 
     .connection-status.disconnected .status-dot {
-      background: var(--hd-danger);
+      background: var(--danger);
     }
 
     @keyframes pulse {
@@ -236,7 +236,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       width: 60px;
       height: 60px;
       border: 4px solid rgba(255,255,255,0.15);
-      border-top-color: var(--hd-amber);
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 20px;
@@ -248,7 +248,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .error button {
       padding: 10px 20px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 8px;
@@ -265,12 +265,12 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .tournament-name {
       text-align: center;
       font-size: 1.5em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
       letter-spacing: 0.08em;
-      color: var(--hd-amber);
+      color: var(--dark-label);
       margin-bottom: 30px;
-      text-transform: uppercase;
+      text-transform: var(--brand-transform);
     }
 
     .main-score {
@@ -291,17 +291,17 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .player-side.left { border-left: 5px solid transparent; }
     .player-side.right { border-right: 5px solid transparent; }
 
-    .player-side.active { background: rgba(232,149,10,0.15); }
-    .player-side.active.left { border-left-color: var(--hd-amber); }
-    .player-side.active.right { border-right-color: var(--hd-amber); }
+    .player-side.active { background: color-mix(in srgb, var(--dark-active) 20%, transparent); }
+    .player-side.active.left { border-left-color: var(--dark-active); }
+    .player-side.active.right { border-right-color: var(--dark-active); }
 
-    .player-side.winner { background: rgba(232,149,10,0.25); }
-    .player-side.winner.left { border-left-color: var(--hd-amber-light); }
-    .player-side.winner.right { border-right-color: var(--hd-amber-light); }
+    .player-side.winner { background: color-mix(in srgb, var(--dark-highlight) 20%, transparent); }
+    .player-side.winner.left { border-left-color: var(--dark-highlight); }
+    .player-side.winner.right { border-right-color: var(--dark-highlight); }
 
     .player-name {
       font-size: 2em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
       letter-spacing: 0.04em;
       margin-bottom: 20px;
@@ -317,16 +317,16 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .remaining {
       font-size: 6em;
       font-weight: 800;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       line-height: 1;
     }
 
     .legs-won {
       font-size: 3em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
-      color: var(--hd-amber);
-      background: rgba(232,149,10,0.2);
+      color: var(--dark-highlight);
+      background: color-mix(in srgb, var(--dark-highlight) 20%, transparent);
       padding: 10px 30px;
       border-radius: 10px;
     }
@@ -341,7 +341,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .vs {
       font-size: 2em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 800;
       color: rgba(255,255,255,0.25);
       margin: 20px 0;
@@ -355,9 +355,9 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .match-finished {
       margin-top: 20px;
       padding: 15px 30px;
-      background: var(--hd-amber);
-      color: var(--hd-green);
-      font-family: 'Barlow Condensed', sans-serif;
+      background: var(--dark-highlight);
+      color: var(--on-accent);
+      font-family: var(--font-heading);
       font-weight: 800;
       font-size: 1.5em;
       letter-spacing: 0.06em;
@@ -374,7 +374,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .stats-panel h3 {
       margin: 0 0 15px 0;
       font-size: 0.85em;
-      color: var(--hd-amber);
+      color: var(--dark-label);
       text-transform: uppercase;
       text-align: center;
       letter-spacing: 0.08em;
@@ -405,7 +405,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
 
     .stat-value.left { text-align: right; }
     .stat-value.right { text-align: left; }
-    .stat-value.highlight { color: var(--hd-amber); }
+    .stat-value.highlight { color: var(--dark-highlight); }
 
     .stat-label {
       color: rgba(255,255,255,0.45);
@@ -424,7 +424,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .legs-history h3 {
       margin: 0 0 15px 0;
       font-size: 0.85em;
-      color: var(--hd-amber);
+      color: var(--dark-label);
       text-transform: uppercase;
       letter-spacing: 0.08em;
       border-bottom: none;
@@ -453,7 +453,7 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
     .leg-winner { font-weight: 600; }
 
     .leg-avg {
-      color: var(--hd-amber);
+      color: var(--dark-active);
       font-size: 0.9em;
     }
 
@@ -474,11 +474,11 @@ import { CricketDisplayComponent } from './components/cricket-display.component'
       }
 
       .player-side.active.left, .player-side.active.right {
-        border-top-color: var(--hd-amber);
+        border-top-color: var(--dark-active);
       }
 
       .player-side.winner.left, .player-side.winner.right {
-        border-top-color: var(--hd-amber-light);
+        border-top-color: var(--dark-highlight);
       }
 
       .remaining { font-size: 4em; }

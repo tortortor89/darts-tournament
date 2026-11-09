@@ -72,7 +72,7 @@ import { ActiveSessionSummary, GameMode } from '../../core/models';
       display: block;
       width: 100vw;
       height: 100vh;
-      background: #0a0a0a;
+      background: var(--tv-bg);
       color: #f0f0f0;
       font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
       overflow: hidden;
@@ -137,16 +137,16 @@ import { ActiveSessionSummary, GameMode } from '../../core/models';
     }
 
     .tv-match-card {
-      background: #1a1a1a;
-      border: 3px solid #2a2a2a;
+      background: var(--tv-card);
+      border: 3px solid var(--tv-card-border);
       border-radius: 12px;
       padding: 32px 48px;
       transition: border-color 0.1s, background 0.1s;
     }
 
     .tv-match-card.focused {
-      border-color: #e8c547;
-      background: #1e1c0e;
+      border-color: var(--tv-accent);
+      background: var(--tv-accent-bg);
     }
 
     .tv-match-tournament {
@@ -198,7 +198,7 @@ import { ActiveSessionSummary, GameMode } from '../../core/models';
     }
 
     .tv-player.leading .tv-legs {
-      color: #e8c547;
+      color: var(--tv-accent);
     }
 
     .tv-match-center {
@@ -230,7 +230,7 @@ import { ActiveSessionSummary, GameMode } from '../../core/models';
       text-align: center;
       margin-top: 20px;
       font-size: 22px;
-      color: #e8c547;
+      color: var(--tv-accent);
       letter-spacing: 1px;
     }
 
@@ -249,7 +249,7 @@ import { ActiveSessionSummary, GameMode } from '../../core/models';
     }
 
     .tv-refresh-indicator.refreshing {
-      color: #4caf50;
+      color: var(--tv-live);
     }
   `]
 })

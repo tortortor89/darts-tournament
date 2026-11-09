@@ -1,17 +1,99 @@
+// Skins : chaque skin redéfinit les tokens ci-dessous sous [data-skin="<nom>"].
+// Le skin est choisi par instance (config backend Branding:Skin), appliqué sur <html> au démarrage.
+// :root = skin par défaut.
+@use 'skins/hacienda';
+
 :root {
-  --hd-green: #1A3C2A;
-  --hd-green-mid: #2D5A3E;
-  --hd-green-light: #3D7050;
-  --hd-amber: #E8950A;
-  --hd-amber-light: #F5A828;
-  --hd-cream: #F2E8D5;
-  --hd-cream-dark: #E5D4B3;
-  --hd-text: #1A1A1A;
-  --hd-text-muted: #5C4A32;
-  --hd-danger: #C0392B;
-  --hd-danger-dark: #A93226;
-  --hd-success: #27643A;
-  --hd-border: #C8B89A;
+  // Typographie
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --font-heading: var(--font-body);
+  --heading-weight: bold;
+  --heading-spacing: normal;
+  --heading-color: currentColor;
+  --brand-transform: none;
+
+  // Fonds et texte
+  --bg: #f8f9fa;
+  --surface-alt: #f8f9fa;
+  --surface-hover: #f8f9fa;
+  --text: #333;
+  --text-muted: #666;
+  --text-faint: #999;
+  --border: #ddd;
+  --border-light: #eee;
+  --shadow-color: black;
+  --input-bg: white;
+  --disabled: #ccc;
+
+  // Liens et boutons
+  --link: #007bff;
+  --link-hover: #0056b3;
+  --primary: #007bff;
+  --primary-hover: #0056b3;
+  --action: #28a745;
+  --action-hover: #218838;
+  --secondary: #6c757d;
+  --secondary-hover: #5a6268;
+  --danger: #dc3545;
+  --danger-hover: #c82333;
+  --success: #28a745;
+  --accent: #ffc107;
+  --accent-hover: #e0a800;
+  --accent-soft: #fff8e1;
+
+  // Statuts (brouillon / en cours / terminé)
+  --status-draft: #6c757d;
+  --status-active: #28a745;
+  --status-done: #007bff;
+
+  // Navigation
+  --nav-bg: #343a40;
+  --nav-text: #adb5bd;
+  --nav-active-bg: #495057;
+  --nav-active-text: white;
+  --nav-brand: white;
+  --nav-border: none;
+
+  --on-accent: #000;
+  --cta: #28a745;
+  --cta-hover: #218838;
+  --header-bg: #007bff;
+  --hero-accent: white;
+  --special: #6f42c1;
+  --accent-text: #856404;
+  --table-head-bg: #f5f5f5;
+  --standings-head-bg: #333;
+  --standings-head-text: white;
+  --table-head-text: currentColor;
+  --feature-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --feature-bg-hover: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bracket-winners: #0d6efd;
+  --bracket-losers: #fd7e14;
+
+  // Dégradés (bandeaux, cartes mises en avant)
+  --hero-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --info-gradient: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+  --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  --highlight-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+
+  // Écrans sombres (saisie de match, spectateur, TV, tableau de rencontre)
+  --dark-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  --victory-gradient: linear-gradient(135deg, #155724 0%, #1e7e34 100%);
+  --dark-title: white;
+  --dark-label: #aaa;
+  --dark-active: #28a745;
+  --dark-tint: white;
+  --dark-highlight: #ffc107;
+  --dark-surface: #1e1e2e;
+
+  // Écran TV du bar (/tv)
+  --tv-bg: #0a0a0a;
+  --tv-card: #1a1a1a;
+  --tv-card-border: #2a2a2a;
+  --tv-accent: #e8c547;
+  --tv-accent-bg: #1e1c0e;
+  --tv-live: #4caf50;
 }
 
 * {
@@ -20,23 +102,22 @@
 
 body {
   margin: 0;
-  font-family: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.5;
-  color: var(--hd-text);
-  background: var(--hd-cream);
+  color: var(--text);
+}
+
+a {
+  color: var(--link);
 }
 
 h1, h2, h3, h4 {
   margin-top: 0;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--hd-green);
-}
-
-a {
-  color: var(--hd-amber);
+  font-family: var(--font-heading);
+  font-weight: var(--heading-weight);
+  letter-spacing: var(--heading-spacing);
+  color: var(--heading-color);
 }
 
 button {

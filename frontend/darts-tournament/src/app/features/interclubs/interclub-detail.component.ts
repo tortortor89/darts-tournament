@@ -166,14 +166,14 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
       padding: 20px;
     }
     .header h2 { margin-bottom: 5px; }
-    .config { color: var(--hd-text-muted); }
-    .status-0 { color: var(--hd-text-muted); }
-    .status-1 { color: var(--hd-amber); }
-    .status-2 { color: var(--hd-success); }
+    .config { color: var(--text-muted); }
+    .status-0 { color: var(--status-draft); }
+    .status-1 { color: var(--status-active); }
+    .status-2 { color: var(--status-done); }
     .section {
       margin-bottom: 30px;
       padding: 15px;
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .section h3 { margin-top: 0; }
@@ -186,33 +186,33 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     .standings-table th, .standings-table td {
       padding: 8px 12px;
       text-align: center;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
     }
-    .standings-table th { background: var(--hd-cream-dark); color: var(--hd-green); }
+    .standings-table th { background: var(--standings-head-bg); color: var(--standings-head-text); }
     .standings-table td:nth-child(2) { text-align: left; }
-    .standings-table tr.top-3 { background: rgba(232, 149, 10, 0.12); }
+    .standings-table tr.top-3 { background: var(--accent-soft); }
     .round-block { margin-bottom: 15px; }
-    .round-block h4 { margin: 10px 0 6px; color: var(--hd-text-muted); }
+    .round-block h4 { margin: 10px 0 6px; color: var(--text-muted); }
     .encounter-row {
       display: flex;
       align-items: center;
       gap: 12px;
       padding: 10px 12px;
       background: white;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border-light);
       border-radius: 4px;
       margin-bottom: 6px;
       text-decoration: none;
       color: inherit;
     }
-    .encounter-row:hover { border-color: var(--hd-amber); }
+    .encounter-row:hover { border-color: var(--primary); }
     .encounter-row .home { flex: 1; text-align: right; font-weight: 600; }
     .encounter-row .away { flex: 1; font-weight: 600; }
     .encounter-row .score {
       min-width: 60px;
       text-align: center;
       font-weight: bold;
-      color: var(--hd-green);
+      color: var(--link);
     }
     .badge {
       padding: 2px 10px;
@@ -220,12 +220,12 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
       font-size: 0.75em;
       color: white;
     }
-    .status-badge-0 { background: var(--hd-text-muted); }
-    .status-badge-1 { background: var(--hd-amber); }
-    .status-badge-2 { background: var(--hd-success); }
+    .status-badge-0 { background: var(--status-draft); }
+    .status-badge-1 { background: var(--status-active); }
+    .status-badge-2 { background: var(--status-done); }
     .generate {
       padding: 10px 20px;
-      background: var(--hd-green);
+      background: var(--action);
       color: white;
       border: none;
       border-radius: 4px;
@@ -239,13 +239,13 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     }
     .attach-row select {
       padding: 8px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
       min-width: 220px;
     }
     .attach-row button {
       padding: 8px 16px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -259,7 +259,7 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     }
     .club-roster {
       background: white;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border-light);
       border-radius: 6px;
       padding: 12px;
     }
@@ -270,7 +270,7 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
       margin-bottom: 8px;
     }
     .club-roster-header .count {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 0.85em;
     }
     .club-roster ul {
@@ -280,11 +280,11 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     }
     .club-roster li {
       padding: 3px 0;
-      border-bottom: 1px solid var(--hd-cream-dark);
+      border-bottom: 1px solid var(--surface-alt);
     }
     .detach {
       margin-left: auto;
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 3px 8px;
@@ -294,17 +294,17 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     }
     .edit-roster, .roster-actions .save {
       padding: 6px 12px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85em;
     }
-    .roster-actions .save { background: var(--hd-green); }
+    .roster-actions .save { background: var(--action); }
     .roster-actions .cancel {
       padding: 6px 12px;
-      background: var(--hd-text-muted);
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -314,7 +314,7 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
     .roster-edit {
       max-height: 240px;
       overflow-y: auto;
-      border-top: 1px solid var(--hd-border);
+      border-top: 1px solid var(--border-light);
       padding-top: 8px;
     }
     .roster-candidate {
@@ -322,14 +322,14 @@ import { InterclubChampionshipDetail, ChampionshipStatus, EncounterStatus, Calen
       padding: 3px 0;
       font-size: 0.9em;
     }
-    .roster-candidate em { color: var(--hd-text-muted); font-size: 0.85em; }
+    .roster-candidate em { color: var(--text-faint); font-size: 0.85em; }
     .roster-actions {
       display: flex;
       gap: 8px;
       margin-top: 8px;
     }
-    .loading, .empty { color: var(--hd-text-muted); }
-    .info-text { color: var(--hd-text-muted); }
+    .loading, .empty { color: var(--text-muted); }
+    .info-text { color: var(--accent-text); }
   `]
 })
 export class InterclubDetailComponent implements OnInit {

@@ -126,8 +126,8 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
       margin-bottom: 24px;
       padding: 20px;
       background: white;
-      border: 2px solid var(--hd-border);
-      border-top: 4px solid var(--hd-green);
+      border: 2px solid var(--border);
+      border-top: 4px solid var(--border);
       border-radius: 8px;
     }
     .add-form h3 {
@@ -145,10 +145,10 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
       align-items: center;
     }
     .group-config {
-      background: var(--hd-cream);
+      background: var(--surface-hover);
       padding: 10px;
       border-radius: 4px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       margin-top: 5px;
     }
     .group-config label {
@@ -156,7 +156,7 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
       flex-direction: column;
       gap: 4px;
       font-size: 0.9em;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     .group-config label input[type="number"] {
       width: 80px;
@@ -171,18 +171,18 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
     }
     .add-form input, .add-form select {
       padding: 8px 10px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 4px;
-      background: var(--hd-cream);
-      color: var(--hd-text);
+      background: var(--input-bg);
+      color: var(--text);
     }
     .add-form input:focus, .add-form select:focus {
       outline: none;
-      border-color: var(--hd-amber);
+      border-color: var(--primary);
     }
     .add-form button {
       padding: 9px 20px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -191,7 +191,7 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
       align-self: flex-start;
     }
     .add-form button:hover {
-      background: var(--hd-amber-light);
+      background: var(--primary-hover);
     }
     .tournament-list {
       display: grid;
@@ -200,45 +200,45 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
     }
     .tournament-card {
       padding: 18px;
-      border: 2px solid var(--hd-border);
-      border-top: 4px solid var(--hd-amber);
+      border: 2px solid var(--border);
+      border-top: 4px solid var(--primary);
       border-radius: 8px;
       background: white;
       transition: box-shadow 0.2s;
     }
     .tournament-card:hover {
-      box-shadow: 0 4px 12px rgba(26,60,42,0.12);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--shadow-color) 12%, transparent);
     }
     .tournament-card h3 {
       margin-top: 0;
       margin-bottom: 8px;
     }
     .tournament-card h3 a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
     }
     .tournament-card h3 a:hover {
-      color: var(--hd-amber);
+      color: var(--link-hover);
     }
     .tournament-card p {
       margin: 4px 0;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 0.9em;
     }
-    .status-0 { color: var(--hd-text-muted); font-weight: 500; }
-    .status-1 { color: var(--hd-amber); font-weight: 600; }
-    .status-2 { color: var(--hd-success); font-weight: 600; }
+    .status-0 { color: var(--status-draft); font-weight: 500; }
+    .status-1 { color: var(--status-active); font-weight: 600; }
+    .status-2 { color: var(--status-done); font-weight: 600; }
     .doubles-badge {
       margin-left: 8px;
       padding: 2px 8px;
-      background: var(--hd-green);
-      color: var(--hd-cream);
+      background: var(--special);
+      color: white;
       border-radius: 10px;
       font-size: 0.6em;
       vertical-align: middle;
     }
     button.delete {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 5px 10px;
@@ -248,12 +248,12 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
       margin-top: 8px;
     }
     button.delete:hover {
-      background: var(--hd-danger-dark);
+      background: var(--danger-hover);
     }
     .loading {
       text-align: center;
       padding: 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
   `]
 })

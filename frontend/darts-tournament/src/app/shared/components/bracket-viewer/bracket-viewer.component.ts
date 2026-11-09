@@ -104,7 +104,7 @@ interface BracketRound {
     }
 
     .match.completed {
-      border-color: #28a745;
+      border-color: var(--success);
     }
 
     .player {
@@ -112,8 +112,8 @@ interface BracketRound {
       justify-content: space-between;
       align-items: center;
       padding: 8px 12px;
-      border-bottom: 1px solid #eee;
-      background: #fafafa;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--surface-alt);
       transition: background 0.2s;
     }
 
@@ -122,12 +122,12 @@ interface BracketRound {
     }
 
     .player.winner {
-      background: #d4edda;
+      background: color-mix(in srgb, var(--success) 15%, transparent);
       font-weight: 600;
     }
 
     .player.bye {
-      background: #fff3cd;
+      background: var(--accent-soft);
     }
 
     .player .name {
@@ -135,14 +135,14 @@ interface BracketRound {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: #333;
+      color: var(--text);
     }
 
     .player .score {
       min-width: 30px;
       text-align: center;
       font-weight: 600;
-      color: #666;
+      color: var(--text-muted);
       background: rgba(0,0,0,0.05);
       padding: 2px 8px;
       border-radius: 3px;
@@ -150,7 +150,7 @@ interface BracketRound {
     }
 
     .player.winner .score {
-      background: #28a745;
+      background: var(--action);
       color: white;
     }
 

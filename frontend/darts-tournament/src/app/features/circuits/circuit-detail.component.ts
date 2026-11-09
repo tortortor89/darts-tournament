@@ -180,14 +180,14 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       margin-bottom: 5px;
     }
     .description {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-style: italic;
       margin-top: 0;
     }
     .section {
       margin-bottom: 30px;
       padding: 15px;
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .section h3 {
@@ -202,23 +202,23 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     th, td {
       padding: 8px 12px;
       text-align: left;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
     }
     th {
-      background: var(--hd-cream-dark);
-      color: var(--hd-green);
+      background: var(--standings-head-bg);
+      color: var(--standings-head-text);
     }
     .top-three {
-      background: rgba(232, 149, 10, 0.12);
+      background: var(--accent-soft);
     }
     .detail-toggle {
       background: transparent;
       border: none;
       cursor: pointer;
-      color: var(--hd-green);
+      color: var(--link);
     }
     .details-row td {
-      background: var(--hd-cream);
+      background: var(--surface-hover);
       padding: 5px 20px;
     }
     .details-table {
@@ -230,7 +230,7 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       font-size: 0.9em;
     }
     .details-table a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
     }
     .tournament-rows {
@@ -245,10 +245,10 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       padding: 10px;
       background: white;
       border-radius: 4px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border-light);
     }
     .tournament-row a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
       font-weight: 600;
     }
@@ -258,17 +258,17 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
       font-size: 0.8em;
       color: white;
     }
-    .badge.status-0 { background: var(--hd-text-muted); }
-    .badge.status-1 { background: var(--hd-amber); }
-    .badge.status-2 { background: var(--hd-success); }
+    .badge.status-0 { background: var(--status-draft); }
+    .badge.status-1 { background: var(--status-active); }
+    .badge.status-2 { background: var(--status-done); }
     .pending-hint {
       font-size: 0.8em;
-      color: var(--hd-text-muted);
+      color: var(--text-faint);
       font-style: italic;
     }
     .detach {
       margin-left: auto;
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 4px 10px;
@@ -282,13 +282,13 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     }
     .attach-form select {
       padding: 8px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
       min-width: 250px;
     }
     .attach-form button, .edit-btn, .save {
       padding: 8px 16px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -304,17 +304,17 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     .rules-table input {
       width: 80px;
       padding: 4px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
     }
     .participation-row td {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-style: italic;
     }
     .remove-rule {
       background: transparent;
       border: none;
-      color: var(--hd-danger);
+      color: var(--danger);
       cursor: pointer;
       font-weight: bold;
     }
@@ -325,19 +325,19 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     }
     .add-rule, .cancel {
       padding: 8px 16px;
-      background: var(--hd-text-muted);
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     .save {
-      background: var(--hd-green);
+      background: var(--action);
     }
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
   `]
 })

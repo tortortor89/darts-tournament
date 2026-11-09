@@ -39,8 +39,8 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       gap: 1px;
-      background: #ddd;
-      border: 2px solid #333;
+      background: var(--border);
+      border: 2px solid var(--standings-head-bg);
     }
 
     .cell {
@@ -52,7 +52,7 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
 
     .cell.target {
       font-weight: bold;
-      background: #007bff;
+      background: var(--primary);
       color: white;
       font-size: 1.5em;
     }
@@ -60,12 +60,12 @@ import { CricketDisplayState, CricketTargetState } from '../../../core/models';
     .cell.marks {
       font-size: 2em;
       font-weight: bold;
-      color: #28a745;
+      color: var(--success);
     }
 
     .header {
-      background: #333;
-      color: white;
+      background: var(--standings-head-bg);
+      color: var(--standings-head-text);
       padding: 10px;
       font-weight: bold;
       text-align: center;

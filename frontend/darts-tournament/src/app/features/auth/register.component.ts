@@ -39,10 +39,10 @@ import { AuthService } from '../../core/services/auth.service';
       max-width: 400px;
       margin: 60px auto;
       padding: 30px;
-      border: 2px solid var(--hd-border);
+      border: 2px solid var(--border);
       border-radius: 8px;
       background: white;
-      box-shadow: 0 4px 16px rgba(26,60,42,0.1);
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--shadow-color) 10%, transparent);
     }
     .form-group {
       margin-bottom: 15px;
@@ -51,25 +51,25 @@ import { AuthService } from '../../core/services/auth.service';
       display: block;
       margin-bottom: 5px;
       font-weight: 500;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     input {
       width: 100%;
       padding: 10px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 4px;
       box-sizing: border-box;
-      background: var(--hd-cream);
-      color: var(--hd-text);
+      background: var(--input-bg);
+      color: var(--text);
     }
     input:focus {
       outline: none;
-      border-color: var(--hd-amber);
+      border-color: var(--primary);
     }
     button {
       width: 100%;
       padding: 12px;
-      background: var(--hd-green);
+      background: var(--action);
       color: white;
       border: none;
       border-radius: 4px;
@@ -79,21 +79,21 @@ import { AuthService } from '../../core/services/auth.service';
       letter-spacing: 0.03em;
     }
     button:hover {
-      background: var(--hd-green-mid);
+      background: var(--action-hover);
     }
     button:disabled {
-      background: var(--hd-border);
+      background: var(--disabled);
       cursor: not-allowed;
     }
     .error {
-      color: var(--hd-danger);
+      color: var(--danger);
       margin-bottom: 15px;
       font-size: 0.9em;
     }
     p {
       text-align: center;
       margin-top: 15px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
   `]
 })

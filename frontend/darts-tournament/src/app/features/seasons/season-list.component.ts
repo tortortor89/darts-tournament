@@ -82,13 +82,13 @@ import { Season, SeasonStatus } from '../../core/models';
       padding: 20px;
     }
     .intro {
-      color: #666;
+      color: var(--text-muted);
       margin-top: 0;
     }
     .add-form {
       margin-bottom: 20px;
       padding: 15px;
-      background: #f5f5f5;
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .add-form form {
@@ -107,11 +107,11 @@ import { Season, SeasonStatus } from '../../core/models';
       align-items: center;
       gap: 6px;
       font-size: 0.9em;
-      color: #555;
+      color: var(--text-muted);
     }
     .add-form input {
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
       border-radius: 4px;
     }
     .legs-input {
@@ -119,7 +119,7 @@ import { Season, SeasonStatus } from '../../core/models';
     }
     .add-form button {
       padding: 8px 16px;
-      background: #007bff;
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -137,7 +137,7 @@ import { Season, SeasonStatus } from '../../core/models';
     }
     .season-card {
       padding: 15px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
       border-radius: 8px;
     }
     .season-card h3 {
@@ -148,7 +148,7 @@ import { Season, SeasonStatus } from '../../core/models';
       flex-wrap: wrap;
     }
     .season-card h3 a {
-      color: #007bff;
+      color: var(--link);
       text-decoration: none;
     }
     .season-card h3 a:hover {
@@ -159,13 +159,13 @@ import { Season, SeasonStatus } from '../../core/models';
       border-radius: 10px;
       font-size: 0.7em;
       color: white;
-      background: #28a745;
+      background: var(--action);
     }
     .badge.closed {
-      background: #6c757d;
+      background: var(--secondary);
     }
     button.delete {
-      background: #dc3545;
+      background: var(--danger);
       color: white;
       border: none;
       padding: 5px 10px;
@@ -175,7 +175,7 @@ import { Season, SeasonStatus } from '../../core/models';
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--text-muted);
     }
   `]
 })

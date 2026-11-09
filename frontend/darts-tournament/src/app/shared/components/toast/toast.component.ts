@@ -34,11 +34,11 @@ import { NotificationService } from '../../../core/services/notification.service
     }
 
     .toast.success {
-      background: var(--hd-success);
+      background: var(--success);
     }
 
     .toast.error {
-      background: var(--hd-danger);
+      background: var(--danger);
     }
 
     @keyframes slideIn {
@@ -65,11 +65,11 @@ import { NotificationService } from '../../../core/services/notification.service
     }
 
     .toast.success .icon {
-      color: var(--hd-success);
+      color: var(--success);
     }
 
     .toast.error .icon {
-      color: var(--hd-danger);
+      color: var(--danger);
     }
 
     .message {

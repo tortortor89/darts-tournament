@@ -57,7 +57,7 @@ interface CricketInputState {
   styles: [`
     .cricket-input {
       padding: 12px;
-      background: #f8f9fa;
+      background: var(--surface-alt);
       border-radius: 8px;
       max-width: 600px;
       margin: 0 auto;
@@ -69,13 +69,13 @@ interface CricketInputState {
       padding: 6px;
       background: white;
       border-radius: 6px;
-      border: 1px solid #dee2e6;
+      border: 1px solid var(--border);
       font-size: 1em;
-      color: #555;
+      color: var(--text-muted);
     }
 
     .targets-count {
-      color: #007bff;
+      color: var(--link);
     }
 
     .target-grid {
@@ -89,7 +89,7 @@ interface CricketInputState {
       padding: 6px 4px;
       font-size: 1em;
       font-weight: bold;
-      border: 2px solid #007bff;
+      border: 2px solid var(--primary);
       background: white;
       border-radius: 8px;
       cursor: pointer;
@@ -104,18 +104,18 @@ interface CricketInputState {
     }
 
     .target-btn:hover:not(:disabled) {
-      background: #e7f3ff;
+      background: color-mix(in srgb, var(--primary) 10%, transparent);
       transform: scale(1.05);
     }
 
     .target-btn.has-marks {
-      background: #007bff;
+      background: var(--primary);
       color: white;
-      border-color: #0056b3;
+      border-color: var(--primary-hover);
     }
 
     .target-btn.has-marks:hover:not(:disabled) {
-      background: #0056b3;
+      background: var(--primary-hover);
     }
 
     .target-btn.disabled,
@@ -161,23 +161,23 @@ interface CricketInputState {
     }
 
     .clear-btn {
-      background: #6c757d;
+      background: var(--secondary);
       color: white;
     }
 
     .clear-btn:hover:not(:disabled) {
-      background: #5a6268;
+      background: var(--secondary-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
 
     .submit-btn {
-      background: #28a745;
+      background: var(--action);
       color: white;
     }
 
     .submit-btn:hover {
-      background: #218838;
+      background: var(--action-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
@@ -185,9 +185,9 @@ interface CricketInputState {
     .error-message {
       margin-top: 10px;
       padding: 8px;
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: color-mix(in srgb, var(--danger) 15%, transparent);
+      color: var(--danger);
+      border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
       border-radius: 4px;
       text-align: center;
     }

@@ -100,6 +100,7 @@ builder.Services.AddAuthorization();
 
 // Modules activables (section Features, surchargeable par env : Features__Interclubs=false)
 builder.Services.Configure<FeatureOptions>(builder.Configuration.GetSection(FeatureOptions.SectionName));
+builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection(BrandingOptions.SectionName));
 
 // Services
 builder.Services.AddScoped<AuthService>();

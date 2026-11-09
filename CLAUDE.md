@@ -48,12 +48,14 @@ dotnet ef database update --project DartsTournament.Api
 - JWT authentication stored in localStorage (`auth_token`, `username`)
 - AuthService uses Angular Signals for reactive auth state
 - Backend uses service layer pattern with DTOs separate from domain models
+- Skins: component styles use only semantic CSS tokens (`var(--primary)`, `--action`, `--link`, `--surface-alt`, `--status-active`, `--dark-*`...), never hardcoded colors. Defaults in `src/styles.scss` (`:root`), each skin overrides them in `src/skins/_<name>.scss` under `[data-skin="<name>"]` and is registered in `core/skins.ts` (name, favicon, fonts). Translucent variants via `color-mix(in srgb, var(--x) N%, transparent)`
 
 ## Configuration
 
 ### Backend
 - `appsettings.json` is committed and holds **no secrets** (Jwt Issuer/Audience, `Cors:Origins` comma-separated, default `http://localhost:4200`)
 - `Features` section: per-instance modules (Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration, Seasons, Exploits), all `true` by default, override with env `Features__Interclubs=false`. Backend: `[RequiresFeature(Feature.X)]` returns 404; frontend: `FeatureService` (loaded by `APP_INITIALIZER`) + `featureGuard`
+- `Branding` section: per-instance skin (`Skin`: `default` | `hacienda`, `AppName` optional override), env `Branding__Skin=hacienda`. Exposed by `GET /api/config/branding`; frontend `SkinService` (`APP_INITIALIZER`) sets `data-skin` on `<html>`, title, favicon, web fonts
 - Secrets: `ConnectionStrings:DefaultConnection` and `Jwt:Key` (>= 32 bytes). The API refuses to start without them.
   - Dev: `dotnet user-secrets set "Jwt:Key" "..." --project DartsTournament.Api` (loaded in every non-Production environment)
   - Prod/Docker: env vars `ConnectionStrings__DefaultConnection`, `Jwt__Key`, `CORS__Origins` (see `.env.example`)

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
 import { FeatureService } from './core/services/feature.service';
+import { SkinService } from './core/services/skin.service';
 import { ToastComponent } from './shared/components/toast/toast.component';
 
 @Component({
@@ -11,7 +12,7 @@ import { ToastComponent } from './shared/components/toast/toast.component';
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, ToastComponent],
   template: `
     <nav>
-      <div class="nav-brand">Hacien'Darts Cup</div>
+      <div class="nav-brand">{{ skinService.appName() }}</div>
       <div class="nav-links">
         @if (featureService.isEnabled('seasons')) {
           <a routerLink="/seasons" routerLinkActive="active">Saisons</a>
@@ -47,24 +48,24 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       justify-content: space-between;
       align-items: center;
       padding: 15px 30px;
-      background: var(--hd-green);
+      background: var(--nav-bg);
       color: white;
-      border-bottom: 3px solid var(--hd-amber);
+      border-bottom: var(--nav-border);
     }
     .nav-brand {
-      font-family: 'Barlow Condensed', sans-serif;
-      font-size: 1.6em;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      color: var(--hd-amber);
-      text-transform: uppercase;
+      font-family: var(--font-heading);
+      font-size: 1.5em;
+      font-weight: bold;
+      letter-spacing: var(--heading-spacing);
+      color: var(--nav-brand);
+      text-transform: var(--brand-transform);
     }
     .nav-links {
       display: flex;
       gap: 20px;
     }
     .nav-links a, .nav-auth a {
-      color: rgba(255,255,255,0.8);
+      color: var(--nav-text);
       text-decoration: none;
       padding: 5px 10px;
       font-weight: 500;
@@ -73,8 +74,8 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       color: white;
     }
     .nav-links a.active, .nav-auth a.active {
-      color: var(--hd-green);
-      background: var(--hd-amber);
+      color: var(--nav-active-text);
+      background: var(--nav-active-bg);
       border-radius: 4px;
       font-weight: 600;
     }
@@ -84,12 +85,12 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       gap: 15px;
     }
     .nav-auth span {
-      color: rgba(255,255,255,0.7);
+      color: var(--nav-text);
       font-size: 0.9em;
     }
     .nav-auth button {
       padding: 5px 15px;
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       border-radius: 4px;
@@ -97,16 +98,20 @@ import { ToastComponent } from './shared/components/toast/toast.component';
       font-weight: 500;
     }
     .nav-auth button:hover {
-      background: var(--hd-danger-dark);
+      background: var(--danger-hover);
     }
     main {
-      min-height: calc(100vh - 63px);
-      background: var(--hd-cream);
+      min-height: calc(100vh - 60px);
+      background: var(--bg);
     }
   `]
 })
 export class AppComponent {
-  constructor(public authService: AuthService, public featureService: FeatureService) {}
+  constructor(
+    public authService: AuthService,
+    public featureService: FeatureService,
+    public skinService: SkinService
+  ) {}
 
   logout() {
     this.authService.logout();

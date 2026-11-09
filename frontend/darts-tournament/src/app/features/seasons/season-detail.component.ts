@@ -217,17 +217,17 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
       border-radius: 10px;
       font-size: 0.55em;
       color: white;
-      background: #28a745;
+      background: var(--action);
     }
     .badge.closed {
-      background: #6c757d;
+      background: var(--secondary);
     }
     .rules {
-      color: #555;
+      color: var(--text-muted);
     }
     .closed-hint {
-      color: #856404;
-      background: #fff3cd;
+      color: var(--accent-text);
+      background: var(--accent-soft);
       padding: 8px 12px;
       border-radius: 4px;
     }
@@ -242,11 +242,11 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
       align-items: center;
       gap: 6px;
       font-size: 0.9em;
-      color: #555;
+      color: var(--text-muted);
     }
     .edit-form input {
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
       border-radius: 4px;
     }
     .legs-input {
@@ -255,7 +255,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     .section {
       margin-bottom: 30px;
       padding: 15px;
-      background: #f8f9fa;
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .section h3 {
@@ -264,7 +264,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     .hint {
       margin-top: 0;
       font-size: 0.85em;
-      color: #666;
+      color: var(--text-muted);
     }
     .item-row {
       display: flex;
@@ -274,16 +274,16 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
       margin-bottom: 8px;
       background: white;
       border-radius: 4px;
-      border: 1px solid #eee;
+      border: 1px solid var(--border-light);
     }
     .item-row a {
-      color: #007bff;
+      color: var(--link);
       text-decoration: none;
       font-weight: 600;
     }
     .meta {
       font-size: 0.85em;
-      color: #666;
+      color: var(--text-muted);
     }
     .item-badge {
       padding: 2px 10px;
@@ -291,12 +291,12 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
       font-size: 0.8em;
       color: white;
     }
-    .item-badge.status-0 { background: #6c757d; }
-    .item-badge.status-1 { background: #28a745; }
-    .item-badge.status-2 { background: #007bff; }
+    .item-badge.status-0 { background: var(--status-draft); }
+    .item-badge.status-1 { background: var(--status-active); }
+    .item-badge.status-2 { background: var(--status-done); }
     .detach {
       margin-left: auto;
-      background: #dc3545;
+      background: var(--danger);
       color: white;
       border: none;
       padding: 4px 10px;
@@ -310,13 +310,13 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     }
     .attach-form select {
       padding: 8px;
-      border: 1px solid #ddd;
+      border: 1px solid var(--border);
       border-radius: 4px;
       min-width: 250px;
     }
     .attach-form button, .edit-btn, .save, .status-btn, .cancel {
       padding: 8px 16px;
-      background: #007bff;
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -327,10 +327,10 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
       cursor: not-allowed;
     }
     .status-btn, .cancel {
-      background: #6c757d;
+      background: var(--secondary);
     }
     .save {
-      background: #28a745;
+      background: var(--action);
     }
     .section-header {
       display: flex;
@@ -339,7 +339,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     }
     .recompute {
       padding: 6px 14px;
-      background: #6c757d;
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -356,7 +356,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     }
     .ranking {
       background: white;
-      border: 1px solid #eee;
+      border: 1px solid var(--border-light);
       border-radius: 4px;
       padding: 10px;
     }
@@ -371,7 +371,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     .ranking th, .ranking td {
       text-align: left;
       padding: 4px 6px;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--border-light);
     }
     .ranking .best {
       font-weight: 600;
@@ -379,7 +379,7 @@ import { SeasonDetail, SeasonStatus, SeasonItemKind, Tournament, Circuit, Interc
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: #666;
+      color: var(--text-muted);
     }
   `]
 })

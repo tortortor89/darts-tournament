@@ -5,7 +5,7 @@ using DartsTournament.Api.Configuration;
 namespace DartsTournament.Api.Controllers;
 
 /// <summary>
-/// Configuration publique de l'instance (modules activés)
+/// Configuration publique de l'instance (modules activés, habillage)
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -13,10 +13,12 @@ namespace DartsTournament.Api.Controllers;
 public class ConfigController : ControllerBase
 {
     private readonly IOptionsMonitor<FeatureOptions> _features;
+    private readonly IOptionsMonitor<BrandingOptions> _branding;
 
-    public ConfigController(IOptionsMonitor<FeatureOptions> features)
+    public ConfigController(IOptionsMonitor<FeatureOptions> features, IOptionsMonitor<BrandingOptions> branding)
     {
         _features = features;
+        _branding = branding;
     }
 
     /// <summary>
@@ -27,5 +29,15 @@ public class ConfigController : ControllerBase
     public ActionResult<FeatureOptions> GetFeatures()
     {
         return Ok(_features.CurrentValue);
+    }
+
+    /// <summary>
+    /// Récupérer l'habillage (skin) de cette instance
+    /// </summary>
+    [HttpGet("branding")]
+    [ProducesResponseType(typeof(BrandingOptions), StatusCodes.Status200OK)]
+    public ActionResult<BrandingOptions> GetBranding()
+    {
+        return Ok(_branding.CurrentValue);
     }
 }

@@ -1,0 +1,101 @@
+// Skin Hacien'Darts Cup : vert forêt / ambre / crème, Barlow Condensed
+$green: #1A3C2A;
+$green-mid: #2D5A3E;
+$amber: #E8950A;
+$amber-light: #F5A828;
+$cream: #F2E8D5;
+$cream-dark: #E5D4B3;
+$text-muted: #5C4A32;
+
+[data-skin="hacienda"] {
+  --font-body: 'Barlow', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Barlow Condensed', sans-serif;
+  --heading-weight: 700;
+  --heading-spacing: 0.02em;
+  --heading-color: #{$green};
+  --brand-transform: uppercase;
+
+  --bg: #{$cream};
+  --surface-alt: #{$cream-dark};
+  --surface-hover: #{$cream};
+  --text: #1A1A1A;
+  --text-muted: #{$text-muted};
+  --text-faint: #{$text-muted};
+  --border: #C8B89A;
+  --border-light: #C8B89A;
+  --shadow-color: #{$green};
+  --input-bg: #{$cream};
+  --disabled: #C8B89A;
+
+  --link: #{$green};
+  --link-hover: #{$amber};
+  --primary: #{$amber};
+  --primary-hover: #{$amber-light};
+  --action: #{$green};
+  --action-hover: #{$green-mid};
+  --secondary: #{$text-muted};
+  --secondary-hover: #{$green};
+  --danger: #C0392B;
+  --danger-hover: #A93226;
+  --success: #27643A;
+  --accent: #{$amber};
+  --accent-hover: #{$amber-light};
+  --accent-soft: rgba(232, 149, 10, 0.12);
+
+  --status-draft: #{$text-muted};
+  --status-active: #{$amber};
+  --status-done: #27643A;
+
+  --nav-bg: #{$green};
+  --nav-text: rgba(255, 255, 255, 0.8);
+  --nav-active-bg: #{$amber};
+  --nav-active-text: #{$green};
+  --nav-brand: #{$amber};
+  --nav-border: 3px solid #{$amber};
+
+  --on-accent: white;
+  --cta: #{$amber};
+  --cta-hover: #{$amber-light};
+  --header-bg: #{$green};
+  --hero-accent: #{$amber};
+  --special: #{$green};
+  --accent-text: #{$amber};
+  --table-head-bg: #{$green};
+  --standings-head-bg: #{$cream-dark};
+  --standings-head-text: #{$green};
+  --table-head-text: white;
+  --feature-bg: #{$amber};
+  --feature-bg-hover: #{$amber-light};
+  --bracket-winners: #{$green-mid};
+  --bracket-losers: #{$amber};
+
+  --hero-gradient: linear-gradient(135deg, #{$green} 0%, #{$green-mid} 100%);
+  --success-gradient: linear-gradient(135deg, #{$green} 0%, #3D7050 100%);
+  --info-gradient: linear-gradient(135deg, #{$green} 0%, #0E2718 100%);
+  --danger-gradient: linear-gradient(135deg, #C0392B 0%, #C0392B 100%);
+  --highlight-gradient: linear-gradient(135deg, #{$amber} 0%, #{$amber} 100%);
+
+  --dark-gradient: linear-gradient(160deg, #0D2018 0%, #{$green} 100%);
+  --victory-gradient: linear-gradient(135deg, #0D2018 0%, #{$green} 100%);
+  --dark-title: #{$amber};
+  --dark-label: #{$amber};
+  --dark-active: #{$amber};
+  --dark-tint: #{$amber};
+  --dark-highlight: #{$amber};
+  --dark-surface: #0D2018;
+
+  --tv-bg: #0D2018;
+  --tv-card: #{$green};
+  --tv-card-border: #{$green-mid};
+  --tv-accent: #{$amber};
+  --tv-accent-bg: #2A2A12;
+  --tv-live: #{$amber-light};
+
+  body {
+    background: $cream;
+  }
+
+  a {
+    color: $amber;
+  }
+}

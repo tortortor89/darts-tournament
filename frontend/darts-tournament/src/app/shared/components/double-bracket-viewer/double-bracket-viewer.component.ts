@@ -130,7 +130,7 @@ interface BracketRound {
     }
 
     .bracket-section {
-      background: #f8f9fa;
+      background: var(--surface-alt);
       border-radius: 8px;
       padding: 20px;
     }
@@ -142,15 +142,15 @@ interface BracketRound {
     }
 
     .winners-title {
-      color: #0d6efd;
+      color: var(--bracket-winners);
     }
 
     .losers-title {
-      color: #fd7e14;
+      color: var(--bracket-losers);
     }
 
     .grand-final-title {
-      color: #ffc107;
+      color: var(--accent);
       text-shadow: 0 0 1px rgba(0,0,0,0.3);
     }
 
@@ -201,11 +201,11 @@ interface BracketRound {
     }
 
     .winners-header {
-      background: linear-gradient(135deg, #0d6efd, #0056b3);
+      background: linear-gradient(135deg, var(--bracket-winners), color-mix(in srgb, var(--bracket-winners) 80%, black));
     }
 
     .losers-header {
-      background: linear-gradient(135deg, #fd7e14, #dc6400);
+      background: linear-gradient(135deg, var(--bracket-losers), color-mix(in srgb, var(--bracket-losers) 80%, black));
     }
 
     .round-matches {
@@ -239,7 +239,7 @@ interface BracketRound {
     }
 
     .match.completed {
-      border-color: #28a745;
+      border-color: var(--success);
     }
 
     .player {
@@ -247,8 +247,8 @@ interface BracketRound {
       justify-content: space-between;
       align-items: center;
       padding: 6px 10px;
-      border-bottom: 1px solid #eee;
-      background: #fafafa;
+      border-bottom: 1px solid var(--border-light);
+      background: var(--surface-alt);
       transition: background 0.2s;
     }
 
@@ -257,12 +257,12 @@ interface BracketRound {
     }
 
     .player.winner {
-      background: #d4edda;
+      background: color-mix(in srgb, var(--success) 15%, transparent);
       font-weight: 600;
     }
 
     .player.bye {
-      background: #fff3cd;
+      background: var(--accent-soft);
     }
 
     .player .name {
@@ -270,7 +270,7 @@ interface BracketRound {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      color: #333;
+      color: var(--text);
       font-size: 0.9em;
     }
 
@@ -278,7 +278,7 @@ interface BracketRound {
       min-width: 28px;
       text-align: center;
       font-weight: 600;
-      color: #666;
+      color: var(--text-muted);
       background: rgba(0,0,0,0.05);
       padding: 2px 6px;
       border-radius: 3px;
@@ -287,14 +287,14 @@ interface BracketRound {
     }
 
     .player.winner .score {
-      background: #28a745;
+      background: var(--action);
       color: white;
     }
 
     /* Grand Final Section */
     .grand-final-section {
-      background: linear-gradient(135deg, #fffbeb, #fef3c7);
-      border: 2px solid #ffc107;
+      background: linear-gradient(135deg, var(--accent-soft), var(--accent-soft));
+      border: 2px solid var(--accent);
     }
 
     .grand-final-matches {
@@ -314,7 +314,7 @@ interface BracketRound {
     .match-label {
       font-weight: 600;
       font-size: 0.9em;
-      color: #856404;
+      color: var(--accent-text);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -324,17 +324,17 @@ interface BracketRound {
     }
 
     .grand-final-match .match.grand-final {
-      border-color: #ffc107;
-      box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 30%, transparent);
     }
 
     .grand-final-match.bracket-reset .match-label {
-      color: #6c757d;
+      color: var(--text-muted);
     }
 
     .grand-final-match.bracket-reset .match {
       border-style: dashed;
-      border-color: #6c757d;
+      border-color: var(--secondary);
     }
 
     .grand-final-match.skipped {
@@ -429,10 +429,10 @@ export class DoubleBracketViewerComponent implements OnChanges, AfterViewInit, O
 
   private drawAllConnectors() {
     if (this.winnersSvg?.nativeElement && this.winnersBracketWrapper?.nativeElement) {
-      this.drawConnectors(this.winnersBracketWrapper.nativeElement, this.winnersSvg.nativeElement, '#0d6efd');
+      this.drawConnectors(this.winnersBracketWrapper.nativeElement, this.winnersSvg.nativeElement, 'var(--bracket-winners)');
     }
     if (this.losersSvg?.nativeElement && this.losersBracketWrapper?.nativeElement) {
-      this.drawConnectors(this.losersBracketWrapper.nativeElement, this.losersSvg.nativeElement, '#fd7e14');
+      this.drawConnectors(this.losersBracketWrapper.nativeElement, this.losersSvg.nativeElement, 'var(--bracket-losers)');
     }
   }
 
@@ -489,7 +489,7 @@ export class DoubleBracketViewerComponent implements OnChanges, AfterViewInit, O
     // Create path: horizontal from source, vertical connector, horizontal to target
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', `M ${x1} ${y1} H ${midX} V ${y2} H ${x2}`);
-    path.setAttribute('stroke', color);
+    path.style.stroke = color; // via style (et non attribut) pour accepter var(--...)
     path.setAttribute('stroke-width', '2');
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke-opacity', '0.6');

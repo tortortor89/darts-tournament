@@ -627,10 +627,10 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       margin-bottom: 20px;
       padding: 12px 16px;
       background: white;
-      border: 1px solid var(--hd-border);
-      border-left: 4px solid var(--hd-amber);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
       border-radius: 6px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     .info p { margin: 4px 0; }
     .players-section, .matches-section, .standings-section, .knockout-section {
@@ -643,14 +643,14 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .add-player select, .add-player input {
       padding: 8px 10px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 4px;
-      background: var(--hd-cream);
-      color: var(--hd-text);
+      background: var(--input-bg);
+      color: var(--text);
     }
     .add-player button {
       padding: 8px 16px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -658,26 +658,26 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       font-weight: 600;
     }
     .add-player button:hover {
-      background: var(--hd-amber-light);
+      background: var(--primary-hover);
     }
     .player-list {
       list-style: none;
       padding: 0;
       background: white;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
     }
     .player-list li {
       padding: 10px 12px;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     .player-list li:last-child { border-bottom: none; }
     .remove {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 3px 10px;
@@ -685,10 +685,10 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       cursor: pointer;
       font-size: 0.85em;
     }
-    .remove:hover { background: var(--hd-danger-dark); }
+    .remove:hover { background: var(--danger-hover); }
     .generate {
       padding: 10px 24px;
-      background: var(--hd-green);
+      background: var(--action);
       color: white;
       border: none;
       border-radius: 4px;
@@ -697,20 +697,20 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       font-weight: 600;
       letter-spacing: 0.02em;
     }
-    .generate:hover { background: var(--hd-green-mid); }
+    .generate:hover { background: var(--action-hover); }
 
     /* Self-registration section */
     .self-registration-section {
       margin-bottom: 20px;
       padding: 24px;
-      background: var(--hd-green);
+      background: var(--hero-gradient);
       border-radius: 8px;
       text-align: center;
       color: white;
     }
     .btn-register {
       padding: 12px 30px;
-      background: var(--hd-amber);
+      background: var(--cta);
       color: white;
       border: none;
       border-radius: 4px;
@@ -721,13 +721,13 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       letter-spacing: 0.03em;
     }
     .btn-register:hover {
-      background: var(--hd-amber-light);
+      background: var(--cta-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .btn-unregister {
       padding: 10px 20px;
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       border-radius: 4px;
@@ -736,7 +736,7 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       transition: all 0.2s;
     }
     .btn-unregister:hover {
-      background: var(--hd-danger-dark);
+      background: var(--danger-hover);
       transform: translateY(-1px);
     }
     .self-registration-section .info-text {
@@ -748,11 +748,11 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       background: rgba(255,255,255,0.1);
       padding: 15px;
       border-radius: 4px;
-      border-left: 4px solid var(--hd-amber);
+      border-left: 4px solid var(--accent);
     }
     .self-registration-section .warning p { margin: 0 0 10px 0; }
     .self-registration-section .warning a {
-      color: var(--hd-amber);
+      color: var(--hero-accent);
       font-weight: 600;
     }
 
@@ -763,16 +763,16 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       gap: 20px;
     }
     .group-standings {
-      border: 2px solid var(--hd-border);
+      border: 2px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
     }
     .group-standings h4 {
       margin: 0;
       padding: 10px 14px;
-      background: var(--hd-green);
-      color: var(--hd-amber);
-      font-family: 'Barlow Condensed', sans-serif;
+      background: var(--header-bg);
+      color: var(--hero-accent);
+      font-family: var(--font-heading);
       letter-spacing: 0.04em;
     }
     .group-standings table {
@@ -783,22 +783,22 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .group-standings th, .group-standings td {
       padding: 8px;
       text-align: center;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
     }
     .group-standings th {
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       font-weight: 600;
-      color: var(--hd-green);
+      color: var(--heading-color);
       font-size: 0.85em;
     }
     .group-standings td:nth-child(2) { text-align: left; }
-    .group-standings tr.qualified { background: rgba(39,100,58,0.08); }
+    .group-standings tr.qualified { background: color-mix(in srgb, var(--success) 8%, transparent); }
 
     /* Group Matches */
     .group-matches { margin-bottom: 20px; }
     .group-matches h4 {
-      color: var(--hd-green);
-      border-bottom: 2px solid var(--hd-amber);
+      color: var(--link);
+      border-bottom: 2px solid var(--primary);
       padding-bottom: 5px;
     }
 
@@ -806,48 +806,48 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .knockout-section {
       background: white;
       padding: 20px;
-      border: 2px solid var(--hd-border);
-      border-top: 4px solid var(--hd-danger);
+      border: 2px solid var(--border);
+      border-top: 4px solid var(--danger);
       border-radius: 8px;
     }
-    .knockout-section h3 { color: var(--hd-danger); }
+    .knockout-section h3 { color: var(--danger); }
     .knockout-matches { margin-top: 20px; }
 
     /* Single Elimination Bracket Section */
     .bracket-section {
-      background: linear-gradient(135deg, var(--hd-green) 0%, var(--hd-green-mid) 100%);
+      background: var(--hero-gradient);
       padding: 20px;
       border-radius: 8px;
       color: white;
     }
     .bracket-section h3 {
-      color: var(--hd-amber);
+      color: var(--hero-accent);
       margin-bottom: 15px;
     }
     .bracket-section h4 {
       color: white;
-      border-bottom: 2px solid rgba(232,149,10,0.5);
+      border-bottom: 2px solid color-mix(in srgb, var(--hero-accent) 40%, transparent);
       padding-bottom: 8px;
       margin-bottom: 15px;
     }
     .bracket-matches { margin-top: 20px; }
     .bracket-section .match {
       background: rgba(255,255,255,0.96);
-      color: var(--hd-text);
+      color: var(--text);
     }
     .bracket-section .match.completed {
       background: white;
-      border-left: 4px solid var(--hd-success);
+      border-left: 4px solid var(--success);
     }
 
     /* Round Robin Section */
     .roundrobin-section {
-      background: linear-gradient(135deg, var(--hd-green) 0%, #3D7050 100%);
+      background: var(--success-gradient);
       padding: 20px;
       border-radius: 8px;
     }
     .roundrobin-section h3 {
-      color: var(--hd-amber);
+      color: var(--hero-accent);
       margin-bottom: 15px;
     }
     .roundrobin-standings {
@@ -863,16 +863,16 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .roundrobin-standings th, .roundrobin-standings td {
       padding: 12px 8px;
       text-align: center;
-      border-bottom: 1px solid var(--hd-border);
+      border-bottom: 1px solid var(--border-light);
     }
     .roundrobin-standings th {
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       font-weight: 600;
-      color: var(--hd-green);
+      color: var(--heading-color);
       font-size: 0.85em;
     }
     .roundrobin-standings td:nth-child(2) { text-align: left; }
-    .roundrobin-standings tr.top-3 { background: rgba(232,149,10,0.08); }
+    .roundrobin-standings tr.top-3 { background: color-mix(in srgb, var(--status-active) 10%, transparent); }
     .roundrobin-standings .rank { font-size: 1.1em; }
     .de-standings {
       margin-top: 20px;
@@ -890,17 +890,17 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .de-standings-table th, .de-standings-table td {
       padding: 12px 8px;
       text-align: center;
-      border-bottom: 1px solid var(--hd-border);
-      color: var(--hd-text);
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text);
     }
     .de-standings-table th {
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       font-weight: 600;
-      color: var(--hd-green);
+      color: var(--heading-color);
       font-size: 0.85em;
     }
     .de-standings-table td:nth-child(2) { text-align: left; }
-    .de-standings-table tr.top-3 { background: rgba(232,149,10,0.08); }
+    .de-standings-table tr.top-3 { background: color-mix(in srgb, var(--status-active) 10%, transparent); }
     .de-standings-table .rank { font-size: 1.1em; }
     .roundrobin-section .matches-section {
       background: rgba(255,255,255,0.1);
@@ -914,10 +914,10 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .roundrobin-section .match {
       background: white;
-      color: var(--hd-text);
+      color: var(--text);
     }
     .roundrobin-section .match.completed {
-      border-left: 4px solid var(--hd-success);
+      border-left: 4px solid var(--success);
     }
 
     .round { margin-bottom: 20px; }
@@ -928,12 +928,12 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .match {
       padding: 15px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 8px;
       min-width: 250px;
       background: white;
     }
-    .match.completed { background: rgba(39,100,58,0.06); }
+    .match.completed { background: color-mix(in srgb, var(--success) 6%, transparent); }
     .players {
       display: flex;
       flex-direction: column;
@@ -941,13 +941,13 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .vs {
       text-align: center;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 12px;
       font-weight: 600;
     }
     .winner {
       font-weight: 700;
-      color: var(--hd-success);
+      color: var(--success);
     }
     .score-input {
       display: flex;
@@ -957,20 +957,20 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .score-input input {
       width: 60px;
       padding: 5px;
-      border: 1.5px solid var(--hd-border);
+      border: 1.5px solid var(--border);
       border-radius: 4px;
-      background: var(--hd-cream);
+      background: var(--input-bg);
     }
     .score-input button {
       padding: 5px 10px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
       font-weight: 600;
     }
-    .score-input button:hover { background: var(--hd-amber-light); }
+    .score-input button:hover { background: var(--primary-hover); }
     .match-actions {
       display: flex;
       flex-direction: column;
@@ -980,7 +980,7 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .play-btn {
       display: inline-block;
       padding: 8px 16px;
-      background: var(--hd-green);
+      background: var(--action);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -991,43 +991,43 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .correct-btn {
       padding: 6px 14px;
       background: transparent;
-      color: #856404;
-      border: 1px solid #ffc107;
+      color: var(--accent-text);
+      border: 1px solid var(--accent);
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85em;
     }
     .correct-btn:hover {
-      background: #fff3cd;
+      background: var(--accent-soft);
     }
     .exploits-btn {
       padding: 6px 14px;
       background: transparent;
-      color: #6f42c1;
-      border: 1px solid #6f42c1;
+      color: var(--special);
+      border: 1px solid var(--special);
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.85em;
     }
     .exploits-btn:hover {
-      background: #f3eefc;
+      background: color-mix(in srgb, var(--special) 10%, transparent);
     }
     .cancel-correct {
       padding: 6px 12px;
-      background: #6c757d;
+      background: var(--secondary);
       color: white;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
     .play-btn:hover {
-      background: var(--hd-green-mid);
+      background: var(--action-hover);
       color: white;
     }
     .spectate-btn {
       display: inline-block;
       padding: 6px 12px;
-      background: var(--hd-text-muted);
+      background: var(--secondary);
       color: white;
       text-decoration: none;
       border-radius: 4px;
@@ -1035,25 +1035,25 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       margin-top: 8px;
     }
     .spectate-btn:hover {
-      background: var(--hd-text);
+      background: var(--secondary-hover);
       color: white;
     }
     .loading {
       text-align: center;
       padding: 40px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 1.1em;
     }
 
     /* Double Elimination Section */
     .double-elim-section {
-      background: linear-gradient(135deg, var(--hd-green) 0%, #0E2718 100%);
+      background: var(--info-gradient);
       padding: 20px;
       border-radius: 8px;
       color: white;
     }
     .double-elim-section h3 {
-      color: var(--hd-amber);
+      color: var(--hero-accent);
       margin-bottom: 20px;
     }
     .double-elim-matches {
@@ -1064,23 +1064,23 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .match-input-card {
       background: white;
-      color: var(--hd-text);
+      color: var(--text);
       padding: 15px;
       border-radius: 8px;
       min-width: 280px;
-      border-left: 4px solid var(--hd-border);
+      border-left: 4px solid var(--border);
     }
-    .match-input-card.winners { border-left-color: var(--hd-green-mid); }
-    .match-input-card.losers { border-left-color: var(--hd-amber); }
+    .match-input-card.winners { border-left-color: var(--bracket-winners); }
+    .match-input-card.losers { border-left-color: var(--bracket-losers); }
     .match-input-card.grand-final {
-      border-left-color: var(--hd-amber);
-      background: rgba(242,232,213,0.6);
+      border-left-color: var(--accent);
+      background: var(--accent-soft);
     }
     .match-input-card .bracket-label {
       font-size: 0.78em;
       font-weight: 700;
       text-transform: uppercase;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       margin-bottom: 5px;
       display: block;
       letter-spacing: 0.05em;
@@ -1091,15 +1091,15 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     .pending-section, .approved-section { margin-bottom: 20px; }
     .pending-section h4, .approved-section h4, .add-player h4 {
       margin-bottom: 10px;
-      color: var(--hd-green);
+      color: var(--heading-color);
     }
     .player-list.pending li {
-      background: rgba(232,149,10,0.1);
-      border-left: 4px solid var(--hd-amber);
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
     }
     .registration-actions { display: flex; gap: 8px; }
     .registration-actions .approve {
-      background: var(--hd-success);
+      background: var(--success);
       color: white;
       border: none;
       padding: 6px 12px;
@@ -1107,9 +1107,9 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       cursor: pointer;
       font-weight: 600;
     }
-    .registration-actions .approve:hover { background: var(--hd-green); }
+    .registration-actions .approve:hover { background: var(--action-hover); }
     .registration-actions .reject {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 6px 12px;
@@ -1117,7 +1117,7 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       cursor: pointer;
       font-weight: 600;
     }
-    .registration-actions .reject:hover { background: var(--hd-danger-dark); }
+    .registration-actions .reject:hover { background: var(--danger-hover); }
     .status-pending {
       padding: 15px;
       background: rgba(255,255,255,0.15);
@@ -1136,7 +1136,7 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       font-size: 1.05em;
       font-weight: 600;
     }
-    .info-text { color: var(--hd-text-muted); font-size: 0.9em; }
+    .info-text { color: var(--text-muted); font-size: 0.9em; }
   `]
 })
 export class TournamentDetailComponent implements OnInit {

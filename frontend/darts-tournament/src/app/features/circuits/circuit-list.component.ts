@@ -78,7 +78,7 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
     .add-form {
       margin-bottom: 20px;
       padding: 15px;
-      background: var(--hd-cream-dark);
+      background: var(--surface-alt);
       border-radius: 8px;
     }
     .add-form form {
@@ -99,16 +99,16 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
     .hint {
       margin: 0;
       font-size: 0.85em;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
     .add-form input, .add-form select {
       padding: 8px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 4px;
     }
     .add-form button {
       padding: 8px 16px;
-      background: var(--hd-amber);
+      background: var(--primary);
       color: white;
       border: none;
       border-radius: 4px;
@@ -122,25 +122,25 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
     }
     .circuit-card {
       padding: 15px;
-      border: 1px solid var(--hd-border);
+      border: 1px solid var(--border);
       border-radius: 8px;
     }
     .circuit-card h3 {
       margin-top: 0;
     }
     .circuit-card h3 a {
-      color: var(--hd-green);
+      color: var(--link);
       text-decoration: none;
     }
     .circuit-card h3 a:hover {
       text-decoration: underline;
     }
     .circuit-card .description {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-style: italic;
     }
     button.delete {
-      background: var(--hd-danger);
+      background: var(--danger);
       color: white;
       border: none;
       padding: 5px 10px;
@@ -150,7 +150,7 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
     .loading, .empty {
       text-align: center;
       padding: 20px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
   `]
 })

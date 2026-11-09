@@ -6,13 +6,13 @@
 
 h3 {
   margin-bottom: 1rem;
-  border-bottom: 2px solid var(--hd-amber);
+  border-bottom: 2px solid var(--primary);
   padding-bottom: 0.5rem;
 }
 
 h4 {
   margin-bottom: 1rem;
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
 }
 
 .alert {
@@ -23,24 +23,24 @@ h4 {
 }
 
 .alert-success {
-  background-color: rgba(39,100,58,0.1);
-  color: var(--hd-success);
-  border: 1px solid rgba(39,100,58,0.3);
+  background-color: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
 }
 
 .alert-error {
-  background-color: rgba(192,57,43,0.1);
-  color: var(--hd-danger);
-  border: 1px solid rgba(192,57,43,0.3);
+  background-color: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
 }
 
 .section {
   background: white;
-  border: 1px solid var(--hd-border);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(26,60,42,0.08);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--shadow-color) 8%, transparent);
 }
 
 .info-grid {
@@ -57,15 +57,15 @@ h4 {
 
 .info-item label {
   font-weight: 600;
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
   font-size: 0.85rem;
-  text-transform: uppercase;
+  text-transform: var(--brand-transform);
   letter-spacing: 0.04em;
 }
 
 .info-item span {
   font-size: 1.1rem;
-  color: var(--hd-text);
+  color: var(--text);
   font-weight: 500;
 }
 
@@ -79,8 +79,8 @@ h4 {
 .player-name {
   font-size: 1.2rem;
   font-weight: 700;
-  color: var(--hd-green);
-  font-family: 'Barlow Condensed', sans-serif;
+  color: var(--heading-color);
+  font-family: var(--font-heading);
   letter-spacing: 0.03em;
   margin: 0;
 }
@@ -91,7 +91,7 @@ h4 {
 }
 
 .info-text {
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -106,9 +106,9 @@ h4 {
 .form-section {
   margin-top: 1.5rem;
   padding: 1.5rem;
-  background: var(--hd-cream);
+  background: var(--surface-hover);
   border-radius: 8px;
-  border: 1px solid var(--hd-border);
+  border: 1px solid var(--border);
 }
 
 .form-group {
@@ -119,37 +119,37 @@ h4 {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
 .form-group input {
   width: 100%;
   padding: 0.6rem 0.8rem;
-  border: 1.5px solid var(--hd-border);
+  border: 1.5px solid var(--border);
   border-radius: 4px;
   font-size: 1rem;
   background: white;
-  color: var(--hd-text);
+  color: var(--text);
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: var(--hd-amber);
-  box-shadow: 0 0 0 3px rgba(232,149,10,0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .form-group small {
   display: block;
   margin-top: 0.25rem;
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
 .players-list {
   max-height: 400px;
   overflow-y: auto;
-  border: 1px solid var(--hd-border);
+  border: 1px solid var(--border);
   border-radius: 4px;
   background: white;
 }
@@ -159,17 +159,17 @@ h4 {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid var(--hd-border);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .player-item:last-child { border-bottom: none; }
 
-.player-item:hover { background-color: var(--hd-cream); }
+.player-item:hover { background-color: var(--surface-hover); }
 
 .player-details { flex: 1; }
 
 .nickname {
-  color: var(--hd-text-muted);
+  color: var(--text-muted);
   font-style: italic;
   margin-left: 0.5rem;
 }
@@ -195,30 +195,30 @@ h4 {
 }
 
 .btn-primary {
-  background-color: var(--hd-amber);
+  background-color: var(--primary);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: var(--hd-amber-light);
+  background-color: var(--primary-hover);
 }
 
 .btn-secondary {
-  background-color: var(--hd-text-muted);
+  background-color: var(--secondary);
   color: white;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--hd-green);
+  background-color: var(--secondary-hover);
 }
 
 .btn-danger {
-  background-color: var(--hd-danger);
+  background-color: var(--danger);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: var(--hd-danger-dark);
+  background-color: var(--danger-hover);
 }
 
 .btn-sm {

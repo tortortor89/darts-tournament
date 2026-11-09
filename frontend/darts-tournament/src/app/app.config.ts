@@ -5,6 +5,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { FeatureService } from './core/services/feature.service';
+import { SkinService } from './core/services/skin.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,6 +17,13 @@ export const appConfig: ApplicationConfig = {
       provide: APP_INITIALIZER,
       useFactory: (features: FeatureService) => () => features.load(),
       deps: [FeatureService],
+      multi: true
+    },
+    // Skin de l'instance appliqué avant le premier rendu (évite un flash du skin par défaut)
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (skin: SkinService) => () => skin.load(),
+      deps: [SkinService],
       multi: true
     }
   ]

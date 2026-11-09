@@ -81,6 +81,10 @@ Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant 
   - Session refusée hors 501 DO pour un match de saison ; écran de config verrouillé (`SeasonRulesLocked`)
   - Pages /seasons et /seasons/:id (rattacher / détacher), choix de la saison à la création tournoi / circuit / championnat
   - [ ] Tests manuels (admin) : créer une saison, rattacher, clôturer, démarrer un match de saison
+- [ ] Module `PublicScoring` (mode Bar) : bouton « Jouer » visible sans être admin (ni connecté) sur les matchs non terminés, pour que les joueurs saisissent eux-mêmes leurs scores (téléphone, tablette au pas de tir) (idée du 2026-11-03)
+  - Aujourd'hui : endpoints de session déjà anonymes (choix assumé), seul le front réserve « Jouer » à l'admin (`tournament-detail`, `encounter-detail`)
+  - Désactivé = comportement actuel ; la correction d'un match terminé reste admin
+  - Lié à « restreindre l'écran de jeu aux joueurs du match » (Gestion de Match) : les deux options devront cohabiter
 - Pas de multi-tenant (une instance Docker par client)
 - ❓ En attente de réponse :
   - [x] A1. Flags en config de déploiement (appsettings/env), pas d'écran d'admin pour l'instant

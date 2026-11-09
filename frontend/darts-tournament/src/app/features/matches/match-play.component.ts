@@ -419,14 +419,14 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .loading {
       text-align: center;
       padding: 40px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
 
     /* Config Screen */
     .config-screen {
       background: white;
-      border: 2px solid var(--hd-border);
-      border-top: 4px solid var(--hd-amber);
+      border: 2px solid var(--border);
+      border-top: 4px solid var(--primary);
       border-radius: 12px;
       padding: 30px;
     }
@@ -444,19 +444,19 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       margin-bottom: 30px;
       font-size: 1.5em;
       padding: 16px;
-      background: var(--hd-cream);
+      background: var(--surface-hover);
       border-radius: 8px;
     }
 
     .match-info .player {
       font-weight: 700;
-      color: var(--hd-green);
-      font-family: 'Barlow Condensed', sans-serif;
+      color: var(--heading-color);
+      font-family: var(--font-heading);
       letter-spacing: 0.03em;
     }
 
     .match-info .vs {
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 0.7em;
       font-weight: 800;
     }
@@ -474,7 +474,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       display: block;
       margin-bottom: 10px;
       font-weight: 600;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
     }
 
     .legs-selector, .starter-selector, .game-mode-selector {
@@ -485,19 +485,19 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .legs-selector button, .starter-selector button, .game-mode-selector button {
       flex: 1;
       padding: 12px;
-      border: 2px solid var(--hd-border);
+      border: 2px solid var(--border);
       border-radius: 8px;
-      background: var(--hd-cream);
+      background: var(--surface-hover);
       cursor: pointer;
       font-size: 1.05em;
       font-weight: 500;
       transition: all 0.2s;
-      color: var(--hd-text);
+      color: var(--text);
     }
 
     .legs-selector button.selected, .starter-selector button.selected, .game-mode-selector button.selected {
-      border-color: var(--hd-amber);
-      background: var(--hd-amber);
+      border-color: var(--primary);
+      background: var(--primary);
       color: white;
       font-weight: 700;
     }
@@ -505,7 +505,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .hint {
       display: block;
       margin-top: 8px;
-      color: var(--hd-text-muted);
+      color: var(--text-muted);
       font-size: 0.9em;
     }
 
@@ -521,7 +521,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       width: 20px;
       height: 20px;
       cursor: pointer;
-      accent-color: var(--hd-amber);
+      accent-color: var(--primary);
     }
 
     .checkbox-label span { flex: 1; }
@@ -529,28 +529,28 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .start-btn {
       width: 100%;
       padding: 15px;
-      background: var(--hd-green);
+      background: var(--action);
       color: white;
       border: none;
       border-radius: 8px;
       font-size: 1.2em;
       font-weight: 700;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       letter-spacing: 0.04em;
       cursor: pointer;
       margin-top: 20px;
     }
 
-    .start-btn:hover { background: var(--hd-green-mid); }
+    .start-btn:hover { background: var(--action-hover); }
 
     .start-btn:disabled {
-      background: var(--hd-border);
+      background: var(--disabled);
       cursor: not-allowed;
     }
 
     /* Play Screen */
     .play-screen {
-      background: linear-gradient(160deg, #0D2018 0%, var(--hd-green) 100%);
+      background: var(--dark-gradient);
       border-radius: 12px;
       padding: 20px;
       color: white;
@@ -572,13 +572,13 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .player-score.active {
-      background: rgba(232,149,10,0.25);
-      box-shadow: 0 0 20px rgba(232,149,10,0.3);
+      background: color-mix(in srgb, var(--dark-active) 30%, transparent);
+      box-shadow: 0 0 20px color-mix(in srgb, var(--dark-active) 40%, transparent);
     }
 
     .player-name {
       font-size: 1.2em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
       letter-spacing: 0.03em;
       margin-bottom: 5px;
@@ -592,12 +592,12 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .remaining {
       font-size: 3em;
       font-weight: 800;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       margin: 10px 0;
     }
 
     .turn-indicator {
-      background: var(--hd-amber);
+      background: var(--dark-active);
       color: white;
       padding: 5px 15px;
       border-radius: 20px;
@@ -615,8 +615,8 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .game-mode-badge {
-      background: rgba(232,149,10,0.25);
-      color: var(--hd-amber);
+      background: color-mix(in srgb, var(--dark-tint) 20%, transparent);
+      color: var(--dark-tint);
       padding: 4px 12px;
       border-radius: 12px;
       font-size: 0.85em;
@@ -631,7 +631,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .current-leg {
       font-size: 1.2em;
       font-weight: 700;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
     }
 
     .throw-history {
@@ -647,9 +647,9 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       margin: 0 0 10px 0;
       font-size: 0.85em;
       color: rgba(255,255,255,0.45);
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       letter-spacing: 0.05em;
-      text-transform: uppercase;
+      text-transform: var(--brand-transform);
     }
 
     .throws-list {
@@ -665,8 +665,8 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       font-size: 0.85em;
     }
 
-    .throw-item.bust { background: rgba(192,57,43,0.35); }
-    .throw-item.checkout { background: rgba(39,100,58,0.4); }
+    .throw-item.bust { background: color-mix(in srgb, var(--danger) 35%, transparent); }
+    .throw-item.checkout { background: color-mix(in srgb, var(--success) 40%, transparent); }
 
     .throw-player {
       color: rgba(255,255,255,0.45);
@@ -694,27 +694,27 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .undo-btn {
       padding: 10px 20px;
       background: transparent;
-      color: var(--hd-amber);
-      border: 1.5px solid var(--hd-amber);
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
       border-radius: 8px;
       cursor: pointer;
       font-weight: 500;
     }
 
-    .undo-btn:hover { background: rgba(232,149,10,0.15); }
+    .undo-btn:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
 
     .cancel-btn {
       padding: 10px 20px;
       background: transparent;
-      color: rgba(192,57,43,0.9);
-      border: 1.5px solid rgba(192,57,43,0.7);
+      color: color-mix(in srgb, var(--danger) 90%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--danger) 70%, transparent);
       border-radius: 8px;
       cursor: pointer;
     }
 
     /* Finished Screen */
     .finished-screen {
-      background: linear-gradient(135deg, #0D2018 0%, var(--hd-green) 100%);
+      background: var(--victory-gradient);
       border-radius: 12px;
       padding: 40px;
       color: white;
@@ -722,7 +722,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     }
 
     .finished-screen h2 {
-      color: var(--hd-amber);
+      color: var(--dark-title);
       font-size: 2.2em;
       margin-bottom: 30px;
     }
@@ -739,7 +739,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .player-final .name {
       font-size: 1.3em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
       margin-bottom: 10px;
     }
@@ -747,24 +747,24 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .player-final .legs-final {
       font-size: 4em;
       font-weight: 800;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
     }
 
-    .player-final.winner { color: var(--hd-amber); }
+    .player-final.winner { color: var(--dark-highlight); }
 
     .separator {
       font-size: 3em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       color: rgba(255,255,255,0.3);
     }
 
     .winner-announcement {
       font-size: 1.5em;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       font-weight: 700;
       letter-spacing: 0.05em;
       margin-bottom: 30px;
-      color: var(--hd-amber);
+      color: var(--dark-title);
     }
 
     .validation-actions {
@@ -777,18 +777,18 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
 
     .validate-btn {
       padding: 15px;
-      background: var(--hd-amber);
-      color: white;
+      background: var(--accent);
+      color: var(--on-accent);
       border: none;
       border-radius: 8px;
       font-size: 1.1em;
       cursor: pointer;
       font-weight: 700;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       letter-spacing: 0.04em;
     }
 
-    .validate-btn:hover { background: var(--hd-amber-light); }
+    .validate-btn:hover { background: var(--accent-hover); }
 
     .finished-screen .cancel-btn {
       color: rgba(255,255,255,0.6);
@@ -814,11 +814,11 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
     .stats-panel h4 {
       margin: 0 0 10px 0;
       font-size: 0.85em;
-      color: var(--hd-amber);
+      color: var(--dark-label);
       text-align: center;
-      font-family: 'Barlow Condensed', sans-serif;
+      font-family: var(--font-heading);
       letter-spacing: 0.06em;
-      text-transform: uppercase;
+      text-transform: var(--brand-transform);
     }
 
     .stats-compact {
@@ -855,9 +855,9 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       margin: 0 0 15px 0;
       font-size: 0.9em;
       text-align: center;
-      color: var(--hd-amber);
+      color: var(--dark-label);
       letter-spacing: 0.05em;
-      text-transform: uppercase;
+      text-transform: var(--brand-transform);
       border-bottom: none;
     }
 
@@ -887,7 +887,7 @@ type GamePhase = 'loading' | 'config' | 'playing' | 'finished';
       font-size: 0.85em;
     }
 
-    .stats-table tr.highlight-row td { color: var(--hd-amber); }
+    .stats-table tr.highlight-row td { color: var(--dark-highlight); }
   `]
 })
 export class MatchPlayComponent implements OnInit {
