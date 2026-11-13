@@ -147,6 +147,32 @@
         </div>
       }
     </div>
+
+    <!-- Mes inscriptions (tournois pas encore terminés) -->
+    <div class="section">
+      <h3>Mes inscriptions</h3>
+      @for (reg of registrations(); track reg.tournamentId) {
+        <div class="registration">
+          <div class="registration-info">
+            <a [routerLink]="reg.eventId ? ['/events', reg.eventId] : ['/tournaments', reg.tournamentId]">
+              @if (reg.eventName) { {{ reg.eventName }} · }{{ reg.tournamentName }}
+            </a>
+            @if (reg.partnerName) { <span> avec {{ reg.partnerName }}</span> }
+            <span class="reg-status" [class.approved]="reg.status === RegistrationStatus.Approved">
+              {{ reg.status === RegistrationStatus.Approved ? 'Validée' : 'En attente de validation' }}
+            </span>
+            @if (reg.tournamentStatus !== TournamentStatus.Draft) {
+              <span class="reg-status">En cours</span>
+            }
+          </div>
+          @if (reg.canUnregister) {
+            <button class="btn btn-danger btn-sm" (click)="unregister(reg)" [disabled]="loading()">Se désinscrire</button>
+          }
+        </div>
+      } @empty {
+        <p class="info-text">Aucune inscription en cours.</p>
+      }
+    </div>
   } @else {
     <div class="section">
       <h3>Profil Joueur</h3>

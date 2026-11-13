@@ -140,6 +140,43 @@ namespace DartsTournament.Api.Migrations
                     b.ToTable("Clubs");
                 });
 
+            modelBuilder.Entity("DartsTournament.Api.Models.Event", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("RegistrationDeadline")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("SeasonId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeasonId");
+
+                    b.ToTable("Events");
+                });
+
             modelBuilder.Entity("DartsTournament.Api.Models.Exploit", b =>
                 {
                     b.Property<int>("Id")
@@ -624,6 +661,9 @@ namespace DartsTournament.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("EventId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Format")
                         .HasColumnType("integer");
 
@@ -666,6 +706,8 @@ namespace DartsTournament.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CircuitId");
+
+                    b.HasIndex("EventId");
 
                     b.HasIndex("SeasonId");
 
@@ -720,6 +762,11 @@ namespace DartsTournament.Api.Migrations
 
                     b.Property<int?>("Seed")
                         .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
 
                     b.Property<int?>("TournamentId")
                         .HasColumnType("integer");
@@ -841,6 +888,16 @@ namespace DartsTournament.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Circuit");
+                });
+
+            modelBuilder.Entity("DartsTournament.Api.Models.Event", b =>
+                {
+                    b.HasOne("DartsTournament.Api.Models.Season", "Season")
+                        .WithMany()
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Season");
                 });
 
             modelBuilder.Entity("DartsTournament.Api.Models.Exploit", b =>
@@ -1037,12 +1094,19 @@ namespace DartsTournament.Api.Migrations
                         .HasForeignKey("CircuitId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("DartsTournament.Api.Models.Event", "Event")
+                        .WithMany("Tournaments")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("DartsTournament.Api.Models.Season", "Season")
                         .WithMany("Tournaments")
                         .HasForeignKey("SeasonId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Circuit");
+
+                    b.Navigation("Event");
 
                     b.Navigation("Season");
                 });
@@ -1125,6 +1189,11 @@ namespace DartsTournament.Api.Migrations
                     b.Navigation("ChampionshipClubs");
 
                     b.Navigation("Players");
+                });
+
+            modelBuilder.Entity("DartsTournament.Api.Models.Event", b =>
+                {
+                    b.Navigation("Tournaments");
                 });
 
             modelBuilder.Entity("DartsTournament.Api.Models.Group", b =>

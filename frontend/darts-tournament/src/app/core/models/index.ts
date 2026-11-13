@@ -49,6 +49,9 @@ export interface Tournament {
   seasonName?: string;
   // Format FSGT : poules, qualifiés et affiches selon le nombre d'inscrits
   useFsgtFormat: boolean;
+  // Tableau d'un événement multi-tableaux
+  eventId?: number;
+  eventName?: string;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -73,6 +76,8 @@ export interface TournamentTeam {
   name: string;
   seed?: number;
   groupId?: number;
+  // Paire inscrite en ligne : en attente jusqu'à validation par l'admin
+  status: RegistrationStatus;
 }
 
 export interface TeamMemberInfo {
@@ -683,6 +688,7 @@ export interface FeatureFlags {
   onlineRegistration: boolean;
   seasons: boolean;
   exploits: boolean;
+  events: boolean;
 }
 
 // Habillage de l'instance (GET /config/branding)
@@ -783,4 +789,72 @@ export interface SeasonExploitRankings {
   oneSeventyOnes: ExploitStanding[];
   highCheckouts: ExploitStanding[];
   shortLegs: ExploitStanding[];
+}
+
+// Événements multi-tableaux (simple / double) avec inscription en ligne commune
+export interface DartsEvent {
+  id: number;
+  name: string;
+  description?: string;
+  location?: string;
+  startDate?: string;
+  registrationDeadline?: string;
+  registrationOpen: boolean;
+  seasonId?: number;
+  seasonName?: string;
+  tableauCount: number;
+  createdAt: string;
+}
+
+export interface EventTableau {
+  tournamentId: number;
+  name: string;
+  format: TournamentFormat;
+  status: TournamentStatus;
+  isDoubles: boolean;
+  approvedCount: number;
+  pendingCount: number;
+}
+
+// Inscription en attente : sideId = joueur en simple, paire en double
+export interface PendingRegistration {
+  tournamentId: number;
+  tournamentName: string;
+  isDoubles: boolean;
+  sideId: number;
+  label: string;
+}
+
+export interface MyRegistration {
+  tournamentId: number;
+  tournamentName: string;
+  tournamentStatus: TournamentStatus;
+  startDate?: string;
+  eventId?: number;
+  eventName?: string;
+  isDoubles: boolean;
+  partnerId?: number;
+  partnerName?: string;
+  status: RegistrationStatus;
+  canUnregister: boolean;
+}
+
+export interface DartsEventDetail extends Omit<DartsEvent, 'tableauCount'> {
+  tableaux: EventTableau[];
+  myRegistrations?: MyRegistration[];
+  pendingRegistrations?: PendingRegistration[];
+}
+
+export interface EventRequest {
+  name: string;
+  description?: string | null;
+  location?: string | null;
+  startDate?: string | null;
+  registrationDeadline?: string | null;
+  seasonId?: number | null;
+}
+
+export interface EventRegistrationEntry {
+  tournamentId: number;
+  partnerId?: number;
 }

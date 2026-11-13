@@ -54,7 +54,7 @@ dotnet ef database update --project DartsTournament.Api
 
 ### Backend
 - `appsettings.json` is committed and holds **no secrets** (Jwt Issuer/Audience, `Cors:Origins` comma-separated, default `http://localhost:4200`)
-- `Features` section: per-instance modules (Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration, Seasons, Exploits), all `true` by default, override with env `Features__Interclubs=false`. Backend: `[RequiresFeature(Feature.X)]` returns 404; frontend: `FeatureService` (loaded by `APP_INITIALIZER`) + `featureGuard`
+- `Features` section: per-instance modules (Circuits, Interclubs, Doubles, Tv, Cricket, ThreeOhOne, OnlineRegistration, Seasons, Exploits, Events), all `true` by default, override with env `Features__Interclubs=false`. Backend: `[RequiresFeature(Feature.X)]` returns 404; frontend: `FeatureService` (loaded by `APP_INITIALIZER`) + `featureGuard`
 - `Branding` section: per-instance skin (`Skin`: `default` | `hacienda`, `AppName` optional override), env `Branding__Skin=hacienda`. Exposed by `GET /api/config/branding`; frontend `SkinService` (`APP_INITIALIZER`) sets `data-skin` on `<html>`, title, favicon, web fonts
 - Secrets: `ConnectionStrings:DefaultConnection` and `Jwt:Key` (>= 32 bytes). The API refuses to start without them.
   - Dev: `dotnet user-secrets set "Jwt:Key" "..." --project DartsTournament.Api` (loaded in every non-Production environment)
@@ -71,6 +71,7 @@ dotnet ef database update --project DartsTournament.Api
 - **Group**: For group stage tournaments
 - **TournamentPlayer**: Join table with optional seeding
 - **Season** (league mode): groups tournaments, circuits and interclub championships; status InProgress / Closed (closed = no new attachments); enforces 501 double out. A tournament in a circuit has no own `SeasonId`, it inherits the circuit's season (`SeasonService.GetSeasonForMatchAsync` resolves it)
+- **Event**: groups several tableaux (each a regular `Tournament`, singles or doubles) with a common online registration (`POST /events/{id}/register`, all-or-nothing, partner chosen without account) and a registration deadline; its season applies to its tableaux outside circuits. Online registrations (players and `TournamentTeam`) are `Pending` until an admin approves; admin-added ones are `Approved`
 - **Exploit** (league mode): 180, 171, checkout >= 100, leg in <= 15 darts. Auto-detected (`ExploitDetector`) on every 501 double out session validation (Auto rows regenerated), or entered manually by an admin on season matches. Checkout to the finisher, 180/171 to the thrower, short leg to the pair in doubles (`PartnerId`). Season rankings computed on demand (`ExploitRankingCalculator`), ties share the rank
 
 ## UI Language

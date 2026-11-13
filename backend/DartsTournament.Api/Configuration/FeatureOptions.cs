@@ -38,6 +38,9 @@ public class FeatureOptions
     /// <summary>Exploits (180, 171, checkouts de 100+, manches en 15 fléchettes ou moins) et leur classement de saison</summary>
     public bool Exploits { get; set; } = true;
 
+    /// <summary>Événements multi-tableaux (simple / double) avec inscription en ligne commune</summary>
+    public bool Events { get; set; } = true;
+
     public bool IsEnabled(Feature feature) => feature switch
     {
         Feature.Circuits => Circuits,
@@ -49,6 +52,7 @@ public class FeatureOptions
         Feature.OnlineRegistration => OnlineRegistration,
         Feature.Seasons => Seasons,
         Feature.Exploits => Exploits,
+        Feature.Events => Events,
         _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, null)
     };
 
@@ -73,5 +77,6 @@ public enum Feature
     ThreeOhOne,
     OnlineRegistration,
     Seasons,
-    Exploits
+    Exploits,
+    Events
 }

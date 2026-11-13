@@ -35,7 +35,10 @@ public record CreateTournamentRequest(
 
     // Format FSGT (poules selon le nombre d'inscrits) ; null = activé par défaut
     // pour un tournoi en poules rattaché à une saison
-    bool? UseFsgtFormat = null
+    bool? UseFsgtFormat = null,
+
+    // Tableau d'un événement (prend la saison de l'événement, sauf circuit)
+    int? EventId = null
 );
 
 public record UpdateTournamentRequest(
@@ -73,7 +76,9 @@ public record TournamentResponse(
     // Saison effective (propre ou héritée du circuit)
     int? SeasonId = null,
     string? SeasonName = null,
-    bool UseFsgtFormat = false
+    bool UseFsgtFormat = false,
+    int? EventId = null,
+    string? EventName = null
 );
 
 public record TournamentDetailResponse(
@@ -97,7 +102,9 @@ public record TournamentDetailResponse(
     List<TournamentTeamResponse>? Teams = null,
     int? SeasonId = null,
     string? SeasonName = null,
-    bool UseFsgtFormat = false
+    bool UseFsgtFormat = false,
+    int? EventId = null,
+    string? EventName = null
 );
 
 public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);
@@ -122,7 +129,8 @@ public record TournamentTeamResponse(
     string Player2Name,
     string Name,
     int? Seed,
-    int? GroupId
+    int? GroupId,
+    RegistrationStatus Status = RegistrationStatus.Approved
 );
 
 public record GroupStandingResponse(

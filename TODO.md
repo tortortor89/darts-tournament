@@ -67,7 +67,7 @@
 
 ## 🧭 Prochaines grosses fonctionnalités (analyse du 2026-10-19, plan validé ; A et B codées)
 
-Ordre de réalisation : **A** (cadre) → **B** (s'appuie sur la saison) → **C** (indépendante, peut être décalée).
+Ordre de réalisation : **A** (cadre) → **B** (s'appuie sur la saison) → **C** (indépendante, peut être décalée). A, B, C et D codées.
 
 ### A. Deux usages : mode « Bar » (one-shot) / mode « Ligue » (compétitions liées)
 Bar : tournois isolés, tous formats et modes de jeu. Ligue : saison regroupant tournois, circuits, interclubs, exploits, toujours en 501 double out.
@@ -109,15 +109,18 @@ Exploit = manche en ≤ 15 fléchettes, checkout ≥ 100, 180, 171. Uniquement e
   - [x] B3. Pas de départage : les ex-aequo partagent le rang
 
 ### C. Événements multi-tableaux + inscription en ligne simple/double
-- [ ] Entité `Event` (nom, date, lieu, ouverture/clôture des inscriptions) + `Tournament.EventId` nullable ; chaque tableau reste un `Tournament` autonome (bracket, matchs inchangés), tournoi sans événement = comportement actuel
-- [ ] `TournamentTeam.Status` (PendingPartner → Pending → Approved / Rejected), Approved par défaut pour les paires créées par l'admin et en interclubs
-  - [ ] Filtrer les paires sur Approved partout où les joueurs le sont déjà (`MatchSideAccessor`, génération, `FinalPlacementCalculator`, stats)
-- [ ] Endpoint transactionnel `POST /events/{id}/register` `{ singles: bool, doubles: { partnerId } }` (lever le refus actuel de l'auto-inscription en double)
-- [ ] Vue admin « Inscriptions en attente » par événement (simples + paires)
-- [ ] Profil : section « Mes inscriptions » (statut, désinscription) ; si un partenaire se désinscrit, la paire est annulée
+- [x] Entité `Event` (nom, description, lieu, date, clôture des inscriptions, saison) + `Tournament.EventId` ; module `Events` ; pages /events et /events/:id (2026-11-13)
+  - Saison de l'événement appliquée à ses tableaux hors circuit (à la création du tableau et en cas de changement)
+  - Admin : créer / modifier l'événement, ajouter des tableaux (simple / double) depuis la page, choix de l'événement aussi dans le formulaire de création de tournoi
+- [x] `TournamentTeam.Status` (Pending / Approved, refus = suppression), Approved par défaut (paires admin et interclubs, défaut SQL + sentinelle EF) ; paires en attente exclues de `MatchSideAccessor.GetSides` et `FinalPlacementCalculator`
+- [x] `POST /events/{id}/register` `{ entries: [{ tournamentId, partnerId? }] }` tout ou rien ; clôture vérifiée aussi sur l'auto-inscription d'un tournoi d'événement
+- [x] Validation admin : liste « Inscriptions en attente » sur la page de l'événement, et section « Paires en attente » sur la page du tournoi (`POST tournaments/{id}/teams/{teamId}/approve|reject`) ; l'ajout direct par l'admin reste possible
+- [x] Profil : « Mes inscriptions » (`GET players/me/registrations`, tournois non terminés, avec ou sans événement) ; désinscription d'une paire = paire annulée
+- [ ] Tests manuels : créer un événement (simple + double) rattaché à une saison, s'inscrire en joueur (simple + double avec partenaire), valider / refuser, générer, clôture dépassée
 - ❓ En attente de réponse :
-  - [ ] C1. Le partenaire doit-il confirmer (exige un compte) ou l'inscription part directement à l'admin ? Statut « cherche un partenaire » ?
-  - [ ] C2. Capacité max par tableau + liste d'attente ? Date limite d'inscription ?
+  - [x] C1. Pas de confirmation du partenaire : le joueur choisit son partenaire dans la liste, la paire part en attente chez l'admin (le partenaire n'a pas besoin de compte). Pas de statut « cherche un partenaire » pour l'instant (2026-11-13)
+  - [x] C2. Date de clôture des inscriptions seule, pas de capacité max ni liste d'attente (2026-11-13)
+  - [x] C3. Un événement peut être rattaché à une saison, appliquée à ses tableaux (2026-11-13)
 
 ### D. Formats de tableaux optimisés selon le nombre d'inscrits (mode Ligue) (idée du 2026-11-09)
 Format proposé à l'utilisateur : la structure du tableau dépend du nombre d'inscrits (détails à récupérer).

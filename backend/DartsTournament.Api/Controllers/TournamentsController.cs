@@ -66,7 +66,9 @@ public class TournamentsController : ControllerBase
                 t.SeasonId ?? (t.Circuit != null ? t.Circuit.SeasonId : null),
                 t.Season != null ? t.Season.Name
                     : t.Circuit != null && t.Circuit.Season != null ? t.Circuit.Season.Name : null,
-                t.UseFsgtFormat
+                t.UseFsgtFormat,
+                t.EventId,
+                t.Event != null ? t.Event.Name : null
             ))
             .ToListAsync();
 
@@ -114,6 +116,7 @@ public class TournamentsController : ControllerBase
             .Include(t => t.Circuit)
             .ThenInclude(c => c!.Season)
             .Include(t => t.Season)
+            .Include(t => t.Event)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (tournament == null)
@@ -168,7 +171,9 @@ public class TournamentsController : ControllerBase
             isDoubles ? tournament.Teams.Select(ToTeamResponse).ToList() : null,
             (tournament.Season ?? tournament.Circuit?.Season)?.Id,
             (tournament.Season ?? tournament.Circuit?.Season)?.Name,
-            tournament.UseFsgtFormat
+            tournament.UseFsgtFormat,
+            tournament.EventId,
+            tournament.Event?.Name
         );
 
         return Ok(response);
@@ -214,6 +219,23 @@ public class TournamentsController : ControllerBase
             }
         }
 
+        Event? evt = null;
+        if (request.EventId != null)
+        {
+            if (!features.Events)
+            {
+                return BadRequest(new { message = "Les événements ne sont pas activés" });
+            }
+
+            evt = await _context.Events
+                .Include(e => e.Season)
+                .FirstOrDefaultAsync(e => e.Id == request.EventId.Value);
+            if (evt == null)
+            {
+                return BadRequest(new { message = "Événement introuvable" });
+            }
+        }
+
         // Un tournoi de circuit prend la saison du circuit
         Season? season = circuit?.Season;
         if (season?.Status == SeasonStatus.Closed)
@@ -235,6 +257,15 @@ public class TournamentsController : ControllerBase
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+        else if (circuit == null && evt?.Season != null)
+        {
+            // Tableau d'événement hors circuit : saison de l'événement
+            if (evt.Season.Status == SeasonStatus.Closed)
+            {
+                return BadRequest(new { message = "La saison de cet événement est clôturée" });
+            }
+            season = evt.Season;
         }
 
         // Format FSGT : par défaut pour les tournois en poules de saison, contournable
@@ -258,7 +289,8 @@ public class TournamentsController : ControllerBase
             CircuitId = request.CircuitId,
             SeasonId = circuit == null ? season?.Id : null,
             TeamSize = request.IsDoubles ? 2 : 1,
-            UseFsgtFormat = useFsgtFormat
+            UseFsgtFormat = useFsgtFormat,
+            EventId = evt?.Id
         };
 
         _context.Tournaments.Add(tournament);
@@ -282,7 +314,9 @@ public class TournamentsController : ControllerBase
             tournament.TeamSize == 2,
             season?.Id,
             season?.Name,
-            tournament.UseFsgtFormat
+            tournament.UseFsgtFormat,
+            evt?.Id,
+            evt?.Name
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);
@@ -590,7 +624,9 @@ public class TournamentsController : ControllerBase
         }
 
         // Get tournament
-        var tournament = await _context.Tournaments.FindAsync(id);
+        var tournament = await _context.Tournaments
+            .Include(t => t.Event)
+            .FirstOrDefaultAsync(t => t.Id == id);
         if (tournament == null)
         {
             return NotFound(new { message = "Tournoi non trouvé" });
@@ -602,9 +638,17 @@ public class TournamentsController : ControllerBase
             return BadRequest(new { message = "Impossible de s'inscrire à un tournoi qui a déjà commencé" });
         }
 
+        if (tournament.Event != null && !tournament.Event.IsRegistrationOpen(DateTime.UtcNow))
+        {
+            return BadRequest(new { message = "Les inscriptions de cet événement sont closes" });
+        }
+
+        // En double, l'inscription avec partenaire passe par l'événement
         if (tournament.TeamSize == 2)
         {
-            return BadRequest(new { message = "Les inscriptions de ce tournoi en double sont gérées par l'administrateur" });
+            return BadRequest(new { message = tournament.EventId != null
+                ? "Inscrivez-vous en paire depuis la page de l'événement"
+                : "Les inscriptions de ce tournoi en double sont gérées par l'administrateur" });
         }
 
         // Check if already registered
@@ -671,6 +715,22 @@ public class TournamentsController : ControllerBase
         if (tournament.Status != TournamentStatus.Draft)
         {
             return BadRequest(new { message = "Impossible de se désinscrire d'un tournoi qui a déjà commencé" });
+        }
+
+        // Double : la paire est annulée si l'un des deux se désinscrit
+        if (tournament.TeamSize == 2)
+        {
+            var team = await _context.TournamentTeams
+                .FirstOrDefaultAsync(tt => tt.TournamentId == id
+                    && (tt.Player1Id == player.Id || tt.Player2Id == player.Id));
+            if (team == null)
+            {
+                return BadRequest(new { message = "Vous n'êtes pas inscrit à ce tournoi" });
+            }
+
+            _context.TournamentTeams.Remove(team);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Désinscription réussie : la paire est annulée" });
         }
 
         // Check if registered
@@ -771,6 +831,86 @@ public class TournamentsController : ControllerBase
     }
 
     /// <summary>
+    /// Valider une paire inscrite en ligne (Admin)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="teamId">Identifiant de la paire</param>
+    /// <response code="200">Paire validée</response>
+    /// <response code="400">Tournoi déjà démarré</response>
+    /// <response code="404">Tournoi ou paire non trouvé</response>
+    [HttpPost("{id}/teams/{teamId}/approve")]
+    [RequiresFeature(Feature.Doubles)]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApproveTeam(int id, int teamId)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de valider une paire pour un tournoi qui a déjà commencé" });
+        }
+
+        var team = await _context.TournamentTeams
+            .FirstOrDefaultAsync(tt => tt.TournamentId == id && tt.Id == teamId);
+        if (team == null)
+        {
+            return NotFound(new { message = "Paire non trouvée" });
+        }
+
+        team.Status = RegistrationStatus.Approved;
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Paire validée" });
+    }
+
+    /// <summary>
+    /// Refuser une paire inscrite en ligne (Admin) : la paire est supprimée
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="teamId">Identifiant de la paire</param>
+    /// <response code="200">Paire refusée</response>
+    /// <response code="400">Tournoi déjà démarré</response>
+    /// <response code="404">Tournoi ou paire non trouvé</response>
+    [HttpPost("{id}/teams/{teamId}/reject")]
+    [RequiresFeature(Feature.Doubles)]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RejectTeam(int id, int teamId)
+    {
+        var tournament = await _context.Tournaments.FindAsync(id);
+        if (tournament == null)
+        {
+            return NotFound(new { message = "Tournoi non trouvé" });
+        }
+
+        if (tournament.Status != TournamentStatus.Draft)
+        {
+            return BadRequest(new { message = "Impossible de refuser une paire pour un tournoi qui a déjà commencé" });
+        }
+
+        var team = await _context.TournamentTeams
+            .FirstOrDefaultAsync(tt => tt.TournamentId == id && tt.Id == teamId);
+        if (team == null)
+        {
+            return NotFound(new { message = "Paire non trouvée" });
+        }
+
+        _context.TournamentTeams.Remove(team);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Paire refusée" });
+    }
+
+    /// <summary>
     /// Générer le bracket du tournoi et démarrer la compétition
     /// </summary>
     /// <param name="id">Identifiant du tournoi</param>
@@ -851,7 +991,8 @@ public class TournamentsController : ControllerBase
         $"{team.Player2.FirstName} {team.Player2.LastName}",
         team.Name,
         team.Seed,
-        team.GroupId
+        team.GroupId,
+        team.Status
     );
 
     // En double : Player1Id/Player2Id/WinnerId portent les ids d'équipe et les noms

@@ -116,6 +116,7 @@ builder.Services.AddScoped<CricketService>();
 builder.Services.AddScoped<CircuitService>();
 builder.Services.AddScoped<InterclubService>();
 builder.Services.AddScoped<SeasonService>();
+builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<ExploitService>();
 
 // SignalR

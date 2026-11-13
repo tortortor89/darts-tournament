@@ -16,6 +16,8 @@ import { ProfileComponent } from './features/profile/profile.component';
 import { TvLobbyComponent } from './features/tv/tv-lobby.component';
 import { SeasonListComponent } from './features/seasons/season-list.component';
 import { SeasonDetailComponent } from './features/seasons/season-detail.component';
+import { EventListComponent } from './features/events/event-list.component';
+import { EventDetailComponent } from './features/events/event-detail.component';
 import { featureGuard } from './core/guards/feature.guard';
 
 export const routes: Routes = [
@@ -25,6 +27,8 @@ export const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'players', component: PlayerListComponent },
   { path: 'players/:id/stats', component: PlayerStatsComponent },
+  { path: 'events', component: EventListComponent, canActivate: [featureGuard('events')] },
+  { path: 'events/:id', component: EventDetailComponent, canActivate: [featureGuard('events')] },
   { path: 'tournaments', component: TournamentListComponent },
   { path: 'tournaments/:id', component: TournamentDetailComponent },
   { path: 'seasons', component: SeasonListComponent, canActivate: [featureGuard('seasons')] },

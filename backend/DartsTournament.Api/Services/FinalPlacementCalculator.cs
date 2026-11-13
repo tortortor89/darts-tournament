@@ -66,6 +66,7 @@ public static class FinalPlacementCalculator
         if (MatchSideAccessor.IsDoubles(tournament))
         {
             return tournament.Teams
+                .Where(tt => tt.Status == RegistrationStatus.Approved)
                 .Select(tt => new SideEntry(tt.Id, tt.Name, tt.GroupId,
                     new List<(int, string)>
                     {

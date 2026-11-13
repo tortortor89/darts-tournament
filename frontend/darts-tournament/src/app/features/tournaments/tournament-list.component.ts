@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FeatureService } from '../../core/services/feature.service';
-import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, SeasonStatus } from '../../core/models';
+import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, SeasonStatus, DartsEvent } from '../../core/models';
 
 @Component({
   selector: 'app-tournament-list',
@@ -39,6 +39,14 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
                   <option [ngValue]="null">Aucun circuit</option>
                   @for (circuit of circuits; track circuit.id) {
                     <option [ngValue]="circuit.id">{{ circuit.name }}</option>
+                  }
+                </select>
+              }
+              @if (features.isEnabled('events') && events.length > 0) {
+                <select [(ngModel)]="form.eventId" name="eventId" (ngModelChange)="onSeasonContextChange()">
+                  <option [ngValue]="null">Aucun événement</option>
+                  @for (event of events; track event.id) {
+                    <option [ngValue]="event.id">{{ event.name }}</option>
                   }
                 </select>
               }
@@ -107,6 +115,9 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
             <p>Joueurs: {{ tournament.playerCount }}</p>
             @if (tournament.circuitName && features.isEnabled('circuits')) {
               <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
+            }
+            @if (tournament.eventName && features.isEnabled('events')) {
+              <p>Événement: <a [routerLink]="['/events', tournament.eventId]">{{ tournament.eventName }}</a></p>
             }
             @if (tournament.seasonName && features.isEnabled('seasons')) {
               <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a></p>
@@ -274,6 +285,7 @@ export class TournamentListComponent implements OnInit {
   tournaments: Tournament[] = [];
   circuits: Circuit[] = [];
   openSeasons: Season[] = [];
+  events: DartsEvent[] = [];
   form = {
     name: '',
     format: TournamentFormat.SingleElimination,
@@ -284,7 +296,8 @@ export class TournamentListComponent implements OnInit {
     circuitId: null as number | null,
     seasonId: null as number | null,
     isDoubles: false,
-    useFsgtFormat: false
+    useFsgtFormat: false,
+    eventId: null as number | null
   };
   loading = false;
 
@@ -302,6 +315,11 @@ export class TournamentListComponent implements OnInit {
     this.loadTournaments();
     if (this.authService.isAdmin() && this.features.isEnabled('circuits')) {
       this.loadCircuits();
+    }
+    if (this.authService.isAdmin() && this.features.isEnabled('events')) {
+      this.apiService.getEvents().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(events => {
+        this.events = events;
+      });
     }
     if (this.authService.isAdmin() && this.features.isEnabled('seasons')) {
       this.apiService.getSeasons().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(seasons => {
@@ -327,7 +345,10 @@ export class TournamentListComponent implements OnInit {
   // Format FSGT par défaut pour les tournois de saison (propre ou via le circuit)
   onSeasonContextChange() {
     const circuit = this.circuits.find(c => c.id === this.form.circuitId);
-    this.form.useFsgtFormat = circuit ? circuit.seasonId != null : this.form.seasonId !== null;
+    const event = this.events.find(e => e.id === this.form.eventId);
+    this.form.useFsgtFormat = circuit
+      ? circuit.seasonId != null
+      : this.form.seasonId !== null || event?.seasonId != null;
   }
 
   onFormatChange() {
@@ -355,6 +376,10 @@ export class TournamentListComponent implements OnInit {
       data.isDoubles = true;
     }
 
+    if (this.form.eventId !== null) {
+      data.eventId = this.form.eventId;
+    }
+
     if (Number(this.form.format) === TournamentFormat.GroupStage) {
       if (this.form.numberOfGroups) {
         data.numberOfGroups = this.form.numberOfGroups;
@@ -377,7 +402,8 @@ export class TournamentListComponent implements OnInit {
         circuitId: null,
         seasonId: null,
         isDoubles: false,
-        useFsgtFormat: false
+        useFsgtFormat: false,
+        eventId: null
       };
     });
   }

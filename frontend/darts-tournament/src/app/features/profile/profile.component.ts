@@ -1,15 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
-import { Player } from '../../core/models';
+import { MyRegistration, Player, RegistrationStatus, TournamentStatus } from '../../core/models';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css']
 })
@@ -22,6 +22,10 @@ export class ProfileComponent implements OnInit {
   loading = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
+  registrations = signal<MyRegistration[]>([]);
+
+  RegistrationStatus = RegistrationStatus;
+  TournamentStatus = TournamentStatus;
 
   // Form data
   newPlayer = {
@@ -52,7 +56,30 @@ export class ProfileComponent implements OnInit {
     // Check if user is authenticated
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/auth/login']);
+      return;
     }
+    this.loadRegistrations();
+  }
+
+  loadRegistrations(): void {
+    if (!this.authService.hasLinkedPlayer()) return;
+    this.apiService.getMyRegistrations().subscribe(registrations => this.registrations.set(registrations));
+  }
+
+  unregister(reg: MyRegistration): void {
+    const message = reg.isDoubles
+      ? `Se désinscrire de « ${reg.tournamentName} » ? La paire avec ${reg.partnerName} sera annulée.`
+      : `Se désinscrire de « ${reg.tournamentName} » ?`;
+    if (!confirm(message)) return;
+
+    this.clearMessages();
+    this.apiService.unregisterFromTournament(reg.tournamentId).subscribe({
+      next: () => {
+        this.successMessage.set('Désinscription enregistrée');
+        this.loadRegistrations();
+      },
+      error: err => this.errorMessage.set(err.error?.message || 'Erreur lors de la désinscription')
+    });
   }
 
   toggleCreateForm(): void {

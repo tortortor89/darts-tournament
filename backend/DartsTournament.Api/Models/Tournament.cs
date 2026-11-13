@@ -33,6 +33,10 @@ public class Tournament
     public int? SeasonId { get; set; }
     public Season? Season { get; set; }
 
+    // Événement (optionnel) : tableau d'un événement multi-tableaux
+    public int? EventId { get; set; }
+    public Event? Event { get; set; }
+
     // Taille d'un côté : 1 = simple, 2 = double (paires)
     public int TeamSize { get; set; } = 1;
 

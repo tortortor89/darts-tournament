@@ -249,3 +249,28 @@ h4 {
     width: 100%;
   }
 }
+
+/* Mes inscriptions */
+.registration {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+.registration-info a {
+  color: var(--link);
+  font-weight: 600;
+}
+.reg-status {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8em;
+  background: var(--accent-soft);
+}
+.reg-status.approved {
+  background: color-mix(in srgb, var(--success) 20%, transparent);
+}

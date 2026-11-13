@@ -13,7 +13,8 @@ const ALL_ENABLED: FeatureFlags = {
   threeOhOne: true,
   onlineRegistration: true,
   seasons: true,
-  exploits: true
+  exploits: true,
+  events: true
 };
 
 /**

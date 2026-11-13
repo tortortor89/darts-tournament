@@ -7,7 +7,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { FeatureService } from '../../core/services/feature.service';
-import { TournamentDetail, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType, RegistrationStatus } from '../../core/models';
+import { TournamentDetail, TournamentTeam, Player, TournamentFormat, TournamentStatus, MatchStatus, Match, GroupStanding, BracketType, RegistrationStatus } from '../../core/models';
 import { BracketViewerComponent } from '../../shared/components/bracket-viewer/bracket-viewer.component';
 import { DoubleBracketViewerComponent } from '../../shared/components/double-bracket-viewer/double-bracket-viewer.component';
 import { MatchExploitsDialogComponent } from '../matches/components/match-exploits-dialog.component';
@@ -29,6 +29,9 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
         <p>Status: {{ getStatusLabel(tournament.status) }}</p>
         @if (tournament.circuitName && features.isEnabled('circuits')) {
           <p>Circuit: <a [routerLink]="['/circuits', tournament.circuitId]">{{ tournament.circuitName }}</a></p>
+        }
+        @if (tournament.eventName && features.isEnabled('events')) {
+          <p>Événement: <a [routerLink]="['/events', tournament.eventId]">{{ tournament.eventName }}</a></p>
         }
         @if (tournament.seasonName && features.isEnabled('seasons')) {
           <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a> (501 double out)</p>
@@ -86,11 +89,14 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
       @if (tournament.status === TournamentStatus.Draft) {
         <div class="players-section">
           @if (tournament.isDoubles) {
-            <h3>Paires inscrites ({{ tournament.teams?.length || 0 }})</h3>
+            <h3>Paires inscrites ({{ approvedTeams().length }})</h3>
             @if (!authService.isAdmin()) {
               <ul class="player-list">
                 @for (team of tournament.teams; track team.id) {
-                  <li>{{ team.name }}</li>
+                  <li>
+                    {{ team.name }}
+                    @if (team.status === RegistrationStatus.Pending) { <em>(en attente)</em> }
+                  </li>
                 }
               </ul>
             }
@@ -135,10 +141,27 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
             <button (click)="addTeam()" [disabled]="!selectedTeamPlayer1Id || !selectedTeamPlayer2Id">Ajouter la paire</button>
           </div>
 
+          @if (pendingTeams().length > 0) {
+            <div class="pending-section">
+              <h4>Paires en attente de validation ({{ pendingTeams().length }})</h4>
+              <ul class="player-list">
+                @for (team of pendingTeams(); track team.id) {
+                  <li>
+                    <span>{{ team.name }}</span>
+                    <div class="registration-actions">
+                      <button (click)="approveTeam(team.id)" class="approve">Valider</button>
+                      <button (click)="rejectTeam(team.id)" class="reject">Refuser</button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
           <div class="approved-section">
-            <h4>Paires ({{ tournament.teams?.length || 0 }})</h4>
+            <h4>Paires ({{ approvedTeams().length }})</h4>
             <ul class="player-list">
-              @for (team of tournament.teams; track team.id) {
+              @for (team of approvedTeams(); track team.id) {
                 <li>
                   <span>
                     {{ team.name }}
@@ -150,8 +173,8 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
             </ul>
           </div>
 
-          @if ((tournament.teams?.length || 0) >= 2) {
-            <button (click)="generateBracket()" class="generate">Générer le bracket ({{ tournament.teams?.length }} paires)</button>
+          @if (approvedTeams().length >= 2) {
+            <button (click)="generateBracket()" class="generate">Générer le bracket ({{ approvedTeams().length }} paires)</button>
           } @else {
             <p class="info-text">Au moins 2 paires sont nécessaires pour générer le bracket</p>
           }
@@ -1342,6 +1365,36 @@ export class TournamentDetailComponent implements OnInit {
         this.selectedTeamSeed = null;
       });
     }
+  }
+
+  approvedTeams(): TournamentTeam[] {
+    return (this.tournament?.teams ?? []).filter(t => t.status !== RegistrationStatus.Pending);
+  }
+
+  pendingTeams(): TournamentTeam[] {
+    return (this.tournament?.teams ?? []).filter(t => t.status === RegistrationStatus.Pending);
+  }
+
+  approveTeam(teamId: number) {
+    if (!this.tournament) return;
+    this.apiService.approveTeam(this.tournament.id, teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Paire validée');
+        this.loadTournament(this.tournament!.id);
+      },
+      error: err => this.notificationService.showError(err.error?.message || 'Erreur lors de la validation')
+    });
+  }
+
+  rejectTeam(teamId: number) {
+    if (!this.tournament || !confirm('Refuser cette paire ?')) return;
+    this.apiService.rejectTeam(this.tournament.id, teamId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.notificationService.showSuccess('Paire refusée');
+        this.loadTournament(this.tournament!.id);
+      },
+      error: err => this.notificationService.showError(err.error?.message || 'Erreur lors du refus')
+    });
   }
 
   removeTeam(teamId: number) {

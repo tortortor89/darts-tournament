@@ -20,12 +20,40 @@ public class PlayersController : ControllerBase
     private readonly AppDbContext _context;
     private readonly PlayerService _playerService;
     private readonly PlayerStatsService _playerStatsService;
+    private readonly EventService _eventService;
 
-    public PlayersController(AppDbContext context, PlayerService playerService, PlayerStatsService playerStatsService)
+    public PlayersController(AppDbContext context, PlayerService playerService, PlayerStatsService playerStatsService,
+        EventService eventService)
     {
         _context = context;
         _playerService = playerService;
         _playerStatsService = playerStatsService;
+        _eventService = eventService;
+    }
+
+    /// <summary>
+    /// Mes inscriptions : tournois pas encore terminés du joueur connecté (simple et
+    /// double, avec ou sans événement), avec leur statut
+    /// </summary>
+    /// <response code="200">Inscriptions (vide sans profil joueur)</response>
+    [HttpGet("me/registrations")]
+    [Authorize]
+    [ProducesResponseType(typeof(List<MyRegistrationResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<MyRegistrationResponse>>> GetMyRegistrations()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        {
+            return Unauthorized();
+        }
+
+        var player = await _playerService.GetLinkedPlayerForUserAsync(userId);
+        if (player == null)
+        {
+            return Ok(new List<MyRegistrationResponse>());
+        }
+
+        return Ok(await _eventService.GetPlayerRegistrationsAsync(player.Id));
     }
 
     /// <summary>

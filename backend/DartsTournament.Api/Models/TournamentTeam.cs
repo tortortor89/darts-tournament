@@ -25,6 +25,10 @@ public class TournamentTeam
 
     public int? Seed { get; set; }
 
+    // Paire inscrite en ligne : Pending jusqu'à validation par l'admin ; paires
+    // créées par l'admin et paires interclubs : Approved
+    public RegistrationStatus Status { get; set; } = RegistrationStatus.Approved;
+
     public int? GroupId { get; set; }
     public Group? Group { get; set; }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode, Season, SeasonDetail, SeasonRequest, SeasonStatus, SeasonItemKind, Exploit, CreateExploitRequest, SeasonExploitRankings } from '../models';
+import { Player, Tournament, TournamentDetail, TournamentTeam, Match, TournamentFormat, GroupStanding, MatchSession, MatchSessionSpectator, StartMatchSessionRequest, RecordThrowRequest, MatchStats, PlayerCareerStats, PlayerTournamentHistoryItem, HeadToHeadRecord, CricketTurnResponse, CricketHit, ActiveSessionSummary, Circuit, CircuitDetail, CircuitStanding, CircuitPointsRule, Club, ClubDetail, InterclubChampionship, InterclubChampionshipDetail, CalendarRound, EncounterDetail, BoardLineup, InterclubStanding, GameMode, Season, SeasonDetail, SeasonRequest, SeasonStatus, SeasonItemKind, Exploit, CreateExploitRequest, SeasonExploitRankings, DartsEvent, DartsEventDetail, EventRequest, EventRegistrationEntry, MyRegistration } from '../models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -100,6 +100,7 @@ export class ApiService {
     isDoubles?: boolean;
     seasonId?: number;
     useFsgtFormat?: boolean;
+    eventId?: number;
   }): Observable<Tournament> {
     return this.http.post<Tournament>(`${this.API_URL}/tournaments`, tournament);
   }
@@ -188,6 +189,44 @@ export class ApiService {
   }
 
   // Saisons
+  // Événements
+  getEvents(): Observable<DartsEvent[]> {
+    return this.http.get<DartsEvent[]>(`${this.API_URL}/events`);
+  }
+
+  getEvent(id: number): Observable<DartsEventDetail> {
+    return this.http.get<DartsEventDetail>(`${this.API_URL}/events/${id}`);
+  }
+
+  createEvent(event: EventRequest): Observable<DartsEvent> {
+    return this.http.post<DartsEvent>(`${this.API_URL}/events`, event);
+  }
+
+  updateEvent(id: number, event: EventRequest): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/events/${id}`, event);
+  }
+
+  deleteEvent(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/events/${id}`);
+  }
+
+  // Inscription groupée (tout ou rien) : simple sans partenaire, double avec
+  registerToEvent(id: number, entries: EventRegistrationEntry[]): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API_URL}/events/${id}/register`, { entries });
+  }
+
+  getMyRegistrations(): Observable<MyRegistration[]> {
+    return this.http.get<MyRegistration[]>(`${this.API_URL}/players/me/registrations`);
+  }
+
+  approveTeam(tournamentId: number, teamId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API_URL}/tournaments/${tournamentId}/teams/${teamId}/approve`, {});
+  }
+
+  rejectTeam(tournamentId: number, teamId: number): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.API_URL}/tournaments/${tournamentId}/teams/${teamId}/reject`, {});
+  }
+
   getSeasons(): Observable<Season[]> {
     return this.http.get<Season[]>(`${this.API_URL}/seasons`);
   }

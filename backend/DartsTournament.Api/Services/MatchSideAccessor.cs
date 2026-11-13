@@ -51,7 +51,7 @@ public static class MatchSideAccessor
 
     /// <summary>
     /// Les côtés inscrits au tournoi, triés par seed.
-    /// Simple : joueurs approuvés. Double : paires (créées par l'admin, pas de statut).
+    /// Simple : joueurs approuvés. Double : paires approuvées.
     /// Nécessite Teams.Player1/Player2 ou TournamentPlayers.Player chargés.
     /// </summary>
     public static List<Side> GetSides(Tournament tournament)
@@ -59,6 +59,7 @@ public static class MatchSideAccessor
         if (IsDoubles(tournament))
         {
             return tournament.Teams
+                .Where(tt => tt.Status == RegistrationStatus.Approved)
                 .OrderBy(tt => tt.Seed ?? int.MaxValue)
                 .Select(tt => new Side(tt.Id, tt.Name, tt.GroupId))
                 .ToList();

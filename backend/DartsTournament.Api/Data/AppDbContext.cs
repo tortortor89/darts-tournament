@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Tournament> Tournaments => Set<Tournament>();
     public DbSet<TournamentPlayer> TournamentPlayers => Set<TournamentPlayer>();
     public DbSet<Group> Groups => Set<Group>();
+    public DbSet<Event> Events => Set<Event>();
     public DbSet<Match> Matches => Set<Match>();
     public DbSet<MatchSession> MatchSessions => Set<MatchSession>();
     public DbSet<Throw> Throws => Set<Throw>();
@@ -172,6 +173,13 @@ public class AppDbContext : DbContext
                 .HasForeignKey(tt => tt.GroupId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Défaut SQL explicite : les paires existantes (créées par l'admin) restent validées.
+            // Sentinelle hors enum : sans elle EF prendrait Pending (0) pour « non renseigné »
+            // et laisserait la base appliquer Approved aux inscriptions en ligne
+            entity.Property(tt => tt.Status)
+                .HasDefaultValue(RegistrationStatus.Approved)
+                .HasSentinel((RegistrationStatus)(-1));
+
             entity.HasOne(tt => tt.Encounter)
                 .WithMany()
                 .HasForeignKey(tt => tt.EncounterId)
@@ -262,6 +270,20 @@ public class AppDbContext : DbContext
                 .WithOne(r => r.Circuit)
                 .HasForeignKey(r => r.CircuitId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Event : le supprimer détache ses tableaux ; supprimer sa saison la détache
+        modelBuilder.Entity<Event>(entity =>
+        {
+            entity.HasMany(e => e.Tournaments)
+                .WithOne(t => t.Event)
+                .HasForeignKey(t => t.EventId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Season)
+                .WithMany()
+                .HasForeignKey(e => e.SeasonId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Season : la supprimer détache tournois, circuits et championnats
