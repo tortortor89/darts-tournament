@@ -15,6 +15,12 @@ public class Tournament
     public int? QualifiersPerGroup { get; set; }
     public bool HasKnockoutPhase { get; set; } = true;
 
+    // Format FSGT (mode Ligue) : poules, qualifiés et affiches tirés de la grille
+    // selon le nombre d'inscrits, à la génération du tableau
+    public bool UseFsgtFormat { get; set; }
+    // Affiches du tableau final figées à la génération (« 1p1-2p2,1p2-2p1 »)
+    public string? KnockoutPairings { get; set; }
+
     // Configuration Double Elimination
     public bool AllowBracketReset { get; set; } = true;
 

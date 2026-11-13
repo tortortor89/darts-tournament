@@ -29,7 +29,7 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
               <input type="text" [(ngModel)]="form.name" name="name" placeholder="Nom du circuit" required>
               <input type="text" [(ngModel)]="form.description" name="description" placeholder="Description (optionnelle)" class="description-input">
               @if (openSeasons.length > 0) {
-                <select [(ngModel)]="form.seasonId" name="seasonId">
+                <select [(ngModel)]="form.seasonId" name="seasonId" (ngModelChange)="form.useFsgtPoints = $event !== null">
                   <option [ngValue]="null">Hors saison</option>
                   @for (season of openSeasons; track season.id) {
                     <option [ngValue]="season.id">{{ season.name }} (501 DO)</option>
@@ -37,7 +37,19 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
                 </select>
               }
             </div>
-            <p class="hint">Le barème de points par défaut sera appliqué (modifiable ensuite sur la page du circuit).</p>
+            <div class="form-row">
+              <label class="checkbox-label">
+                <input type="checkbox" [(ngModel)]="form.useFsgtPoints" name="useFsgtPoints">
+                Barème FSGT (points du tour atteint selon le nombre d'inscrits)
+              </label>
+            </div>
+            <p class="hint">
+              @if (form.useFsgtPoints) {
+                Le barème FSGT sera appliqué (modifiable ensuite sur la page du circuit).
+              } @else {
+                Le barème de points par défaut sera appliqué (modifiable ensuite sur la page du circuit).
+              }
+            </p>
             <button type="submit">Créer</button>
           </form>
         </div>
@@ -96,6 +108,13 @@ import { Circuit, Season, SeasonStatus } from '../../core/models';
       flex: 1;
       min-width: 250px;
     }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .checkbox-label input { width: auto !important; }
     .hint {
       margin: 0;
       font-size: 0.85em;
@@ -160,7 +179,8 @@ export class CircuitListComponent implements OnInit {
   form = {
     name: '',
     description: '',
-    seasonId: null as number | null
+    seasonId: null as number | null,
+    useFsgtPoints: false
   };
   loading = false;
 
@@ -191,11 +211,12 @@ export class CircuitListComponent implements OnInit {
     this.apiService.createCircuit({
       name: this.form.name,
       description: this.form.description || undefined,
-      seasonId: this.form.seasonId ?? undefined
+      seasonId: this.form.seasonId ?? undefined,
+      useFsgtPoints: this.form.useFsgtPoints
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newCircuit => {
       this.notificationService.showSuccess('Circuit créé avec succès');
       this.circuits = [newCircuit, ...this.circuits];
-      this.form = { name: '', description: '', seasonId: null };
+      this.form = { name: '', description: '', seasonId: null, useFsgtPoints: false };
     });
   }
 

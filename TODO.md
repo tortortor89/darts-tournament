@@ -119,6 +119,54 @@ Exploit = manche en ≤ 15 fléchettes, checkout ≥ 100, 180, 171. Uniquement e
   - [ ] C1. Le partenaire doit-il confirmer (exige un compte) ou l'inscription part directement à l'admin ? Statut « cherche un partenaire » ?
   - [ ] C2. Capacité max par tableau + liste d'attente ? Date limite d'inscription ?
 
+### D. Formats de tableaux optimisés selon le nombre d'inscrits (mode Ligue) (idée du 2026-11-09)
+Format proposé à l'utilisateur : la structure du tableau dépend du nombre d'inscrits (détails à récupérer).
+- [x] Étape 1 : grille transcrite (2026-11-11) : `tools/fsgt/extract_fsgt_formats.py` → `backend/DartsTournament.Api/Data/fsgt-formats.json` (2-80 joueurs, variantes sans barrage, `default` modifiable à la main, barème inclus) ; corrections de saisie (43, 46) dans `CELL_OVERRIDES` d'après les classeurs détaillés ; recoupée avec les onglets Tableau des classeurs « A N inscrits »
+- [x] Étape 2 (2026-11-13) : `FsgtFormatCatalog` (JSON chargé et validé au démarrage, singleton) + `FsgtDrawCalculator` (serpentin sur poules de tailles imposées, affiches « 1p1 ») ; `Tournament.UseFsgtFormat` (défaut : tournoi en poules de saison, propre ou via le circuit ; contournable à la création), qualifiés par poule (`Group.QualifierCount`) et affiches (`Tournament.KnockoutPairings`) figés à la génération ; 2-5 inscrits = poule unique sans phase finale ; migration AddFsgtFormat
+  - Reste à tester à la main (création en saison, génération 10 / 24 / 46 inscrits, passage en phase finale)
+- [x] Étape 3 (2026-11-13) : `GroupRankingCalculator` (critères ordonnés, confrontation directe en mini-championnat ré-appliqué aux sous-blocs) ; critères dans `tieBreakers` de `fsgt-formats.json` (`wins`, `legDifference`, `headToHead`, `legsWon` dispo) ; égalité parfaite = rang partagé « 2= » une fois la poule terminée ; phase finale bloquée si l'égalité touche une place qualificative ; l'admin saisit l'ordre (▲▼ sous la poule, `PUT tournaments/{id}/groups/{groupId}/tiebreak`, `Group.TieBreakOrder`) puis la phase finale est générée ; migration AddGroupTieBreakOrder. Hors FSGT : comportement inchangé
+  - [ ] Règle exacte après confrontation directe à confirmer (manches gagnées ?) : pour l'instant non ; il suffit d'ajouter `"legsWon"` dans `tieBreakers` (et `TIE_BREAKERS` du script)
+- [x] Étape 4 (2026-11-13) : `Circuit.UseFsgtPoints` (défaut : circuit de saison ; case à la création, modifiable dans « Modifier le barème ») ; `FsgtPointsCalculator` : tour atteint déduit de la place finale (1 / 2 / 3-4 / 5-8 / 9-16 / 17-32), ligne selon le nombre de côtés, éliminés en poules = 2 + 2/victoire en poule ; tour absent de la ligne (format contourné) = points de poule ; hors grille = ligne la plus proche ; barème lu dans `points` de `fsgt-formats.json` ; migration AddCircuitFsgtPoints
+- [ ] Étape 5 : tests manuels de bout en bout (circuit de saison, 2-3 tournois FSGT, classement)
+- Réponses :
+  - [x] D1. Document complet fourni par l'utilisateur, un format par nombre de joueurs de 5 à 80 (à transcrire)
+  - [x] D2. Format optimisé appliqué par défaut aux tournois de saison, l'admin peut le contourner si besoin
+  - [x] D3. Format déterminé à la génération du tableau (nombre d'inscrits définitif)
+  - [x] D4. Grille fixe pour toute l'instance (pas par saison) dans un premier temps
+- Analyse du document (2026-11-11) : `docs-fsgt-flechettes/2 Répartition des Joueurs par poules.xlsx` (onglets Feuil1 5-80, Extention 81-100, Point Tournois) + un classeur détaillé par nombre d'inscrits (`A N inscrits...xlsx` : tirage au sort, poules, tableau, feuille de route)
+  - Poules de tailles mélangées (3 à 6) avec numéros de poule précisés
+  - Nombre de qualifiés par poule variable selon la taille (ex. 10 joueurs : 2 poules de 3 → 2Q, 1 poule de 4 → 3Q)
+  - Barrages « prélim » : 1 x 701 entre les 3es (ou 4es) de certaines poules
+  - Tableau final avec affiches imposées (1 p 1 contre 2 p 2...), demi / 1/4 / 8es / 16es / 32es
+  - Plusieurs variantes pour un même nombre de joueurs, selon le nombre de cibles (8, 8 à 15, 16)
+  - Barème de points par tour atteint selon le nombre de joueurs (onglet Point Tournois)
+  - Écarts avec le générateur actuel : `QualifiersPerGroup` unique, qualifiés replacés par seeding générique (`ArrangeSidesForKnockout`), pas de barrage, pas de match à 3 joueurs
+- Réponses :
+  - [x] D5. Une seule variante par nombre de joueurs pour commencer ; choix parmi plusieurs options plus tard
+  - [x] D6. Privilégier les variantes sans barrage 701 (il en existe toujours une)
+  - [x] D7. Barème « Point Tournois » pour le classement du circuit quand le tournoi est rattaché à un circuit
+  - [x] D8. Pas d'extension (5-80 seulement) ; s'applique aux doubles en comptant les paires (10 paires → grille à 10)
+- Règle de choix de la variante : celle dont la sortie de poules correspond à l'onglet Point Tournois (6-10 demies, 11-20 quarts, 21-40 8es, 41-80 16es) et sans barrage
+  - Conflit pour 41 et 42 : la variante 16es a un barrage, celle sans barrage sort en 8es
+- Barème actuel du circuit : par rang final (`CircuitPointsRule` MinRank-MaxRank) + `ParticipationPoints` ; le barème FSGT est par tour atteint et dépend du nombre de joueurs
+  - [x] D9. 41 et 42 : sortie en 8es (sans barrage), mais la grille doit rester facile à ajuster → fichier de données versionné, pas de code en dur
+  - [x] D10. Valeurs = tours atteints (16es → vainqueur) ; probable erreur sur la ligne « demies » (4 valeurs pour 3 tours) ; éliminés en poules = 2 pts de participation + 2 pts par match gagné en poule
+  - [x] D11. Option « barème FSGT » sur le circuit (le barème personnalisable reste pour les circuits de bar)
+- [ ] Départage manuel des égalités en poule : aujourd'hui `GetGroupStageStandings` trie points > diff > marqués et départage arbitrairement les ex-aequo parfaits ; il faut détecter l'égalité, bloquer la génération du tableau final (`CheckAndGenerateKnockoutAsync` est automatique) et laisser l'admin saisir l'ordre (résultat du 701 à plusieurs joué hors appli)
+  - [x] D12. Sortie en demies : demi 6 / finale 8 / vainqueur 10 ; barème dans le même fichier de données, donc modifiable
+  - [x] D13. Qualifiés : uniquement les points du tour atteint (ils incluent la participation)
+  - [x] D14. Poule unique (2-5) : 2 pts + 2 par victoire pour tous
+  - [x] D15. Départage en poule : victoires > différence de manches > confrontation directe > départage manuel (701 hors appli). Classement du circuit : on garde les ex-aequo au même rang (comportement actuel)
+
+### E. Joueurs de la saison + pointage par tournoi (mode Ligue) (idée du 2026-11-13)
+Une liste de joueurs inscrits à la saison ; pour chaque tournoi de la saison, une page où l'admin coche simplement qui participe (au lieu d'ajouter les joueurs un par un).
+- Aujourd'hui : `Season` n'a pas de liste de joueurs, l'ajout au tournoi se fait joueur par joueur (`TournamentPlayer`)
+- Questions :
+  - [ ] E1. Liste de la saison remplie à la main par l'admin, ou aussi depuis les joueurs ayant déjà joué / l'inscription en ligne ? Infos en plus (n° de licence, club) ?
+  - [ ] E2. Un joueur hors liste peut-il participer à un tournoi de saison (invité) ? Si oui, est-il ajouté automatiquement à la liste ?
+  - [ ] E3. Tournois en double : on coche les joueurs puis on forme les paires sur la même page, ou on coche des paires ?
+  - [ ] E4. Seeding des joueurs cochés : aucun (ordre de pointage / tirage), ou d'après un classement de la saison ?
+
 ## Priorité Haute - Sécurité / Intégrité
 
 - [x] Ajouter validation des entrées sur les DTOs (password, username, noms)

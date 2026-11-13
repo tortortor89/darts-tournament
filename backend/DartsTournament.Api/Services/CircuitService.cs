@@ -18,11 +18,13 @@ public class CircuitService
 
     private readonly AppDbContext _context;
     private readonly SeasonService _seasonService;
+    private readonly FsgtFormatCatalog _fsgtFormats;
 
-    public CircuitService(AppDbContext context, SeasonService seasonService)
+    public CircuitService(AppDbContext context, SeasonService seasonService, FsgtFormatCatalog fsgtFormats)
     {
         _context = context;
         _seasonService = seasonService;
+        _fsgtFormats = fsgtFormats;
     }
 
     public async Task<List<CircuitResponse>> GetCircuitsAsync()
@@ -65,10 +67,12 @@ public class CircuitService
                     t.HasKnockoutPhase, t.AllowBracketReset,
                     circuit.Id, circuit.Name,
                     t.TeamSize == 2,
-                    circuit.SeasonId, circuit.Season?.Name))
+                    circuit.SeasonId, circuit.Season?.Name,
+                    t.UseFsgtFormat))
                 .ToList(),
             circuit.SeasonId,
-            circuit.Season?.Name);
+            circuit.Season?.Name,
+            circuit.UseFsgtPoints);
     }
 
     public async Task<CircuitResponse> CreateCircuitAsync(CreateCircuitRequest request)
@@ -86,7 +90,9 @@ public class CircuitService
             Name = request.Name,
             Description = request.Description,
             ParticipationPoints = request.ParticipationPoints,
-            Season = season
+            Season = season,
+            // Barème FSGT par défaut pour un circuit de saison, contournable
+            UseFsgtPoints = request.UseFsgtPoints ?? season != null
         };
 
         foreach (var rule in rules)
@@ -119,6 +125,7 @@ public class CircuitService
         circuit.Name = request.Name;
         circuit.Description = request.Description;
         circuit.ParticipationPoints = request.ParticipationPoints;
+        circuit.UseFsgtPoints = request.UseFsgtPoints ?? circuit.UseFsgtPoints;
 
         // Remplacement complet du barème
         _context.CircuitPointsRules.RemoveRange(circuit.PointsRules);
@@ -209,6 +216,12 @@ public class CircuitService
             .ThenInclude(tt => tt.Player2)
             .ToListAsync();
 
+        if (circuit.UseFsgtPoints)
+        {
+            return CircuitRankingCalculator.Aggregate(completedTournaments
+                .Select(t => (t, FsgtPointsCalculator.Compute(t, _fsgtFormats.Points))));
+        }
+
         var placements = completedTournaments
             .Select(t => (Tournament: t, Placements: FinalPlacementCalculator.Compute(t)));
 
@@ -228,7 +241,8 @@ public class CircuitService
         circuit.Tournaments.Count(t => t.Status == TournamentStatus.Completed),
         SortedRules(circuit),
         circuit.SeasonId,
-        circuit.Season?.Name);
+        circuit.Season?.Name,
+        circuit.UseFsgtPoints);
 
     private static List<PointsRuleDto> SortedRules(Circuit circuit) =>
         circuit.PointsRules

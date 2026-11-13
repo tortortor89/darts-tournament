@@ -65,7 +65,8 @@ public class TournamentsController : ControllerBase
                 // Saison effective : propre ou héritée du circuit
                 t.SeasonId ?? (t.Circuit != null ? t.Circuit.SeasonId : null),
                 t.Season != null ? t.Season.Name
-                    : t.Circuit != null && t.Circuit.Season != null ? t.Circuit.Season.Name : null
+                    : t.Circuit != null && t.Circuit.Season != null ? t.Circuit.Season.Name : null,
+                t.UseFsgtFormat
             ))
             .ToListAsync();
 
@@ -157,7 +158,8 @@ public class TournamentsController : ControllerBase
                 )).ToList(),
                 isDoubles
                     ? tournament.Teams.Where(tt => tt.GroupId == g.Id).Select(ToTeamResponse).ToList()
-                    : null
+                    : null,
+                g.QualifierCount
             )).ToList(),
             tournament.Matches.OrderBy(m => m.Round).ThenBy(m => m.Position).Select(m => ToMatchResponse(m, isDoubles)).ToList(),
             tournament.CircuitId,
@@ -165,7 +167,8 @@ public class TournamentsController : ControllerBase
             isDoubles,
             isDoubles ? tournament.Teams.Select(ToTeamResponse).ToList() : null,
             (tournament.Season ?? tournament.Circuit?.Season)?.Id,
-            (tournament.Season ?? tournament.Circuit?.Season)?.Name
+            (tournament.Season ?? tournament.Circuit?.Season)?.Name,
+            tournament.UseFsgtFormat
         );
 
         return Ok(response);
@@ -234,6 +237,14 @@ public class TournamentsController : ControllerBase
             }
         }
 
+        // Format FSGT : par défaut pour les tournois en poules de saison, contournable
+        bool useFsgtFormat = request.UseFsgtFormat
+            ?? (season != null && request.Format == TournamentFormat.GroupStage);
+        if (useFsgtFormat && request.Format != TournamentFormat.GroupStage)
+        {
+            return BadRequest(new { message = "Le format FSGT s'applique uniquement aux tournois en poules" });
+        }
+
         var tournament = new Tournament
         {
             Name = request.Name,
@@ -246,7 +257,8 @@ public class TournamentsController : ControllerBase
             AllowBracketReset = request.AllowBracketReset,
             CircuitId = request.CircuitId,
             SeasonId = circuit == null ? season?.Id : null,
-            TeamSize = request.IsDoubles ? 2 : 1
+            TeamSize = request.IsDoubles ? 2 : 1,
+            UseFsgtFormat = useFsgtFormat
         };
 
         _context.Tournaments.Add(tournament);
@@ -269,7 +281,8 @@ public class TournamentsController : ControllerBase
             circuit?.Name,
             tournament.TeamSize == 2,
             season?.Id,
-            season?.Name
+            season?.Name,
+            tournament.UseFsgtFormat
         );
 
         return CreatedAtAction(nameof(GetTournament), new { id = tournament.Id }, response);
@@ -800,6 +813,31 @@ public class TournamentsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Départager une égalité parfaite en poule (ordre saisi par l'admin)
+    /// </summary>
+    /// <param name="id">Identifiant du tournoi</param>
+    /// <param name="groupId">Identifiant de la poule</param>
+    /// <param name="request">Côtés ex-aequo dans l'ordre final</param>
+    /// <response code="204">Départage enregistré (phase finale générée si plus rien ne la bloque)</response>
+    /// <response code="400">Poule introuvable, phase finale déjà générée ou côtés invalides</response>
+    [HttpPut("{id}/groups/{groupId}/tiebreak")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SetGroupTieBreak(int id, int groupId, SetGroupTieBreakRequest request)
+    {
+        try
+        {
+            await _tournamentService.SetGroupTieBreakOrderAsync(id, groupId, request.SideIds);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
     }
 

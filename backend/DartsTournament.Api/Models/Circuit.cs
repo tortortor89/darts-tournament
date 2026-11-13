@@ -9,6 +9,10 @@ public class Circuit
     // Points attribués quand le rang final ne correspond à aucune règle du barème
     public int ParticipationPoints { get; set; } = 10;
 
+    // Barème FSGT « Point Tournois » (tour atteint selon le nombre d'inscrits) au lieu
+    // du barème personnalisable par rang (PointsRules + ParticipationPoints)
+    public bool UseFsgtPoints { get; set; }
+
     // Saison (optionnelle) : s'applique aussi aux tournois du circuit
     public int? SeasonId { get; set; }
     public Season? Season { get; set; }

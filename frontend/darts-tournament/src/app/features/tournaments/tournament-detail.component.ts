@@ -33,7 +33,9 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
         @if (tournament.seasonName && features.isEnabled('seasons')) {
           <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a> (501 double out)</p>
         }
-        @if (tournament.format === TournamentFormat.GroupStage) {
+        @if (tournament.format === TournamentFormat.GroupStage && tournament.useFsgtFormat) {
+          <p>Format FSGT : poules et tableau final selon le nombre d'inscrits</p>
+        } @else if (tournament.format === TournamentFormat.GroupStage) {
           <p>
             {{ tournament.numberOfGroups || 'Auto' }} groupes,
             {{ tournament.qualifiersPerGroup || 2 }} qualifiés/groupe
@@ -243,8 +245,8 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
                       </thead>
                       <tbody>
                         @for (player of group.standings; track player.playerId) {
-                          <tr [class.qualified]="player.rank <= (tournament.qualifiersPerGroup || 2)">
-                            <td>{{ player.rank }}</td>
+                          <tr [class.qualified]="player.rank <= qualifiersFor(group.groupId)">
+                            <td>{{ player.rank }}{{ player.tieUnresolved ? '=' : '' }}</td>
                             <td>{{ player.playerName }}</td>
                             <td>{{ player.played }}</td>
                             <td>{{ player.won }}</td>
@@ -255,6 +257,27 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
                         }
                       </tbody>
                     </table>
+                    <!-- Égalité parfaite sur une place qualificative : la phase finale attend le départage -->
+                    @for (block of blockingTies(group); track block.key) {
+                      <div class="tie-break">
+                        <p>
+                          Égalité parfaite à départager (victoires, différence de manches, confrontation directe) :
+                          la phase finale sera générée une fois l'ordre saisi.
+                        </p>
+                        @if (authService.isAdmin() && !hasKnockoutMatches()) {
+                          <ol>
+                            @for (sideId of tieOrder(block); track sideId; let i = $index, last = $last) {
+                              <li>
+                                <span>{{ standingName(group, sideId) }}</span>
+                                <button type="button" class="tie-move" [disabled]="i === 0" (click)="moveTie(block, i, -1)" title="Monter">▲</button>
+                                <button type="button" class="tie-move" [disabled]="last" (click)="moveTie(block, i, 1)" title="Descendre">▼</button>
+                              </li>
+                            }
+                          </ol>
+                          <button type="button" (click)="saveTieBreak(group.groupId, block)">Valider l'ordre</button>
+                        }
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -793,6 +816,17 @@ import { MatchExploitsDialogComponent } from '../matches/components/match-exploi
     }
     .group-standings td:nth-child(2) { text-align: left; }
     .group-standings tr.qualified { background: color-mix(in srgb, var(--success) 8%, transparent); }
+    .tie-break {
+      padding: 10px 14px;
+      background: var(--accent-soft);
+      border-top: 1px solid var(--border-light);
+      font-size: 0.9em;
+    }
+    .tie-break p { margin: 0 0 8px; }
+    .tie-break ol { margin: 0 0 8px; padding-left: 20px; }
+    .tie-break li { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .tie-break li span { flex: 1; }
+    .tie-move { padding: 2px 8px; font-size: 0.8em; }
 
     /* Group Matches */
     .group-matches { margin-bottom: 20px; }
@@ -1174,6 +1208,61 @@ export class TournamentDetailComponent implements OnInit {
   // Exploits suivis sur les matchs de saison (tournoi rattaché ou circuit de saison)
   get canTrackExploits(): boolean {
     return !!this.tournament?.seasonId && this.features.isEnabled('seasons') && this.features.isEnabled('exploits');
+  }
+
+  // Ordres de départage en cours d'édition, par bloc d'ex-aequo
+  private tieOrders: Record<string, number[]> = {};
+
+  // Blocs d'ex-aequo non tranchés qui touchent une place qualificative
+  blockingTies(group: GroupStanding): { key: string; sideIds: number[] }[] {
+    const qualifiers = this.qualifiersFor(group.groupId);
+    const byRank = new Map<number, number[]>();
+    for (const s of group.standings) {
+      if (s.tieUnresolved && s.rank <= qualifiers) {
+        byRank.set(s.rank, [...(byRank.get(s.rank) ?? []), s.playerId]);
+      }
+    }
+    return [...byRank.entries()].map(([rank, sideIds]) => ({ key: `${group.groupId}-${rank}`, sideIds }));
+  }
+
+  tieOrder(block: { key: string; sideIds: number[] }): number[] {
+    const current = this.tieOrders[block.key];
+    // Réinitialise si le bloc a changé (correction de score)
+    if (!current || current.length !== block.sideIds.length || !current.every(id => block.sideIds.includes(id))) {
+      this.tieOrders[block.key] = [...block.sideIds];
+    }
+    return this.tieOrders[block.key];
+  }
+
+  moveTie(block: { key: string; sideIds: number[] }, index: number, delta: number) {
+    const order = this.tieOrder(block);
+    [order[index], order[index + delta]] = [order[index + delta], order[index]];
+  }
+
+  standingName(group: GroupStanding, sideId: number): string {
+    return group.standings.find(s => s.playerId === sideId)?.playerName ?? '';
+  }
+
+  saveTieBreak(groupId: number, block: { key: string; sideIds: number[] }) {
+    const tournamentId = this.tournament!.id;
+    this.apiService.setGroupTieBreak(tournamentId, groupId, this.tieOrder(block))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          delete this.tieOrders[block.key];
+          this.notificationService.showSuccess('Départage enregistré');
+          this.loadTournament(tournamentId);
+        },
+        error: (err) => {
+          this.notificationService.showError(err.error?.message || 'Erreur lors du départage');
+        }
+      });
+  }
+
+  // Qualifiés d'une poule : imposés par la grille en format FSGT, sinon réglage du tournoi
+  qualifiersFor(groupId: number): number {
+    const group = this.tournament?.groups.find(g => g.id === groupId);
+    return group?.qualifierCount ?? this.tournament?.qualifiersPerGroup ?? 2;
   }
 
   ngOnInit() {

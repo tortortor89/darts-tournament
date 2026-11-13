@@ -27,7 +27,10 @@ public record CreateCircuitRequest(
     // null => barème par défaut
     List<PointsRuleDto>? PointsRules = null,
 
-    int? SeasonId = null
+    int? SeasonId = null,
+
+    // Barème FSGT ; null = activé par défaut pour un circuit de saison
+    bool? UseFsgtPoints = null
 );
 
 public record UpdateCircuitRequest(
@@ -42,7 +45,10 @@ public record UpdateCircuitRequest(
     int ParticipationPoints,
 
     // Remplacement complet du barème
-    List<PointsRuleDto> PointsRules
+    List<PointsRuleDto> PointsRules,
+
+    // Barème FSGT ; null = inchangé
+    bool? UseFsgtPoints = null
 );
 
 public record AttachTournamentRequest(
@@ -60,7 +66,8 @@ public record CircuitResponse(
     int CompletedTournamentCount,
     List<PointsRuleDto> PointsRules,
     int? SeasonId = null,
-    string? SeasonName = null
+    string? SeasonName = null,
+    bool UseFsgtPoints = false
 );
 
 public record CircuitDetailResponse(
@@ -72,7 +79,8 @@ public record CircuitDetailResponse(
     List<PointsRuleDto> PointsRules,
     List<TournamentResponse> Tournaments,
     int? SeasonId = null,
-    string? SeasonName = null
+    string? SeasonName = null,
+    bool UseFsgtPoints = false
 );
 
 public record CircuitTournamentPointsResponse(

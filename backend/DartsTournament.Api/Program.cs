@@ -105,6 +105,9 @@ builder.Services.Configure<BrandingOptions>(builder.Configuration.GetSection(Bra
 // Services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TournamentService>();
+// Grille FSGT (formats de tableaux selon le nombre d'inscrits), chargée et validée au démarrage
+builder.Services.AddSingleton(FsgtFormatCatalog.Load(
+    Path.Combine(AppContext.BaseDirectory, "Data", FsgtFormatCatalog.DefaultFileName)));
 builder.Services.AddScoped<MatchSessionService>();
 builder.Services.AddScoped<MatchStatsService>();
 builder.Services.AddScoped<PlayerService>();

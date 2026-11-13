@@ -35,7 +35,7 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
               </select>
               <input type="date" [(ngModel)]="form.startDate" name="startDate">
               @if (features.isEnabled('circuits') && circuits.length > 0) {
-                <select [(ngModel)]="form.circuitId" name="circuitId">
+                <select [(ngModel)]="form.circuitId" name="circuitId" (ngModelChange)="onSeasonContextChange()">
                   <option [ngValue]="null">Aucun circuit</option>
                   @for (circuit of circuits; track circuit.id) {
                     <option [ngValue]="circuit.id">{{ circuit.name }}</option>
@@ -44,7 +44,7 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
               }
               <!-- Un tournoi de circuit suit la saison du circuit -->
               @if (form.circuitId === null && openSeasons.length > 0) {
-                <select [(ngModel)]="form.seasonId" name="seasonId">
+                <select [(ngModel)]="form.seasonId" name="seasonId" (ngModelChange)="onSeasonContextChange()">
                   <option [ngValue]="null">Hors saison</option>
                   @for (season of openSeasons; track season.id) {
                     <option [ngValue]="season.id">{{ season.name }} (501 DO)</option>
@@ -63,6 +63,15 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
             }
 
             @if (form.format == TournamentFormat.GroupStage) {
+              <div class="form-row">
+                <label class="checkbox-label">
+                  <input type="checkbox" [(ngModel)]="form.useFsgtFormat" name="useFsgtFormat">
+                  Format FSGT (poules et tableau selon le nombre d'inscrits, 2 à 80)
+                </label>
+              </div>
+            }
+
+            @if (form.format == TournamentFormat.GroupStage && !form.useFsgtFormat) {
               <div class="form-row group-config">
                 <label>
                   Nombre de groupes
@@ -103,7 +112,11 @@ import { Tournament, TournamentFormat, TournamentStatus, Circuit, Season, Season
               <p>Saison: <a [routerLink]="['/seasons', tournament.seasonId]">{{ tournament.seasonName }}</a></p>
             }
             @if (tournament.format === TournamentFormat.GroupStage && tournament.numberOfGroups) {
-              <p>{{ tournament.numberOfGroups }} groupes, {{ tournament.qualifiersPerGroup || 2 }} qualifiés/groupe</p>
+              @if (tournament.useFsgtFormat) {
+                <p>Format FSGT</p>
+              } @else {
+                <p>{{ tournament.numberOfGroups }} groupes, {{ tournament.qualifiersPerGroup || 2 }} qualifiés/groupe</p>
+              }
             }
             @if (tournament.startDate) {
               <p>Date: {{ tournament.startDate | date:'dd/MM/yyyy' }}</p>
@@ -270,7 +283,8 @@ export class TournamentListComponent implements OnInit {
     hasKnockoutPhase: true,
     circuitId: null as number | null,
     seasonId: null as number | null,
-    isDoubles: false
+    isDoubles: false,
+    useFsgtFormat: false
   };
   loading = false;
 
@@ -310,6 +324,12 @@ export class TournamentListComponent implements OnInit {
     });
   }
 
+  // Format FSGT par défaut pour les tournois de saison (propre ou via le circuit)
+  onSeasonContextChange() {
+    const circuit = this.circuits.find(c => c.id === this.form.circuitId);
+    this.form.useFsgtFormat = circuit ? circuit.seasonId != null : this.form.seasonId !== null;
+  }
+
   onFormatChange() {
     if (this.form.format != TournamentFormat.GroupStage) {
       this.form.numberOfGroups = null;
@@ -341,6 +361,7 @@ export class TournamentListComponent implements OnInit {
       }
       data.qualifiersPerGroup = this.form.qualifiersPerGroup;
       data.hasKnockoutPhase = this.form.hasKnockoutPhase;
+      data.useFsgtFormat = this.form.useFsgtFormat;
     }
 
     this.apiService.createTournament(data).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(newTournament => {
@@ -355,7 +376,8 @@ export class TournamentListComponent implements OnInit {
         hasKnockoutPhase: true,
         circuitId: null,
         seasonId: null,
-        isDoubles: false
+        isDoubles: false,
+        useFsgtFormat: false
       };
     });
   }

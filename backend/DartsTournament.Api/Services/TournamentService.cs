@@ -8,10 +8,12 @@ namespace DartsTournament.Api.Services;
 public class TournamentService
 {
     private readonly AppDbContext _context;
+    private readonly FsgtFormatCatalog _fsgtFormats;
 
-    public TournamentService(AppDbContext context)
+    public TournamentService(AppDbContext context, FsgtFormatCatalog fsgtFormats)
     {
         _context = context;
+        _fsgtFormats = fsgtFormats;
     }
 
     public async Task GenerateBracketAsync(int tournamentId)
@@ -67,16 +69,9 @@ public class TournamentService
 
     private void GenerateSingleEliminationBracket(Tournament tournament, List<Side> sides, bool isKnockout = false, int roundOffset = 0)
     {
-        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         int sideCount = sides.Count;
         int rounds = (int)Math.Ceiling(Math.Log2(sideCount));
         int bracketSize = (int)Math.Pow(2, rounds);
-
-        var matches = new List<Match>();
-
-        // Calculate position offset for knockout matches
-        int positionOffset = isKnockout ? _context.Matches.Local.Count(m => m.TournamentId == tournament.Id) : 0;
-        int matchPosition = positionOffset;
 
         // Get bracket positions for proper seeding
         var bracketPositions = GenerateBracketPositions(bracketSize);
@@ -89,6 +84,25 @@ public class TournamentService
             int pos = bracketPositions[seed - 1];
             positionToSide[pos] = sides[seed - 1].Id;
         }
+
+        BuildSingleEliminationMatches(tournament, positionToSide, isKnockout, roundOffset);
+    }
+
+    /// <summary>
+    /// Crée les matchs d'un tableau à élimination directe à partir du placement du
+    /// premier tour (taille puissance de 2, null = exempt).
+    /// </summary>
+    private void BuildSingleEliminationMatches(Tournament tournament, int?[] positionToSide, bool isKnockout, int roundOffset)
+    {
+        bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
+        int bracketSize = positionToSide.Length;
+        int rounds = (int)Math.Log2(bracketSize);
+
+        var matches = new List<Match>();
+
+        // Calculate position offset for knockout matches
+        int positionOffset = isKnockout ? _context.Matches.Local.Count(m => m.TournamentId == tournament.Id) : 0;
+        int matchPosition = positionOffset;
 
         // First round - create matches based on bracket positions
         int matchesInFirstRound = bracketSize / 2;
@@ -397,9 +411,28 @@ public class TournamentService
             .ToListAsync();
         _context.Groups.RemoveRange(existingGroups);
 
+        // Format FSGT : poules de tailles imposées par la grille, qualifiés par poule
+        // et affiches du tableau final figés sur le tournoi
+        FsgtFormatVariant? fsgt = null;
+        if (tournament.UseFsgtFormat)
+        {
+            fsgt = _fsgtFormats.GetDefault(sides.Count)
+                ?? throw new InvalidOperationException(
+                    $"Le format FSGT couvre de {_fsgtFormats.MinPlayers} à {_fsgtFormats.MaxPlayers} inscrits ({sides.Count} actuellement)");
+
+            tournament.HasKnockoutPhase = fsgt.HasKnockout;
+            tournament.KnockoutPairings = fsgt.HasKnockout
+                ? FsgtDrawCalculator.SerializePairings(fsgt.Bracket)
+                : null;
+        }
+
         // Calculate number of groups
         int groupCount;
-        if (tournament.NumberOfGroups.HasValue)
+        if (fsgt != null)
+        {
+            groupCount = fsgt.Groups.Count;
+        }
+        else if (tournament.NumberOfGroups.HasValue)
         {
             groupCount = tournament.NumberOfGroups.Value;
         }
@@ -422,7 +455,8 @@ public class TournamentService
             groups.Add(new Group
             {
                 TournamentId = tournament.Id,
-                Name = $"Groupe {(char)('A' + i)}"
+                Name = $"Groupe {(char)('A' + i)}",
+                QualifierCount = fsgt?.Groups[i].Qualifiers
             });
         }
 
@@ -431,12 +465,16 @@ public class TournamentService
 
         // Assign sides to groups using snake draft (respects seeding)
         // Snake: Group A, B, C, D, D, C, B, A, A, B, C, D...
+        // FSGT : même serpentin en sautant les poules pleines
+        var groupIndexBySeed = fsgt != null
+            ? FsgtDrawCalculator.AssignGroups(sides.Count, fsgt.Groups.Select(g => g.Size).ToList())
+            : null;
         var sideGroupIds = new Dictionary<int, int>(); // sideId -> groupId
         for (int i = 0; i < sides.Count; i++)
         {
             int row = i / groupCount;
             int col = i % groupCount;
-            int groupIndex = row % 2 == 0 ? col : groupCount - 1 - col;
+            int groupIndex = groupIndexBySeed?[i] ?? (row % 2 == 0 ? col : groupCount - 1 - col);
             int groupId = groups[groupIndex].Id;
 
             sideGroupIds[sides[i].Id] = groupId;
@@ -627,11 +665,19 @@ public class TournamentService
         };
     }
 
+    // Départage historique (hors FSGT) : égalités parfaites tranchées arbitrairement
+    private static readonly TieBreaker[] LegacyTieBreakers =
+        { TieBreaker.Wins, TieBreaker.LegDifference, TieBreaker.LegsWon };
+
     private List<GroupStandingResponse> GetGroupStageStandings(Tournament tournament)
     {
         bool isDoubles = MatchSideAccessor.IsDoubles(tournament);
         var allSides = MatchSideAccessor.GetSides(tournament);
         var result = new List<GroupStandingResponse>();
+
+        // Format FSGT : critères de la grille, puis ordre manuel de l'admin ; une
+        // égalité parfaite reste signalée (rang partagé) tant qu'elle n'est pas tranchée
+        var criteria = tournament.UseFsgtFormat ? _fsgtFormats.TieBreakers : LegacyTieBreakers;
 
         foreach (var group in tournament.Groups.OrderBy(g => g.Name))
         {
@@ -639,68 +685,61 @@ public class TournamentService
                 .Where(s => s.GroupId == group.Id)
                 .ToList();
 
-            var groupMatches = tournament.Matches
-                .Where(m => m.GroupId == group.Id && m.Status == MatchStatus.Completed)
+            var allGroupMatches = tournament.Matches
+                .Where(m => m.GroupId == group.Id)
+                .ToList();
+            var results = allGroupMatches
+                .Where(m => m.Status == MatchStatus.Completed)
+                .Select(m => new GroupMatchResult(
+                    MatchSideAccessor.GetSide1Id(m, isDoubles) ?? 0,
+                    MatchSideAccessor.GetSide2Id(m, isDoubles) ?? 0,
+                    m.Player1Score ?? 0,
+                    m.Player2Score ?? 0,
+                    MatchSideAccessor.GetWinnerSideId(m, isDoubles)))
                 .ToList();
 
-            var standings = new List<PlayerStandingResponse>();
+            // Égalités signalées seulement une fois la poule terminée
+            bool groupCompleted = allGroupMatches.All(m => m.Status == MatchStatus.Completed);
 
-            foreach (var side in groupSides)
-            {
-                var sideMatches = groupMatches
-                    .Where(m => MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id
-                        || MatchSideAccessor.GetSide2Id(m, isDoubles) == side.Id)
-                    .ToList();
+            var ranking = GroupRankingCalculator.Rank(
+                groupSides.Select(s => s.Id).ToList(),
+                results,
+                criteria,
+                ParseTieBreakOrder(group.TieBreakOrder),
+                shareUnresolvedRanks: tournament.UseFsgtFormat && groupCompleted);
 
-                int played = sideMatches.Count;
-                int won = sideMatches.Count(m => MatchSideAccessor.GetWinnerSideId(m, isDoubles) == side.Id);
-                int lost = played - won;
-
-                int pointsFor = sideMatches.Sum(m =>
-                    MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player1Score ?? 0) : (m.Player2Score ?? 0));
-                int pointsAgainst = sideMatches.Sum(m =>
-                    MatchSideAccessor.GetSide1Id(m, isDoubles) == side.Id ? (m.Player2Score ?? 0) : (m.Player1Score ?? 0));
-
-                int points = won * 3; // 3 points per win
-
-                standings.Add(new PlayerStandingResponse(
-                    side.Id,
-                    side.Name,
-                    played,
-                    won,
-                    lost,
-                    pointsFor,
-                    pointsAgainst,
-                    pointsFor - pointsAgainst,
-                    points,
-                    0 // Rank will be set after sorting
-                ));
-            }
-
-            // Sort by points, then point difference, then points for
-            var sortedStandings = standings
-                .OrderByDescending(s => s.Points)
-                .ThenByDescending(s => s.PointsDiff)
-                .ThenByDescending(s => s.PointsFor)
-                .Select((s, index) => new PlayerStandingResponse(
-                    s.PlayerId,
-                    s.PlayerName,
-                    s.Played,
-                    s.Won,
-                    s.Lost,
-                    s.PointsFor,
-                    s.PointsAgainst,
-                    s.PointsDiff,
-                    s.Points,
-                    index + 1
-                ))
+            var standings = ranking
+                .Select(r => new PlayerStandingResponse(
+                    r.SideId,
+                    groupSides.First(s => s.Id == r.SideId).Name,
+                    r.Played,
+                    r.Won,
+                    r.Played - r.Won,
+                    r.LegsFor,
+                    r.LegsAgainst,
+                    r.LegsFor - r.LegsAgainst,
+                    r.Won * 3, // 3 points per win
+                    r.Rank,
+                    r.TieUnresolved))
                 .ToList();
 
-            result.Add(new GroupStandingResponse(group.Id, group.Name, sortedStandings));
+            result.Add(new GroupStandingResponse(group.Id, group.Name, standings));
         }
 
         return result;
     }
+
+    private static bool HasBlockingTie(Tournament tournament, List<GroupStandingResponse> standings, int qualifiersPerGroup) =>
+        standings.Any(g =>
+        {
+            int qualifiers = tournament.Groups.First(gr => gr.Id == g.GroupId).QualifierCount ?? qualifiersPerGroup;
+            return g.Standings.Any(s => s.TieUnresolved && s.Rank <= qualifiers);
+        });
+
+    private static List<int>? ParseTieBreakOrder(string? order) =>
+        string.IsNullOrWhiteSpace(order)
+            ? null
+            : order.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
 
     private List<GroupStandingResponse> GetDoubleEliminationStandings(Tournament tournament)
     {
@@ -832,6 +871,39 @@ public class TournamentService
         // Get standings to determine qualifiers
         var standings = await GetStandingsAsync(tournamentId);
 
+        // Égalité parfaite non tranchée sur une place qualificative : on attend
+        // le départage manuel de l'admin (SetGroupTieBreakOrderAsync relance la génération)
+        if (HasBlockingTie(tournament, standings, qualifiersPerGroup))
+            return;
+
+        // Phase finale à jouer : le tournoi reste en cours (rattrape aussi un tournoi
+        // clos à tort pendant l'attente d'un départage)
+        tournament.Status = TournamentStatus.InProgress;
+
+        // Format FSGT : affiches imposées (1p1 contre 2p2...), pas de seeding générique
+        if (tournament.KnockoutPairings != null)
+        {
+            var qualifiedByGroup = standings
+                .OrderBy(g => g.GroupName)
+                .Select(g =>
+                {
+                    int count = tournament.Groups.First(gr => gr.Id == g.GroupId).QualifierCount ?? qualifiersPerGroup;
+                    return (IReadOnlyList<int>)g.Standings
+                        .OrderBy(s => s.Rank)
+                        .Take(count)
+                        .Select(s => s.PlayerId)
+                        .ToList();
+                })
+                .ToList();
+
+            var firstRound = FsgtDrawCalculator.ResolveFirstRound(tournament.KnockoutPairings, qualifiedByGroup);
+            BuildSingleEliminationMatches(tournament, firstRound.Select(id => (int?)id).ToArray(),
+                isKnockout: true, roundOffset: 1);
+
+            await _context.SaveChangesAsync();
+            return;
+        }
+
         // Collect qualified sides from each group (PlayerId = id de côté dans les standings)
         var allSides = MatchSideAccessor.GetSides(tournament);
         var qualifiedSides = new List<(Side Side, int GroupIndex, int Rank)>();
@@ -839,8 +911,9 @@ public class TournamentService
 
         foreach (var groupStanding in standings.OrderBy(g => g.GroupName))
         {
+            var group = tournament.Groups.First(g => g.Id == groupStanding.GroupId);
             var qualifiers = groupStanding.Standings
-                .Where(s => s.Rank <= qualifiersPerGroup)
+                .Where(s => s.Rank <= (group.QualifierCount ?? qualifiersPerGroup))
                 .ToList();
 
             foreach (var qualifier in qualifiers)
@@ -1022,6 +1095,41 @@ public class TournamentService
         await CheckTournamentCompletionAsync(match.TournamentId.Value);
     }
 
+    /// <summary>
+    /// Départage manuel d'une égalité parfaite en poule (ex. 701 à plusieurs joué hors
+    /// appli) : <paramref name="sideIds"/> = côtés ex-aequo dans l'ordre final. Relance
+    /// la génération de la phase finale si plus rien ne la bloque.
+    /// </summary>
+    public async Task SetGroupTieBreakOrderAsync(int tournamentId, int groupId, List<int> sideIds)
+    {
+        var group = await _context.Groups
+            .FirstOrDefaultAsync(g => g.Id == groupId && g.TournamentId == tournamentId)
+            ?? throw new InvalidOperationException("Poule introuvable");
+
+        if (await _context.Matches.AnyAsync(m => m.TournamentId == tournamentId && m.IsKnockoutMatch))
+            throw new InvalidOperationException("La phase finale est déjà générée : le classement des poules est figé");
+
+        if (sideIds.Distinct().Count() != sideIds.Count)
+            throw new InvalidOperationException("Un même côté apparaît plusieurs fois dans l'ordre de départage");
+
+        var standings = await GetStandingsAsync(tournamentId);
+        var groupStanding = standings.First(g => g.GroupId == groupId);
+        var groupSideIds = groupStanding.Standings.Select(s => s.PlayerId).ToHashSet();
+        if (!sideIds.All(groupSideIds.Contains))
+            throw new InvalidOperationException("Un des côtés ne fait pas partie de cette poule");
+
+        // Plusieurs égalités possibles dans une poule : on garde les départages
+        // précédents et on place celui-ci à la suite (seul l'ordre relatif compte)
+        var order = (ParseTieBreakOrder(group.TieBreakOrder) ?? new List<int>())
+            .Where(id => !sideIds.Contains(id))
+            .Concat(sideIds);
+        group.TieBreakOrder = string.Join(",", order);
+
+        await _context.SaveChangesAsync();
+
+        await CheckAndGenerateKnockoutAsync(tournamentId);
+    }
+
     private async Task CheckAndGenerateKnockoutAsync(int tournamentId)
     {
         // Use a transaction with row-level locking to prevent race conditions
@@ -1080,11 +1188,17 @@ public class TournamentService
         if (allMatchesCompleted)
         {
             var tournament = await _context.Tournaments.FindAsync(tournamentId);
-            if (tournament != null)
-            {
-                tournament.Status = TournamentStatus.Completed;
-                await _context.SaveChangesAsync();
-            }
+            if (tournament == null)
+                return;
+
+            // Poules terminées mais phase finale pas encore générée (égalité à
+            // départager) : le tournoi n'est pas fini
+            if (tournament.Format == TournamentFormat.GroupStage && tournament.HasKnockoutPhase
+                && !await _context.Matches.AnyAsync(m => m.TournamentId == tournamentId && m.IsKnockoutMatch))
+                return;
+
+            tournament.Status = TournamentStatus.Completed;
+            await _context.SaveChangesAsync();
         }
     }
 

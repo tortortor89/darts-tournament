@@ -31,7 +31,11 @@ public record CreateTournamentRequest(
     bool IsDoubles = false,
 
     // Saison (hors circuit : un tournoi de circuit prend la saison du circuit)
-    int? SeasonId = null
+    int? SeasonId = null,
+
+    // Format FSGT (poules selon le nombre d'inscrits) ; null = activé par défaut
+    // pour un tournoi en poules rattaché à une saison
+    bool? UseFsgtFormat = null
 );
 
 public record UpdateTournamentRequest(
@@ -68,7 +72,8 @@ public record TournamentResponse(
     bool IsDoubles = false,
     // Saison effective (propre ou héritée du circuit)
     int? SeasonId = null,
-    string? SeasonName = null
+    string? SeasonName = null,
+    bool UseFsgtFormat = false
 );
 
 public record TournamentDetailResponse(
@@ -91,11 +96,12 @@ public record TournamentDetailResponse(
     bool IsDoubles = false,
     List<TournamentTeamResponse>? Teams = null,
     int? SeasonId = null,
-    string? SeasonName = null
+    string? SeasonName = null,
+    bool UseFsgtFormat = false
 );
 
 public record TournamentPlayerResponse(int PlayerId, string FirstName, string LastName, string? Nickname, int? Seed, int? GroupId, RegistrationStatus Status);
-public record GroupResponse(int Id, string Name, List<TournamentPlayerResponse> Players, List<TournamentTeamResponse>? Teams = null);
+public record GroupResponse(int Id, string Name, List<TournamentPlayerResponse> Players, List<TournamentTeamResponse>? Teams = null, int? QualifierCount = null);
 
 public record CreateTournamentTeamRequest(
     [Range(1, int.MaxValue, ErrorMessage = "L'identifiant du joueur 1 est invalide")]
@@ -135,5 +141,13 @@ public record PlayerStandingResponse(
     int PointsAgainst,
     int PointsDiff,
     int Points,
-    int Rank
+    int Rank,
+    // Égalité parfaite à départager à la main (rang partagé)
+    bool TieUnresolved = false
+);
+
+public record SetGroupTieBreakRequest(
+    [Required(ErrorMessage = "L'ordre de départage est requis")]
+    [MinLength(2, ErrorMessage = "Au moins 2 côtés à départager")]
+    List<int> SideIds
 );

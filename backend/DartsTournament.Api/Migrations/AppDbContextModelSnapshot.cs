@@ -83,6 +83,9 @@ namespace DartsTournament.Api.Migrations
                     b.Property<int?>("SeasonId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("UseFsgtPoints")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SeasonId");
@@ -190,6 +193,12 @@ namespace DartsTournament.Api.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("QualifierCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TieBreakOrder")
                         .HasColumnType("text");
 
                     b.Property<int>("TournamentId")
@@ -621,6 +630,9 @@ namespace DartsTournament.Api.Migrations
                     b.Property<bool>("HasKnockoutPhase")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("KnockoutPairings")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -647,6 +659,9 @@ namespace DartsTournament.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(1);
+
+                    b.Property<bool>("UseFsgtFormat")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 

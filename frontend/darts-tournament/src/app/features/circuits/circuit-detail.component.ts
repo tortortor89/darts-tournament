@@ -118,7 +118,22 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
         <!-- Barème -->
         <div class="section">
           <h3>Barème de points</h3>
-          @if (!editingRules) {
+          @if (!editingRules && circuit.useFsgtPoints) {
+            <div class="fsgt-points">
+              <p><strong>Barème FSGT</strong> : points du tour atteint, selon le nombre d'inscrits du tournoi.</p>
+              <ul>
+                <li>6 à 10 inscrits : demi 6, finale 8, vainqueur 10</li>
+                <li>11 à 16 : quart 8, demi 10, finale 12, vainqueur 14</li>
+                <li>17 à 20 : quart 10, demi 12, finale 14, vainqueur 16</li>
+                <li>21 à 40 : 8e 10, quart 12, demi 14, finale 16, vainqueur 18</li>
+                <li>41 à 80 : 16e 10, 8e 12, quart 14, demi 16, finale 18, vainqueur 20</li>
+                <li>Éliminés en poules (et poule unique) : 2 pts + 2 par victoire en poule</li>
+              </ul>
+            </div>
+            @if (authService.isAdmin()) {
+              <button class="edit-btn" (click)="startEditRules()">Modifier le barème</button>
+            }
+          } @else if (!editingRules) {
             <table class="rules-table">
               <thead>
                 <tr><th>Place</th><th>Points</th></tr>
@@ -140,6 +155,17 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
               <button class="edit-btn" (click)="startEditRules()">Modifier le barème</button>
             }
           } @else {
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="editUseFsgtPoints" name="useFsgtPoints">
+              Barème FSGT (au lieu du barème par place ci-dessous)
+            </label>
+          }
+          @if (editingRules && editUseFsgtPoints) {
+            <div class="edit-actions">
+              <button class="save" (click)="saveRules()">Enregistrer</button>
+              <button class="cancel" (click)="editingRules = false">Annuler</button>
+            </div>
+          } @else if (editingRules) {
             <table class="rules-table editing">
               <thead>
                 <tr><th>De la place</th><th>À la place</th><th>Points</th><th></th></tr>
@@ -171,6 +197,8 @@ import { CircuitDetail, CircuitStanding, CircuitPointsRule, Tournament, Tourname
     </div>
   `,
   styles: [`
+    .fsgt-points ul { margin: 6px 0 12px; padding-left: 20px; color: var(--text-muted); }
+    .checkbox-label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; }
     .container {
       max-width: 900px;
       margin: 20px auto;
@@ -352,6 +380,7 @@ export class CircuitDetailComponent implements OnInit {
   editingRules = false;
   editRules: CircuitPointsRule[] = [];
   editParticipationPoints = 10;
+  editUseFsgtPoints = false;
 
   TournamentStatus = TournamentStatus;
 
@@ -432,6 +461,7 @@ export class CircuitDetailComponent implements OnInit {
     if (!this.circuit) return;
     this.editRules = this.circuit.pointsRules.map(r => ({ ...r }));
     this.editParticipationPoints = this.circuit.participationPoints;
+    this.editUseFsgtPoints = this.circuit.useFsgtPoints;
     this.editingRules = true;
   }
 
@@ -452,7 +482,8 @@ export class CircuitDetailComponent implements OnInit {
       name: this.circuit.name,
       description: this.circuit.description,
       participationPoints: this.editParticipationPoints,
-      pointsRules: this.editRules
+      pointsRules: this.editRules,
+      useFsgtPoints: this.editUseFsgtPoints
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.notificationService.showSuccess('Barème mis à jour');
       this.editingRules = false;

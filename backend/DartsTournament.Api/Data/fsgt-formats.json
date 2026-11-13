@@ -1,0 +1,3275 @@
+{
+  "source": "2 Répartition des Joueurs par poules.xlsx",
+  "generatedBy": "tools/fsgt/extract_fsgt_formats.py",
+  "points": {
+    "poolElimination": {"participation": 2, "perWin": 2},
+    "knockout": [
+      {"minPlayers": 6, "maxPlayers": 10, "semiFinal": 6, "final": 8, "winner": 10},
+      {"minPlayers": 11, "maxPlayers": 16, "quarterFinal": 8, "semiFinal": 10, "final": 12, "winner": 14},
+      {"minPlayers": 17, "maxPlayers": 20, "quarterFinal": 10, "semiFinal": 12, "final": 14, "winner": 16},
+      {"minPlayers": 21, "maxPlayers": 40, "roundOf16": 10, "quarterFinal": 12, "semiFinal": 14, "final": 16, "winner": 18},
+      {"minPlayers": 41, "maxPlayers": 80, "roundOf32": 10, "roundOf16": 12, "quarterFinal": 14, "semiFinal": 16, "final": 18, "winner": 20}
+    ]
+  },
+  "tieBreakers": ["wins", "legDifference", "headToHead"],
+  "formats": [
+    {
+      "players": 2,
+      "variants": [
+        {
+          "default": true,
+          "knockout": null,
+          "matchCount": 1,
+          "groups": [
+            {"size": 2, "qualifiers": 0}
+          ],
+          "bracket": []
+        }
+      ]
+    },
+    {
+      "players": 3,
+      "variants": [
+        {
+          "default": true,
+          "knockout": null,
+          "matchCount": 3,
+          "groups": [
+            {"size": 3, "qualifiers": 0}
+          ],
+          "bracket": []
+        }
+      ]
+    },
+    {
+      "players": 4,
+      "variants": [
+        {
+          "default": true,
+          "knockout": null,
+          "matchCount": 6,
+          "groups": [
+            {"size": 4, "qualifiers": 0}
+          ],
+          "bracket": []
+        }
+      ]
+    },
+    {
+      "players": 5,
+      "variants": [
+        {
+          "default": true,
+          "knockout": null,
+          "matchCount": 10,
+          "groups": [
+            {"size": 5, "qualifiers": 0}
+          ],
+          "bracket": []
+        }
+      ]
+    },
+    {
+      "players": 6,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "SemiFinal",
+          "matchCount": 9,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 7,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "SemiFinal",
+          "matchCount": 12,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 8,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "SemiFinal",
+          "matchCount": 15,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 9,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "SemiFinal",
+          "matchCount": 19,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 10,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "SemiFinal",
+          "matchCount": 23,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 11,
+      "variants": [
+        {
+          "default": false,
+          "knockout": "SemiFinal",
+          "matchCount": 28,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p2"],
+            ["1p2", "2p1"]
+          ]
+        },
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 22,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3}
+          ],
+          "bracket": [
+            ["1p1", "3p3"],
+            ["1p2", "2p3"],
+            ["2p1", "2p2"],
+            ["1p3", "3p2"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 12,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 19,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 13,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 22,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 14,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 25,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 15,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 28,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 16,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 31,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 17,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 35,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 18,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 39,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 19,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 43,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 51,
+          "groups": [
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p3"],
+            ["2p4", "3p2"],
+            ["2p3", "3p1"],
+            ["1p2", "4p4"],
+            ["1p3", "4p1"],
+            ["2p2", "3p4"],
+            ["2p1", "3p3"],
+            ["1p4", "4p2"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 20,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 47,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 55,
+          "groups": [
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p3"],
+            ["2p4", "3p2"],
+            ["1p2", "4p4"],
+            ["2p3", "3p1"],
+            ["1p3", "4p1"],
+            ["2p2", "3p4"],
+            ["1p4", "4p2"],
+            ["2p1", "3p3"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 21,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "QuarterFinal",
+          "matchCount": 52,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 22,
+      "variants": [
+        {
+          "default": false,
+          "knockout": "QuarterFinal",
+          "matchCount": 57,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        },
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 45,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "3p4"],
+            ["1p2", "3p5"],
+            ["1p3", "2p6"],
+            ["2p4", "2p5"],
+            ["2p3", "2p2"],
+            ["1p4", "2p1"],
+            ["1p5", "3p2"],
+            ["1p6", "3p3"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 23,
+      "variants": [
+        {
+          "default": false,
+          "knockout": "QuarterFinal",
+          "matchCount": 62,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p4"],
+            ["1p2", "2p3"],
+            ["1p3", "2p2"],
+            ["1p4", "2p1"]
+          ]
+        },
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 42,
+          "groups": [
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3}
+          ],
+          "bracket": [
+            ["1p1", "3p7"],
+            ["1p2", "2p5"],
+            ["1p3", "2p6"],
+            ["1p4", "2p7"],
+            ["2p4", "2p1"],
+            ["1p5", "2p3"],
+            ["1p6", "2p2"],
+            ["1p7", "3p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 24,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 39,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 25,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 42,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 26,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 45,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 27,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 48,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 28,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 51,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 29,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 54,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 30,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 57,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 31,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 60,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 32,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 63,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 79,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 33,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 67,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 83,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 34,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 71,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 87,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 35,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 75,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 91,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 36,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 79,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 95,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 37,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 83,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 99,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 38,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 87,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 103,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 39,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 91,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 107,
+          "groups": [
+            {"size": 4, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 40,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 95,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf32",
+          "matchCount": 111,
+          "groups": [
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4},
+            {"size": 5, "qualifiers": 4}
+          ],
+          "bracket": [
+            ["1p1", "4p7"],
+            ["2p8", "3p4"],
+            ["1p2", "4p5"],
+            ["2p6", "3p3"],
+            ["1p3", "4p8"],
+            ["2p7", "3p2"],
+            ["1p4", "4p6"],
+            ["2p5", "3p1"],
+            ["1p5", "4p1"],
+            ["2p4", "3p7"],
+            ["1p6", "4p2"],
+            ["2p3", "3p8"],
+            ["1p7", "4p3"],
+            ["2p2", "3p6"],
+            ["1p8", "4p4"],
+            ["2p1", "3p5"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 41,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 100,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 42,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf16",
+          "matchCount": 105,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 43,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 94,
+          "groups": [
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "3p6"],
+            ["1p2", "3p9"],
+            ["2p7", "2p8"],
+            ["1p3", "2p10"],
+            ["1p4", "3p7"],
+            ["2p9", "2p11"],
+            ["1p5", "3p10"],
+            ["1p6", "3p8"],
+            ["1p7", "3p5"],
+            ["1p8", "3p4"],
+            ["1p9", "3p3"],
+            ["2p1", "2p2"],
+            ["2p4", "2p3"],
+            ["1p10", "3p2"],
+            ["2p5", "2p6"],
+            ["1p11", "3p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 110,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 44,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 91,
+          "groups": [
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "3p11"],
+            ["1p2", "3p10"],
+            ["2p9", "2p12"],
+            ["1p3", "3p8"],
+            ["1p4", "3p7"],
+            ["2p10", "2p11"],
+            ["1p5", "2p8"],
+            ["1p6", "2p7"],
+            ["1p7", "2p4"],
+            ["1p8", "2p6"],
+            ["2p5", "2p2"],
+            ["1p9", "3p5"],
+            ["1p10", "3p4"],
+            ["2p1", "2p3"],
+            ["1p11", "3p2"],
+            ["1p12", "3p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 115,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 45,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 88,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "3p12"],
+            ["1p2", "3p10"],
+            ["1p3", "3p8"],
+            ["1p4", "2p13"],
+            ["1p5", "2p11"],
+            ["1p6", "2p9"],
+            ["1p7", "2p8"],
+            ["2p10", "2p12"],
+            ["2p2", "2p4"],
+            ["2p6", "2p7"],
+            ["1p8", "2p5"],
+            ["1p9", "2p3"],
+            ["1p10", "2p1"],
+            ["1p11", "3p6"],
+            ["1p12", "3p4"],
+            ["1p13", "3p2"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 120,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 46,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 85,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3},
+            {"size": 4, "qualifiers": 3}
+          ],
+          "bracket": [
+            ["1p1", "3p14"],
+            ["1p3", "3p13"],
+            ["1p5", "2p14"],
+            ["1p7", "2p13"],
+            ["2p11", "2p12"],
+            ["1p6", "2p10"],
+            ["1p4", "2p9"],
+            ["1p2", "2p8"],
+            ["1p8", "2p7"],
+            ["1p9", "2p6"],
+            ["1p11", "2p5"],
+            ["2p3", "2p4"],
+            ["1p10", "2p2"],
+            ["1p12", "2p1"],
+            ["1p13", "3p7"],
+            ["1p14", "3p6"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 125,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 47,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 82,
+          "groups": [
+            {"size": 4, "qualifiers": 3},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 4, "qualifiers": 3}
+          ],
+          "bracket": [
+            ["1p1", "3p15"],
+            ["1p2", "2p14"],
+            ["1p3", "2p13"],
+            ["1p4", "2p12"],
+            ["1p5", "2p11"],
+            ["1p6", "2p10"],
+            ["1p7", "2p9"],
+            ["2p15", "2p8"],
+            ["1p8", "2p1"],
+            ["1p9", "2p7"],
+            ["1p10", "2p6"],
+            ["1p11", "2p5"],
+            ["1p12", "2p4"],
+            ["1p13", "2p3"],
+            ["1p14", "2p2"],
+            ["1p15", "3p1"]
+          ]
+        },
+        {
+          "default": false,
+          "knockout": "RoundOf16",
+          "matchCount": 130,
+          "groups": [
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 6, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p8"],
+            ["1p2", "2p7"],
+            ["1p3", "2p6"],
+            ["1p4", "2p5"],
+            ["1p5", "2p4"],
+            ["1p6", "2p3"],
+            ["1p7", "2p2"],
+            ["1p8", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 48,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 79,
+          "groups": [
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 49,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 82,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 50,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 85,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 51,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 88,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 52,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 91,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 53,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 94,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 54,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 97,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 55,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 100,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 56,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 103,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 57,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 106,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 58,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 109,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 59,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 112,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 60,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 115,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 61,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 118,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 62,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 121,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 63,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 124,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 3, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 64,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 127,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 65,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 131,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 66,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 135,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 67,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 139,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 68,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 143,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 69,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 147,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 70,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 151,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 71,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 155,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 72,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 159,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 73,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 163,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 74,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 167,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 75,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 171,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 76,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 175,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 77,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 179,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 78,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 183,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 79,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 187,
+          "groups": [
+            {"size": 4, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    },
+    {
+      "players": 80,
+      "variants": [
+        {
+          "default": true,
+          "knockout": "RoundOf32",
+          "matchCount": 191,
+          "groups": [
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2},
+            {"size": 5, "qualifiers": 2}
+          ],
+          "bracket": [
+            ["1p1", "2p16"],
+            ["1p2", "2p15"],
+            ["1p3", "2p14"],
+            ["1p4", "2p13"],
+            ["1p5", "2p12"],
+            ["1p6", "2p11"],
+            ["1p7", "2p10"],
+            ["1p8", "2p9"],
+            ["1p9", "2p8"],
+            ["1p10", "2p7"],
+            ["1p11", "2p6"],
+            ["1p12", "2p5"],
+            ["1p13", "2p4"],
+            ["1p14", "2p3"],
+            ["1p15", "2p2"],
+            ["1p16", "2p1"]
+          ]
+        }
+      ]
+    }
+  ]
+}

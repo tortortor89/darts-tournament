@@ -47,6 +47,8 @@ export interface Tournament {
   // Saison effective (propre ou héritée du circuit)
   seasonId?: number;
   seasonName?: string;
+  // Format FSGT : poules, qualifiés et affiches selon le nombre d'inscrits
+  useFsgtFormat: boolean;
 }
 
 export interface TournamentDetail extends Omit<Tournament, 'playerCount'> {
@@ -93,6 +95,8 @@ export interface Group {
   name: string;
   players: TournamentPlayer[];
   teams?: TournamentTeam[];
+  // Qualifiés de la poule (format FSGT) ; absent = qualifiersPerGroup du tournoi
+  qualifierCount?: number;
 }
 
 // En double : player1Id/player2Id/winnerId portent des ids d'ÉQUIPE et les noms
@@ -147,6 +151,8 @@ export interface PlayerStanding {
   pointsDiff: number;
   points: number;
   rank: number;
+  // Égalité parfaite à départager à la main (rang partagé)
+  tieUnresolved?: boolean;
 }
 
 // Circuits
@@ -167,6 +173,8 @@ export interface Circuit {
   pointsRules: CircuitPointsRule[];
   seasonId?: number;
   seasonName?: string;
+  // Barème FSGT (tour atteint selon le nombre d'inscrits) au lieu du barème par place
+  useFsgtPoints: boolean;
 }
 
 export interface CircuitDetail {
@@ -179,6 +187,7 @@ export interface CircuitDetail {
   tournaments: Tournament[];
   seasonId?: number;
   seasonName?: string;
+  useFsgtPoints: boolean;
 }
 
 export interface CircuitTournamentPoints {

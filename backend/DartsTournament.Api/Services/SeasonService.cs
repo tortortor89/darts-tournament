@@ -67,7 +67,8 @@ public class SeasonService
                     t.HasKnockoutPhase, t.AllowBracketReset,
                     null, null,
                     t.TeamSize == 2,
-                    season.Id, season.Name))
+                    season.Id, season.Name,
+                    t.UseFsgtFormat))
                 .ToList(),
             season.Circuits
                 .OrderByDescending(c => c.CreatedAt)
@@ -79,7 +80,8 @@ public class SeasonService
                         .OrderBy(r => r.MinRank)
                         .Select(r => new PointsRuleDto(r.MinRank, r.MaxRank, r.Points))
                         .ToList(),
-                    season.Id, season.Name))
+                    season.Id, season.Name,
+                    c.UseFsgtPoints))
                 .ToList(),
             season.Championships
                 .OrderByDescending(c => c.CreatedAt)

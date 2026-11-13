@@ -55,6 +55,10 @@ public static class FinalPlacementCalculator
             .ToList();
     }
 
+    /// <summary>Membres de chaque côté (joueur seul en simple, les deux joueurs en double).</summary>
+    public static Dictionary<int, List<(int PlayerId, string PlayerName)>> GetSideMembers(Tournament tournament) =>
+        BuildSides(tournament).ToDictionary(s => s.Id, s => s.Members);
+
     // ----- Construction des côtés -----
 
     private static List<SideEntry> BuildSides(Tournament tournament)

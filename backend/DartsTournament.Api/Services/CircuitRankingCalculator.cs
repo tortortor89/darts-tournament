@@ -15,27 +15,34 @@ public static class CircuitRankingCalculator
         return rule?.Points ?? participationPoints;
     }
 
+    // Barème personnalisable : points selon la place finale
     public static List<CircuitStandingResponse> Aggregate(
         IEnumerable<(Tournament Tournament, List<FinalPlacement> Placements)> completedTournaments,
         IReadOnlyCollection<CircuitPointsRule> rules,
-        int participationPoints)
+        int participationPoints) =>
+        Aggregate(completedTournaments.Select(t => (t.Tournament, t.Placements
+            .Select(p => new PlayerTournamentPoints(
+                p.PlayerId, p.PlayerName, p.Rank, PointsForRank(p.Rank, rules, participationPoints)))
+            .ToList())));
+
+    // Points déjà calculés par tournoi (barème personnalisable ou FSGT)
+    public static List<CircuitStandingResponse> Aggregate(
+        IEnumerable<(Tournament Tournament, List<PlayerTournamentPoints> Points)> completedTournaments)
     {
         var byPlayer = new Dictionary<int, (string Name, List<CircuitTournamentPointsResponse> Details)>();
 
-        foreach (var (tournament, placements) in completedTournaments)
+        foreach (var (tournament, playerPoints) in completedTournaments)
         {
-            foreach (var placement in placements)
+            foreach (var p in playerPoints)
             {
-                int points = PointsForRank(placement.Rank, rules, participationPoints);
-
-                if (!byPlayer.TryGetValue(placement.PlayerId, out var entry))
+                if (!byPlayer.TryGetValue(p.PlayerId, out var entry))
                 {
-                    entry = (placement.PlayerName, new List<CircuitTournamentPointsResponse>());
-                    byPlayer[placement.PlayerId] = entry;
+                    entry = (p.PlayerName, new List<CircuitTournamentPointsResponse>());
+                    byPlayer[p.PlayerId] = entry;
                 }
 
                 entry.Details.Add(new CircuitTournamentPointsResponse(
-                    tournament.Id, tournament.Name, placement.Rank, points));
+                    tournament.Id, tournament.Name, p.Rank, p.Points));
             }
         }
 

@@ -99,6 +99,7 @@ export class ApiService {
     circuitId?: number;
     isDoubles?: boolean;
     seasonId?: number;
+    useFsgtFormat?: boolean;
   }): Observable<Tournament> {
     return this.http.post<Tournament>(`${this.API_URL}/tournaments`, tournament);
   }
@@ -166,11 +167,11 @@ export class ApiService {
     return this.http.get<CircuitStanding[]>(`${this.API_URL}/circuits/${id}/ranking`);
   }
 
-  createCircuit(circuit: { name: string; description?: string; participationPoints?: number; pointsRules?: CircuitPointsRule[]; seasonId?: number }): Observable<Circuit> {
+  createCircuit(circuit: { name: string; description?: string; participationPoints?: number; pointsRules?: CircuitPointsRule[]; seasonId?: number; useFsgtPoints?: boolean }): Observable<Circuit> {
     return this.http.post<Circuit>(`${this.API_URL}/circuits`, circuit);
   }
 
-  updateCircuit(id: number, circuit: { name: string; description?: string; participationPoints: number; pointsRules: CircuitPointsRule[] }): Observable<void> {
+  updateCircuit(id: number, circuit: { name: string; description?: string; participationPoints: number; pointsRules: CircuitPointsRule[]; useFsgtPoints?: boolean }): Observable<void> {
     return this.http.put<void>(`${this.API_URL}/circuits/${id}`, circuit);
   }
 
@@ -321,6 +322,11 @@ export class ApiService {
   // Matches
   getMatch(id: number): Observable<Match> {
     return this.http.get<Match>(`${this.API_URL}/matches/${id}`);
+  }
+
+  // Départage manuel d'une égalité parfaite en poule : côtés ex-aequo dans l'ordre final
+  setGroupTieBreak(tournamentId: number, groupId: number, sideIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.API_URL}/tournaments/${tournamentId}/groups/${groupId}/tiebreak`, { sideIds });
   }
 
   updateMatchScore(id: number, player1Score: number, player2Score: number): Observable<void> {
